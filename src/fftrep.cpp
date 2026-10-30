@@ -357,3 +357,37 @@ std::tuple<float, float, float, float> bbox_2d(arr<float> Y_, int n_threads)
     for (int t = 1; t < nt; ++t) { xmin = std::min(xmin, lo[2 * t]); ymin = std::min(ymin, lo[2 * t + 1]); xmax = std::max(xmax, hi[2 * t]); ymax = std::max(ymax, hi[2 * t + 1]); }
     return std::make_tuple(xmin, ymin, xmax, ymax);
 }
+
+
+// attraction term of the UMAP cross-entropy, exact form: out_i = sum_j mu_ij 2ab d^(2b-2)/(1 + a d^2b) (y_i - y_j)
+arr<float> umap_attraction(arr<int32_t> indptr_, arr<int32_t> indices_, arr<float> data_, arr<float> Y_, float a, float b, int n_threads)
+{
+    require(Y_.ndim() == 2, "Y must be 2-d");
+    const int64_t n = Y_.shape(0); const int dim = (int)Y_.shape(1);
+    require(dim >= 1 && dim <= MAX_DIM && a > 0.f && b > 0.f, "bad parameters");
+    validate_csr(indptr_, indices_, &data_, n);
+    arr<float> out({n, (int64_t)dim});
+    float* O = out.mutable_data();
+    const float* Y = Y_.data(); const int32_t* ip = indptr_.data(); const int32_t* ix = indices_.data(); const float* P = data_.data();
+    const int nt = (int)std::min<int64_t>(resolve(n_threads), std::max<int64_t>(1, n / 4096));
+    py::gil_scoped_release release;
+    run_threads(nt, [&](int t) {
+        const int64_t r0 = n * t / nt, r1 = n * (t + 1) / nt;
+        float acc[MAX_DIM], diff[MAX_DIM];
+        for (int64_t i = r0; i < r1; ++i) {
+            for (int d = 0; d < dim; ++d) acc[d] = 0.f;
+            const float* yi = Y + i * dim;
+            for (int32_t e = ip[i]; e < ip[i + 1]; ++e) {
+                const float* yj = Y + (int64_t)ix[e] * dim;
+                float d2 = 0.f;
+                for (int d = 0; d < dim; ++d) { diff[d] = yi[d] - yj[d]; d2 += diff[d] * diff[d]; }
+                if (d2 <= 0.f) continue;
+                const float pw = powf(d2, b);
+                const float w = P[e] * 2.f * a * b * pw / (d2 * (1.f + a * pw));
+                for (int d = 0; d < dim; ++d) acc[d] += w * diff[d];
+            }
+            for (int d = 0; d < dim; ++d) O[i * dim + d] = acc[d];
+        }
+    });
+    return out;
+}

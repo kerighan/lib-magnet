@@ -13,8 +13,9 @@ class FFTRepulsion2D:
     by Lagrange interpolation on boxes of fixed width (unit by default, as FIt-SNE) and FFT
     convolution on the equispaced nodes. Kernel spectra are cached per grid size."""
 
-    def __init__(self, n_interp=3, box_width=1.0, min_boxes=20, max_boxes=1000, n_threads=-1, dof=1.0):
+    def __init__(self, n_interp=3, box_width=1.0, min_boxes=20, max_boxes=1000, n_threads=-1, dof=1.0, kernels=None):
         self.dof = float(dof)   # Student-t degrees of freedom of the kernel (1 = Cauchy, < 1 = heavier tail)
+        self.kernels = kernels  # optional callable r2 -> (K1, K2): K1 summed for sumQ, K2 weights the force
         self.n_interp = n_interp
         self.box_width = box_width
         self.min_boxes = min_boxes
@@ -47,9 +48,13 @@ class FFTRepulsion2D:
             off = np.arange(M)
             off = np.where(off <= M // 2, off, off - M).astype(np.float64) * delta
             r2 = off[:, None] ** 2 + off[None, :] ** 2
-            base = 1.0 + r2 / self.dof
-            K1 = (base ** (-self.dof)).astype(np.float32)          # q~_ij, for Z
-            K2 = (base ** (-self.dof - 1.0)).astype(np.float32)    # d q~ / d d^2 up to sign, for the force
+            if self.kernels is not None:
+                K1, K2 = self.kernels(r2)
+                K1 = np.asarray(K1, dtype=np.float32); K2 = np.asarray(K2, dtype=np.float32)
+            else:
+                base = 1.0 + r2 / self.dof
+                K1 = (base ** (-self.dof)).astype(np.float32)          # q~_ij, for Z
+                K2 = (base ** (-self.dof - 1.0)).astype(np.float32)    # d q~ / d d^2 up to sign, for the force
             workers = self.n_threads if self.n_threads and self.n_threads > 0 else -1
             self._cache = {key: (M, np.ascontiguousarray(fft.rfft2(K1, workers=workers), dtype=np.complex64),
                                  np.ascontiguousarray(fft.rfft2(K2, workers=workers), dtype=np.complex64))}
@@ -144,4 +149,48 @@ def optimize_tsne(P, Y, n_iter=750, early_iter=250, early_exaggeration=12.0, exa
     if verbose:
         xmin, ymin, width, n_boxes = rep._grid(Y)
         print(f"  t-SNE timers: {', '.join(f'{k} {v:.2f}s' for k, v in timers.items())} | final grid {n_boxes} boxes")
+    return Y
+
+
+def optimize_umap_exact(P, Y, a, b, n_iter=300, rep_weight=1.0, step=0.05, momentum=0.5, mid_pairs=None,
+                        mid_weight=0.0, mid_phase=0.5, n_threads=-1, verbose=False):
+    """Research mode: the UMAP cross-entropy with its repulsion computed exactly over all pairs
+    (FFT interpolation of the kernel 2b / ((eps + d^2)(1 + a d^2b))), instead of negative sampling.
+    rep_weight scales the exact repulsion; the value at which the layout matches the sampled one
+    measures the implicit down-weighting of negative sampling. Normalised gradient descent: the step
+    is `step` times the layout's RMS radius, decayed linearly, with momentum."""
+    from _magnet import umap_attraction, mid_spring
+
+    n = P.shape[0]
+    P = sp.csr_matrix(P, dtype=np.float32)
+    indptr, indices, data = P.indptr.astype(np.int32), P.indices.astype(np.int32), P.data.astype(np.float32)
+    Y = np.ascontiguousarray(Y, dtype=np.float32)
+    eps = 0.001
+
+    def kernels(r2):
+        pw = r2 ** b
+        g = 2.0 * b / ((eps + r2) * (1.0 + a * pw))     # repulsive weight of the UMAP gradient
+        return np.zeros_like(g), g                      # no normalisation term
+
+    rep = FFTRepulsion2D(n_threads=n_threads, kernels=kernels)
+    update = np.zeros_like(Y)
+    if mid_pairs is not None:
+        mid_pairs = np.ascontiguousarray(mid_pairs, dtype=np.int32)
+    for it in range(n_iter):
+        attr = np.asarray(umap_attraction(indptr, indices, data, Y, float(a), float(b), n_threads))
+        _, F = rep(Y)                                   # F_i = sum_j g(d_ij) (y_i - y_j)
+        grad = attr - rep_weight * F
+        if mid_pairs is not None and mid_weight > 0:
+            w_mid = mid_weight * max(0.0, 1.0 - it / max(1.0, mid_phase * n_iter))
+            if w_mid > 0:
+                grad = np.ascontiguousarray(grad, dtype=np.float32)
+                mid_spring(Y, mid_pairs, grad, float(w_mid), n_threads)
+        g_rms = float(np.sqrt((grad ** 2).sum(1).mean())) + 1e-12
+        y_rms = float(np.sqrt(((Y - Y.mean(0)) ** 2).sum(1).mean())) + 1e-12
+        eta = step * (1.0 - it / n_iter) * y_rms / g_rms
+        update = momentum * update - eta * grad
+        Y += update
+        Y -= Y.mean(0)
+        if verbose and (it % 100 == 0 or it == n_iter - 1):
+            print(f"  umap-exact iteration {it:4d}  |grad| rms {g_rms:.3g}  layout rms {y_rms:.3g}")
     return Y

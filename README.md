@@ -7,7 +7,7 @@ and t-SNE do: a neighbour graph pulls close points together, everything else pus
 rebuilds that pipeline from scratch in C++ and makes the one choice that matters explicit: how the
 repulsion is estimated.
 
-* `loss="umap"` (default): negative sampling, lock-free multithreaded SGD. **MNIST 70k in 4.9 s**
+* `loss="umap"` (default): negative sampling, lock-free multithreaded SGD. **MNIST 70k in 4.2 s**
   against 18 s for UMAP, 15-NN preservation 0.19 against 0.12 and a distance correlation of 0.41
   against 0.30: the best global structure of the seven methods benchmarked.
 * `loss="tsne"`: exact repulsion over all pairs through FFT interpolation. **MNIST 70k in 9 s**
@@ -64,7 +64,13 @@ global structure and label accuracy (MNIST 70k, 15-NN preservation): b = 0.8: 0.
 b = 0.6: 0.19, **b = 0.5: 0.21**, b = 0.4: 0.19. Text data peaks at 0.6-0.7, images at 0.5, so the
 default is `kernel_b=0.6`. The exponent cannot be learned by gradient on the same loss (it sharpens
 the kernel into a step and trades off against the global scale); it is a per-dataset choice, and the
-benchmark harness is the way to make it. (`kernel_b="auto"` sweeps 0.4-0.7 on a 4k subsample by
+benchmark harness is the way to make it. In 3-D the crowding is milder and the optimum moves back to
+b = 0.8 (MNIST 20k, `n_components=3`: 15-NN 0.327 at 0.8 against 0.326 at 0.6 and 0.316 at 0.5, with
+better trustworthiness and global structure), hence the dimension-dependent default. `n_neighbors`
+stays at 15: 10 gains 4% of 15-NN preservation and loses a little global structure, 30 the opposite.
+Graph inputs are unaffected by the new kernel (SBM: label accuracy 1.00 either way), `transform()`
+keeps 0.958 of 10-NN accuracy on MNIST test points, and the 1M synthetic point runs in 54 s.
+(`kernel_b="auto"` sweeps 0.4-0.7 on a 4k subsample by
 15-NN preservation in a few seconds, but the optimum depends on the sample size: it picked 0.7 on a
 MNIST subsample where the full 20k wants 0.5. The flat region 0.5-0.7 makes the fixed default the
 safer choice.) What does *not* predict it: the intrinsic dimension of the data. On Gaussian
@@ -84,8 +90,20 @@ heavier Student-t tail (`tsne_dof` < 1) raises trustworthiness and compactness b
 preservation (0.405 at dof 1, 0.354 at dof 0.5 on MNIST 20k), as Kobak et al. found; its default
 stays the Cauchy kernel.
 Cluster compactness is a look, not a fidelity measure (it can always be bought with neighbourhood
-quality); if you want UMAP's tight blobs, `late_exaggeration=1.5` gives a silhouette of 0.54 on MNIST
-against 0.52 for UMAP while staying ahead of it on every other metric.
+quality); if you want UMAP's tight blobs, `late_exaggeration=1.5` gives a silhouette of 0.61 on MNIST
+against 0.52 for UMAP while staying ahead of it on every other metric (15-NN 0.170 against 0.116).
+
+### The written UMAP loss, optimised exactly (`loss="umap_exact"`)
+
+A research mode: the cross-entropy UMAP writes down, with its repulsion summed over all pairs by the
+same FFT machinery, scaled by `repulsion_strength`. On MNIST 20k the loss as written (weight 1)
+destroys the layout (15-NN preservation 0.002, label accuracy 0.25); the sampled optimiser's quality
+is only approached once the repulsion is divided by about 1000 (weight 0.001: 0.263 against 0.286),
+which is the order of n / (negative_sample_rate x samples per node) = 20000 / 25 predicted by
+Damrich & Hamprecht for the implicit down-weighting of negative sampling. Two conclusions: UMAP's
+embeddings come from that bias, not from its stated objective, and removing the sampling noise
+without changing the balance (the "debiased UMAP") brings nothing: in the exact setting the
+normalised repulsion of t-SNE (`loss="tsne"`, 0.405) is the one that works.
 
 ## How it works
 
@@ -125,8 +143,9 @@ UMAP, openTSNE, PaCMAP, TriMap and scikit-learn's t-SNE is in [benchmarks/BENCHM
 
 | | time | 15-NN pres. | trustworthiness | dist. Spearman | triplet acc. | 10-NN acc. |
 |---|---|---|---|---|---|---|
-| **MAGNET** | **4.9 s** | 0.190 | 0.958 | **0.406** | **0.642** | 0.967 |
+| **MAGNET** | **4.2 s** | 0.191 | 0.957 | **0.402** | **0.640** | 0.966 |
 | MAGNET, `kernel_b=0.5` | 4.1 s | 0.206 | 0.959 | 0.406 | 0.641 | 0.967 |
+| MAGNET, `late_exaggeration=1.5` (compact preset, silhouette 0.61 against 0.52 for UMAP) | 4.2 s | 0.170 | 0.955 | 0.371 | 0.632 | 0.967 |
 | **MAGNET `loss="tsne"`** | 9.2 s | 0.349 | 0.966 | 0.348 | 0.627 | 0.966 |
 | UMAP 0.5.11 | 18.2 s | 0.116 | 0.951 | 0.300 | 0.607 | 0.967 |
 | openTSNE 1.0.4 | 102.5 s | 0.347 | **0.968** | 0.330 | 0.619 | 0.965 |
@@ -190,7 +209,7 @@ Any networkx graph or sparse adjacency matrix is laid out directly, in linear ti
 | `init` | `"auto"` | PCA for `loss="tsne"` on data, spectral otherwise; or `"spectral"`, `"pca"`, `"random"`, an array |
 | `knn` | `"nndescent"` | or `"hnsw"` (needs hnswlib) |
 | `pca` | None | project wide data to this many components before the neighbour search |
-| `kernel_b` | 0.6 | tail exponent of the kernel (0.5 for images, 0.6-0.7 for text; None = UMAP's fit ~0.8; 1 = Cauchy) |
+| `kernel_b` | `"auto_dim"` | tail exponent of the kernel: 0.6 in 2-D (0.5 for images, 0.7 for text), 0.8 in 3-D; None = UMAP's fit; 1 = Cauchy |
 | `kernel` | `"power"` | or `"gaussian"`, `"sech"` (exponential tails, for comparison) |
 | `tsne_dof` | 1.0 | Student-t degrees of freedom of `loss="tsne"` (< 1 = heavier tail, Kobak et al. 2019) |
 | `fft_interp`, `fft_box` | 3, 1.0 | grid of the exact repulsion (`fft_box=1.5` is the fast preset) |

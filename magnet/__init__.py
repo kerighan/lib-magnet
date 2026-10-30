@@ -76,9 +76,10 @@ class MAGNET:
         "gaussian" (exp(-a d^2)), "sech" (1 / cosh(a d)) or "tanh" (1 - tanh(a d^2)); the last three
         have exponential or lighter tails (kept for comparison).
     kernel_b : exponent b of the kernel 1 / (1 + a d^(2b)); a is fitted to the (min_dist, spread) curve.
-        None reproduces UMAP's fit (b ~ 0.8). Heavier tails preserve neighbourhoods much better:
+        None reproduces UMAP's fit (b ~ 0.8). Heavier tails preserve neighbourhoods much better in 2-D:
         on MNIST 70k, 15-NN preservation 0.13 (b 0.8) -> 0.19 (0.6) -> 0.21 (0.5) at equal global
-        structure and label accuracy; text data peaks at 0.6-0.7, images at 0.5. Default 0.6.
+        structure and label accuracy; text data peaks at 0.6-0.7, images at 0.5. In 3-D the crowding
+        is milder and 0.8 is best. Default "auto_dim": 0.6 for 2 components, 0.8 beyond.
         kernel_b=1 (Cauchy) removes the pow() from the inner loop (faster, but the worst local quality).
         "auto" picks it among {0.4, 0.5, 0.6, 0.7} by 15-NN preservation on a 4k subsample (a few
         seconds; the optimum drifts with the sample size, so the fixed default is usually as good);
@@ -90,7 +91,9 @@ class MAGNET:
         layout stops moving, then anneal.
     learning_rate : initial step (SGD) or Adam step size.
     loss : "umap" (negative-sampling cross entropy, as UMAP), "infonce" (contrastive softmax over the
-        positive and its negatives) or "tsne" (exact repulsion over all pairs through FFT interpolation,
+        positive and its negatives), "umap_exact" (research mode: the UMAP cross entropy with its
+        repulsion computed exactly over all pairs by FFT, scaled by repulsion_strength; 2-D only) or
+        "tsne" (exact repulsion over all pairs through FFT interpolation,
         full-batch gradient descent as FIt-SNE / openTSNE; 2-D only; `exaggeration` is then the
         attraction multiplier of the final phase: 1 = t-SNE, ~4 looks like UMAP).
     exaggeration : multiplier on the attractive gradient (UMAP ~ t-SNE with exaggeration 4).
@@ -150,7 +153,7 @@ class MAGNET:
 
     def __init__(self, n_components=2, n_neighbors=15, metric="euclidean", min_dist=0.05, spread=1.0,
                  n_epochs=None, learning_rate=1.0, negative_sample_rate=5, repulsion_strength=2.0,
-                 kernel="power", kernel_b=0.6, fft_interp=3, fft_box=1.0, tsne_early=None, loss="umap", exaggeration=1.0,
+                 kernel="power", kernel_b="auto_dim", fft_interp=3, fft_box=1.0, tsne_early=None, loss="umap", exaggeration=1.0,
                  late_exaggeration=1.0, late_phase=0.2, tsne_dof=1.0, optimizer="sgd", clip="coord", beta1=0.9, beta2=0.999,
                  walk_len=4, mid_weight=0.1, mid_rate=0.25, mid_phase=0.5, mid_scale="fixed", mid_source="auto",
                  n_mid_pairs=5, mid_jump=0.5,
@@ -311,6 +314,8 @@ class MAGNET:
 
         kb = self.kernel_b
         self.node_b_ = None
+        if isinstance(kb, str) and kb == "auto_dim":
+            kb = 0.6 if self.n_components <= 2 else 0.8   # less crowding in 3-D: lighter tail
         if isinstance(kb, str) and kb == "auto":
             if not hasattr(self, "_prepared_"):
                 raise ValueError("kernel_b='auto' needs a data matrix")
@@ -339,7 +344,21 @@ class MAGNET:
         Y = self._initial_embedding(P, data_matrix, rng)
 
         t = time.time()
-        if self.loss == "tsne":
+        if self.loss == "umap_exact":
+            if self.n_components != 2:
+                raise ValueError("loss='umap_exact' (FFT repulsion) is implemented for n_components=2 only")
+            from .tsne import optimize_umap_exact
+            n_iter = self.n_epochs if isinstance(self.n_epochs, (int, np.integer)) else 300
+            pairs = getattr(self, "_mid_pairs_", None)
+            if self.mid_source in ("data", "auto") and hasattr(self, "_prepared_") and self.mid_weight > 0 and pairs is None:
+                from .roles import mid_near_pairs
+                pairs = mid_near_pairs(self._prepared_, self.n_mid_pairs, random_state=self.random_state or 0, n_threads=self.n_threads)
+            Y = optimize_umap_exact(P, Y, self.a_, self.b_, n_iter=int(n_iter), rep_weight=float(self.repulsion_strength),
+                                    mid_pairs=pairs, mid_weight=float(self.mid_weight), mid_phase=float(self.mid_phase),
+                                    n_threads=self.n_threads, verbose=self.verbose)
+            self.n_epochs_ = int(n_iter)
+            head = np.zeros(0, dtype=np.int32)
+        elif self.loss == "tsne":
             if self.n_components != 2:
                 raise ValueError("loss='tsne' (FFT repulsion) is implemented for n_components=2 only")
             from .tsne import optimize_tsne

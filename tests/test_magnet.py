@@ -284,3 +284,15 @@ def test_kernel_exponent_array_and_auto():
     from sklearn.neighbors import NearestNeighbors
     nn = NearestNeighbors(n_neighbors=11).fit(m.embedding_).kneighbors(m.embedding_, return_distance=False)[:, 1:]
     assert (y[nn] == y[:, None]).mean() > 0.95
+
+
+def test_umap_exact_mode_runs_and_repulsion_weight_matters():
+    X, y = blobs(2000, d=10, centers=5, seed=10)
+    from sklearn.neighbors import NearestNeighbors
+    purity = {}
+    for w in (1.0, 0.01):
+        Y = MAGNET(loss="umap_exact", repulsion_strength=w, n_epochs=120, random_state=0).fit_transform(X)
+        assert Y.shape == (2000, 2) and np.isfinite(Y).all()
+        nn = NearestNeighbors(n_neighbors=11).fit(Y).kneighbors(Y, return_distance=False)[:, 1:]
+        purity[w] = (y[nn] == y[:, None]).mean()
+    assert purity[0.01] > 0.9 and purity[0.01] > purity[1.0]   # the written UMAP loss is far too repulsive

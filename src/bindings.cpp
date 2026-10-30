@@ -65,6 +65,8 @@ PYBIND11_MODULE(_magnet, m) {
     m.def("gather_forces_2d", &gather_forces_2d, "Potentials at the points and repulsive forces: (sumQ, F)",
           py::arg("Y"), py::arg("phi"), py::arg("xmin"), py::arg("ymin"), py::arg("width"), py::arg("n_boxes"), py::arg("n_interp"), py::arg("n_threads") = -1);
     m.def("bbox_2d", &bbox_2d, "Bounding box of a (n, 2) array", py::arg("Y"), py::arg("n_threads") = -1);
+    m.def("umap_attraction", &umap_attraction, "exact UMAP attraction over a CSR graph",
+          py::arg("indptr"), py::arg("indices"), py::arg("data"), py::arg("Y"), py::arg("a"), py::arg("b"), py::arg("n_threads") = -1);
     m.def("tsne_update", &tsne_update, "Fused gains / momentum / position update / recentring",
           py::arg("Y"), py::arg("update"), py::arg("gains"), py::arg("grad"), py::arg("lr"), py::arg("momentum"),
           py::arg("n_threads") = -1);

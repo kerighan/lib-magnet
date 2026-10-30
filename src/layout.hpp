@@ -97,3 +97,5 @@ arr<float> spectral_products(arr<float> K1h, arr<float> K2h, arr<float> Wh, int 
 std::tuple<float, arr<float>> gather_forces_2d(arr<float> Y, arr<float> phi, float xmin, float ymin, float width, int n_boxes, int n_interp, int n_threads);
 
 std::tuple<float, float, float, float> bbox_2d(arr<float> Y, int n_threads);
+
+arr<float> umap_attraction(arr<int32_t> indptr, arr<int32_t> indices, arr<float> data, arr<float> Y, float a, float b, int n_threads);

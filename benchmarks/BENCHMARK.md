@@ -8,7 +8,7 @@ Local structure: 15-NN preservation (fraction of each point's 15 nearest neighbo
 
 | method | time (s) | 15-NN pres. | trust. | dist. Spearman | triplet acc. | 10-NN acc. | compactness* |
 |---|---|---|---|---|---|---|---|
-| MAGNET (SGD, default) | **4.9** | 0.190 | 0.958 | **0.406** | **0.642** | 0.967 | 0.507 |
+| MAGNET (SGD, default) | **4.2** | 0.191 | 0.957 | **0.402** | **0.640** | 0.966 | 0.507 |
 | MAGNET (loss="tsne") | 9.2 | 0.349 | 0.966 | 0.348 | 0.627 | 0.966 | 0.347 |
 | UMAP 0.5.11 | 18.2 | 0.116 | 0.951 | 0.300 | 0.607 | 0.967 | 0.520 |
 | openTSNE 1.0.4 | 102.5 | 0.347 | 0.968 | 0.330 | 0.619 | 0.965 | 0.347 |
