@@ -10,7 +10,7 @@ repulsion is estimated.
 * `loss="umap"` (default): negative sampling, lock-free multithreaded SGD. **MNIST 70k in 4.2 s**
   against 18 s for UMAP, better neighbourhood preservation and a distance correlation of 0.42
   against 0.30: the best global structure of the seven methods benchmarked.
-* `loss="tsne"`: exact repulsion over all pairs through FFT interpolation. **MNIST 70k in 8.4 s**
+* `loss="tsne"`: exact repulsion over all pairs through FFT interpolation. **MNIST 70k in 9 s**
   against 102 s for openTSNE and 196 s for scikit-learn's t-SNE, with the same neighbourhood
   preservation as those two, three times that of UMAP in less time.
 * 1M points in 55 s and 3 GB. Native NN-descent (1.2 s for 70k x 784), spectral initialisation by
@@ -101,7 +101,7 @@ UMAP, openTSNE, PaCMAP, TriMap and scikit-learn's t-SNE is in [benchmarks/BENCHM
 |---|---|---|---|---|---|---|
 | **MAGNET** | **4.2 s** | 0.132 | 0.952 | **0.415** | **0.644** | 0.967 |
 | MAGNET, `late_exaggeration=1.5` (compact preset) | 4.2 s | 0.128 | 0.952 | 0.385 | 0.636 | **0.968** |
-| **MAGNET `loss="tsne"`** | 8.4 s | 0.349 | 0.966 | 0.348 | 0.627 | 0.966 |
+| **MAGNET `loss="tsne"`** | 9.2 s | 0.349 | 0.966 | 0.348 | 0.627 | 0.966 |
 | UMAP 0.5.11 | 18.2 s | 0.116 | 0.951 | 0.300 | 0.607 | 0.967 |
 | openTSNE 1.0.4 | 102.5 s | 0.347 | **0.968** | 0.330 | 0.619 | 0.965 |
 | PaCMAP | 24.8 s | 0.093 | 0.946 | 0.307 | 0.614 | **0.976** |
