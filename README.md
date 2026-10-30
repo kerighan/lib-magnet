@@ -161,7 +161,7 @@ scipy's pocketfft, which was never the bottleneck.
 `transform()` on MNIST (fit 60k, transform 10k): 0.6 s and 10-NN accuracy 0.962 against 14.8 s and
 0.956 for UMAP.
 
-Regenerate everything with `benchmarks/full_table.py`, `benchmarks/plot_tradeoff.py`,
+Regenerate everything with `benchmarks/full_table.py`, `benchmarks/render_table.py`, `benchmarks/plot_tradeoff.py`,
 `benchmarks/compare_plots.py`, `benchmarks/scaling.py` and `benchmarks/graph_demo.py`.
 
 ## Graphs
