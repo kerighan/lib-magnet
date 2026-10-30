@@ -46,6 +46,7 @@ void optimize_layout(
     int optimizer, int clip_mode, int64_t n_fixed,
     arr<float> adam_m, arr<float> adam_v, arr<int32_t> adam_t, float beta1, float beta2,
     arr<int32_t> walk_lens, arr<int32_t> mid_pairs,
+    arr<int32_t> jump_indptr, arr<int32_t> jump_indices, float mid_jump,
     uint64_t seed, int n_threads);
 
 arr<float> subspace_iteration(

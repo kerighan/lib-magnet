@@ -149,7 +149,7 @@ Any networkx graph or sparse adjacency matrix is laid out directly, in linear ti
 | `n_epochs` | auto | SGD epochs (500 / 300 / 200 by size) or t-SNE iterations (450); also `(constant, anneal)` or `"auto"` |
 | `samples_per_node` | 5 | attractive samples per node and per epoch |
 | `negative_sample_rate` | 5 | negatives per positive sample |
-| `mid_source`, `n_mid_pairs` | `"auto"`, 5 | mid-range partners from the data (PaCMAP-style pairs) or from random walks on the graph |
+| `mid_source`, `n_mid_pairs`, `mid_jump` | `"auto"`, 5, 0.5 | mid-range partners from the data (PaCMAP-style pairs), from random walks on the graph, or `"hybrid"` walks on both layers |
 | `walk_len`, `mid_weight`, `mid_rate`, `mid_phase` | 4, 0.1, 0.25, 0.5 | strength and schedule of the mid-range attraction (`mid_weight=0` disables) |
 | `init` | `"auto"` | PCA for `loss="tsne"` on data, spectral otherwise; or `"spectral"`, `"pca"`, `"random"`, an array |
 | `knn` | `"nndescent"` | or `"hnsw"` (needs hnswlib) |
@@ -171,8 +171,11 @@ Runs are reproducible only with `n_threads=1`: the SGD is lock-free.
 Measured with the harness, kept as options: constant-then-anneal and automatic epoch schedules
 (lose local structure against a plain linear decay), per-node Adam, norm clipping, InfoNCE
 (more global, less local), a bit-level `pow` approximation (no gain), the Cauchy kernel as default.
-A per-node diffusion scale for the mid-range walks (`mid_scale="spread"` or `"rolewalk"`) changes
-nothing measurable on MNIST: the mid-range term itself matters (distance correlation 0.35 against
+Random walks on a two-layer graph (kNN edges plus mid-near edges, `mid_source="hybrid"`): one
+mechanism for every scale on paper, but each walk step after a mid-range jump diffuses back into
+local structure and dilutes the inter-cluster signal (distance correlation 0.39 against 0.42 on
+MNIST, 0.68 against 0.71 on Fashion-MNIST, local unchanged). A per-node diffusion scale for the
+mid-range walks (`mid_scale="spread"` or `"rolewalk"`) changes nothing measurable on MNIST: the mid-range term itself matters (distance correlation 0.35 against
 0.29 without it) but not its per-node length. What did make the cut: `repulsion_strength=2` (+8%
 neighbourhood preservation, nothing lost), the centroid placement of disconnected components, PCA
 initialisation for the exact-repulsion mode, PaCMAP-style mid-near pairs in place of random walks for

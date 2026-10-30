@@ -86,7 +86,10 @@ class MAGNET:
     mid_source : where the mid-range partners come from: "data" (PaCMAP-style mid-near pairs: the
         second closest of 6 random rows in the data space, n_mid_pairs per point; +30% distance
         correlation on MNIST for -3% 15-NN preservation), "walk" (short random walks on the graph)
-        or "auto" (default: data when a data matrix is given, walks for graphs). With loss="tsne" the
+        "hybrid" (random walks of walk_len steps on the two-layer graph made of the kNN edges and the
+        mid-near edges, each step jumping along a mid-near edge with probability mid_jump: one
+        mechanism for every scale) or "auto" (default: data when a data matrix is given, walks for
+        graphs). With loss="tsne" the
         pairs act as a spring of stiffness 3 * mid_weight / n on the normalised gradient (+0.03
         distance correlation on MNIST at unchanged local quality).
     mid_scale : "fixed" (walk_len steps for every node), "spread" (per-node length from the 2-step
@@ -118,7 +121,7 @@ class MAGNET:
                  n_epochs=None, learning_rate=1.0, negative_sample_rate=5, repulsion_strength=2.0,
                  kernel_b=None, fft_interp=3, fft_box=1.0, tsne_early=None, loss="umap", exaggeration=1.0, optimizer="sgd", clip="coord", beta1=0.9, beta2=0.999,
                  walk_len=4, mid_weight=0.1, mid_rate=0.25, mid_phase=0.5, mid_scale="fixed", mid_source="auto",
-                 n_mid_pairs=5,
+                 n_mid_pairs=5, mid_jump=0.5,
                  component_placement="centroid",
                  init="auto", pca=None, knn="nndescent", ef_construction=80, M=16, ef=None,
                  set_op_mix_ratio=1.0, samples_per_node=5.0, graph_norm="sym", input="auto",
@@ -149,6 +152,7 @@ class MAGNET:
         self.mid_scale = mid_scale
         self.mid_source = mid_source
         self.n_mid_pairs = n_mid_pairs
+        self.mid_jump = mid_jump
         self.component_placement = component_placement
         self.init = init
         self.pca = pca
@@ -295,10 +299,17 @@ class MAGNET:
             n_epochs = self._resolve_epochs(n)
             head, tail, epochs_per_sample = self._edge_schedule(P, n_epochs)
             self._mid_pairs_ = None
-            if self.mid_source in ("data", "auto") and hasattr(self, "_prepared_") and self.mid_weight > 0:
+            self._jump_graph_ = None
+            if self.mid_source in ("data", "auto", "hybrid") and hasattr(self, "_prepared_") and self.mid_weight > 0:
                 from .roles import mid_near_pairs
                 self._mid_pairs_ = mid_near_pairs(self._prepared_, self.n_mid_pairs, random_state=self.random_state or 0,
                                                   n_threads=self.n_threads)
+                if self.mid_source == "hybrid":
+                    rows = np.repeat(np.arange(n), self.n_mid_pairs)
+                    J = sp.csr_matrix((np.ones(len(rows), np.float32), (rows, self._mid_pairs_.ravel())), shape=(n, n))
+                    J = (J + J.T).tocsr()
+                    J.sort_indices()
+                    self._jump_graph_ = J
             self._optimize(Y, head, tail, epochs_per_sample, P, n_epochs, n_fixed=0, seed=seed,
                            mid_weight=self.mid_weight)
         if self.verbose:
@@ -342,7 +353,10 @@ class MAGNET:
         eonns = (epochs_per_sample / self.negative_sample_rate).astype(np.float32)
         mid_pairs = getattr(self, "_mid_pairs_", None)
         mid_pairs = np.zeros((0, 1), dtype=np.int32) if mid_pairs is None else np.ascontiguousarray(mid_pairs, dtype=np.int32)
-        use_mid = P is not None and mid_weight > 0 and self.walk_len > 0 and self.mid_rate > 0
+        J = getattr(self, "_jump_graph_", None)
+        jump_indptr = J.indptr.astype(np.int32) if J is not None else np.zeros(0, dtype=np.int32)
+        jump_indices = J.indices.astype(np.int32) if J is not None else np.zeros(0, dtype=np.int32)
+        use_mid = P is not None and mid_weight > 0 and (self.walk_len > 0 or mid_pairs.size > 0) and self.mid_rate > 0
         walk_lens = np.zeros(0, dtype=np.int32)
         if use_mid:
             indptr = P.indptr.astype(np.int32)
@@ -360,7 +374,8 @@ class MAGNET:
                             float(self.a_), float(self.b_), float(self.negative_sample_rate), loss,
                             float(self.exaggeration), float(self.repulsion_strength), int(self.walk_len),
                             float(self.mid_rate), optimizer, clip, int(n_fixed),
-                            adam_m, adam_v, adam_t, float(self.beta1), float(self.beta2), walk_lens, mid_pairs, seed, int(self.n_threads))
+                            adam_m, adam_v, adam_t, float(self.beta1), float(self.beta2), walk_lens, mid_pairs, jump_indptr, jump_indices,
+                            float(self.mid_jump) if J is not None else 0.0, seed, int(self.n_threads))
 
         # ---- schedule: list of (epoch_start, epoch_end, lr_start, lr_end), plus the mid-range weight
         if isinstance(n_epochs, (int, np.integer)):
@@ -447,9 +462,11 @@ class MAGNET:
         eps = (1.0 / freq[keep]).astype(np.float32)
         rng = np.random.default_rng(self.random_state)
         saved_pairs, self._mid_pairs_ = getattr(self, "_mid_pairs_", None), None
+        saved_jumps, self._jump_graph_ = getattr(self, "_jump_graph_", None), None
         self._optimize(Y_all, head, tail, eps, None, int(n_epochs), n_fixed=n_train,
                        seed=int(rng.integers(0, 2 ** 62)), mid_weight=0.0)
         self._mid_pairs_ = saved_pairs
+        self._jump_graph_ = saved_jumps
         if self.verbose:
             print(f"transform ({m} points, {n_epochs} epochs) - T={time.time() - t0:.2f}s")
         return Y_all[n_train:]

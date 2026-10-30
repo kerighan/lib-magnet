@@ -33,6 +33,7 @@ struct Ctx {
     const int32_t* head; const int32_t* tail; const float* eps; float* eons; float* eonns; int64_t n_edges;
     const int32_t* indptr; const int32_t* indices; const int32_t* walk_lens; bool use_mid;
     const int32_t* mid_pairs; int n_mid;
+    const int32_t* jump_indptr; const int32_t* jump_indices; float mid_jump;  // two-layer walks
     float a, b, two_ab, two_b, negative_sample_rate, exaggeration, repulsion_strength, mid_rate;
     bool b_is_one; int m_neg, walk_len, loss, clip_mode; int64_t n_fixed;
     Adam ad; uint64_t seed; int nt;
@@ -160,7 +161,19 @@ void epoch_worker(const Ctx& c, int epoch, float alpha, float mid_w, int tid) {
         // ---- mid-range attraction: node reached by a short random walk from v
         if (mid_w > 0.0f && rng.uniform() < c.mid_rate) {
             int32_t w = v;
-            if (c.mid_pairs) {  // precomputed partners (PaCMAP-style mid-near pairs)
+            if (c.jump_indptr) {  // walk on the two-layer graph: kNN edges, or a mid-range jump with probability mid_jump
+                const int L = c.walk_lens ? c.walk_lens[v] : c.walk_len;
+                for (int h = 0; h < L; ++h) {
+                    const int32_t js = c.jump_indptr[w], je = c.jump_indptr[w + 1];
+                    if (je > js && rng.uniform() < c.mid_jump) {
+                        w = c.jump_indices[js + (int32_t)rng.below((uint32_t)(je - js))];
+                    } else {
+                        const int32_t s0 = c.indptr[w], e0w = c.indptr[w + 1];
+                        if (e0w <= s0) break;
+                        w = c.indices[s0 + (int32_t)rng.below((uint32_t)(e0w - s0))];
+                    }
+                }
+            } else if (c.mid_pairs) {  // precomputed partners (PaCMAP-style mid-near pairs)
                 w = c.mid_pairs[(int64_t)u * c.n_mid + rng.below((uint32_t)c.n_mid)];
             } else {            // short random walk on the graph from v
                 const int L = c.walk_lens ? c.walk_lens[v] : c.walk_len;
@@ -204,6 +217,7 @@ void optimize_layout(
     int optimizer, int clip_mode, int64_t n_fixed,
     arr<float> adam_m_, arr<float> adam_v_, arr<int32_t> adam_t_, float beta1, float beta2,
     arr<int32_t> walk_lens_, arr<int32_t> mid_pairs_,
+    arr<int32_t> jump_indptr_, arr<int32_t> jump_indices_, float mid_jump,
     uint64_t seed, int n_threads)
 {
     auto Yb = Y_.request();
@@ -245,10 +259,18 @@ void optimize_layout(
         for (int64_t i = 0; i < mid_pairs_.size(); ++i) require(mid_pairs_.data()[i] >= 0 && mid_pairs_.data()[i] < n_nodes, "mid_pairs index out of range");
         c.mid_pairs = mid_pairs_.data(); c.n_mid = (int)mid_pairs_.shape(1);
     }
+    c.jump_indptr = nullptr; c.jump_indices = nullptr; c.mid_jump = mid_jump;
+    const bool has_jumps = jump_indptr_.size() > 0 && mid_jump > 0.0f;
+    if (has_jumps) {
+        validate_csr(jump_indptr_, jump_indices_, nullptr, n_nodes);
+        c.jump_indptr = jump_indptr_.data(); c.jump_indices = jump_indices_.data();
+    }
+    const bool walks = has_jumps || !has_pairs;
     c.use_mid = (mid_w0 > 0.0f || mid_w1 > 0.0f) && mid_rate > 0.0f && (has_pairs || walk_len > 0);
-    if (c.use_mid && !has_pairs) validate_csr(indptr_, indices_, nullptr, n_nodes);
-    c.indptr = (c.use_mid && !has_pairs) ? indptr_.data() : nullptr;
-    c.indices = (c.use_mid && !has_pairs) ? indices_.data() : nullptr;
+    if (c.use_mid && walks) validate_csr(indptr_, indices_, nullptr, n_nodes);
+    c.indptr = (c.use_mid && walks) ? indptr_.data() : nullptr;
+    c.indices = (c.use_mid && walks) ? indices_.data() : nullptr;
+    if (has_jumps) c.mid_pairs = nullptr;
     c.walk_lens = nullptr;
     if (c.use_mid && walk_lens_.size() > 0) {
         require(walk_lens_.ndim() == 1 && walk_lens_.shape(0) == n_nodes, "walk_lens must have n entries");
