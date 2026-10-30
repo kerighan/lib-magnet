@@ -272,3 +272,15 @@ def test_mid_source_data_is_default_on_data_and_improves_global_structure():
         res[src] = spearmanr(dh, np.linalg.norm(m.embedding_[i] - m.embedding_[j], axis=1)).correlation
     assert m._mid_pairs_ is not None
     assert res["auto"] > res["walk"] - 0.05
+
+
+def test_kernel_exponent_array_and_auto():
+    X, y = blobs(3000, d=20, centers=6, seed=9)
+    rng = np.random.default_rng(0)
+    m = MAGNET(kernel_b=rng.uniform(0.4, 0.8, 3000).astype(np.float32), n_epochs=100, random_state=0).fit(X)
+    assert m.node_b_.shape == (3000,) and np.isfinite(m.embedding_).all()
+    m = MAGNET(kernel_b="auto", n_epochs=100, random_state=0).fit(X)
+    assert m.b_ in (0.4, 0.5, 0.6, 0.7) and len(m.kernel_b_scores_) == 4
+    from sklearn.neighbors import NearestNeighbors
+    nn = NearestNeighbors(n_neighbors=11).fit(m.embedding_).kneighbors(m.embedding_, return_distance=False)[:, 1:]
+    assert (y[nn] == y[:, None]).mean() > 0.95

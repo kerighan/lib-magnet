@@ -13,7 +13,8 @@ class FFTRepulsion2D:
     by Lagrange interpolation on boxes of fixed width (unit by default, as FIt-SNE) and FFT
     convolution on the equispaced nodes. Kernel spectra are cached per grid size."""
 
-    def __init__(self, n_interp=3, box_width=1.0, min_boxes=20, max_boxes=1000, n_threads=-1):
+    def __init__(self, n_interp=3, box_width=1.0, min_boxes=20, max_boxes=1000, n_threads=-1, dof=1.0):
+        self.dof = float(dof)   # Student-t degrees of freedom of the kernel (1 = Cauchy, < 1 = heavier tail)
         self.n_interp = n_interp
         self.box_width = box_width
         self.min_boxes = min_boxes
@@ -46,10 +47,12 @@ class FFTRepulsion2D:
             off = np.arange(M)
             off = np.where(off <= M // 2, off, off - M).astype(np.float64) * delta
             r2 = off[:, None] ** 2 + off[None, :] ** 2
-            K1 = (1.0 / (1.0 + r2)).astype(np.float32)
+            base = 1.0 + r2 / self.dof
+            K1 = (base ** (-self.dof)).astype(np.float32)          # q~_ij, for Z
+            K2 = (base ** (-self.dof - 1.0)).astype(np.float32)    # d q~ / d d^2 up to sign, for the force
             workers = self.n_threads if self.n_threads and self.n_threads > 0 else -1
             self._cache = {key: (M, np.ascontiguousarray(fft.rfft2(K1, workers=workers), dtype=np.complex64),
-                                 np.ascontiguousarray(fft.rfft2(K1 * K1, workers=workers), dtype=np.complex64))}
+                                 np.ascontiguousarray(fft.rfft2(K2, workers=workers), dtype=np.complex64))}
         return self._cache[key]
 
     def __call__(self, Y):
@@ -94,7 +97,7 @@ class FFTRepulsion2D:
 
 def optimize_tsne(P, Y, n_iter=750, early_iter=250, early_exaggeration=12.0, exaggeration=1.0,
                   learning_rate=None, momentum=(0.5, 0.8), n_interp=3, box_width=1.0, n_threads=-1,
-                  mid_pairs=None, mid_weight=0.0, mid_phase=0.5, verbose=False, callback=None):
+                  mid_pairs=None, mid_weight=0.0, mid_phase=0.5, dof=1.0, verbose=False, callback=None):
     """Full-batch t-SNE gradient descent. P: symmetric CSR affinities (will be normalised to sum 1),
     Y: (n, 2) float32 initial layout (modified in place and returned).
     mid_pairs: optional (n, m) partners (PaCMAP-style mid-near pairs); a spring of stiffness
@@ -112,7 +115,7 @@ def optimize_tsne(P, Y, n_iter=750, early_iter=250, early_exaggeration=12.0, exa
         mid_pairs = np.ascontiguousarray(mid_pairs, dtype=np.int32)
     update = np.zeros_like(Y)
     gains = np.ones_like(Y)
-    rep = FFTRepulsion2D(n_interp=n_interp, box_width=box_width, n_threads=n_threads)
+    rep = FFTRepulsion2D(n_interp=n_interp, box_width=box_width, n_threads=n_threads, dof=dof)
     t0 = time.time()
     timers = {"attraction": 0.0, "repulsion": 0.0, "update": 0.0}
     for it in range(n_iter):
@@ -120,7 +123,7 @@ def optimize_tsne(P, Y, n_iter=750, early_iter=250, early_exaggeration=12.0, exa
         rho = early_exaggeration if early else exaggeration
         mom = momentum[0] if early else momentum[1]
         t1 = time.time()
-        attr = np.asarray(tsne_attraction(indptr, indices, data, Y, n_threads))
+        attr = np.asarray(tsne_attraction(indptr, indices, data, Y, float(dof), n_threads))
         t2 = time.time()
         sumQ, F = rep(Y)
         t3 = time.time()

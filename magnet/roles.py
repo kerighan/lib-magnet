@@ -75,3 +75,51 @@ def mid_near_pairs(X, n_pairs=5, n_candidates=6, random_state=0, n_threads=-1):
                                                 int(n_candidates), seed, int(threads)))
     return np.asarray(mid_near_pairs_dense(np.ascontiguousarray(X, dtype=np.float32), int(n_pairs),
                                            int(n_candidates), seed, int(threads)))
+
+
+def local_intrinsic_dimension(X, k=15, random_state=0):
+    """Per-point intrinsic dimension: dimprint's calibrated estimator when importable, otherwise the
+    Levina-Bickel MLE on the k nearest neighbours (uncalibrated, biased low above ~5 dimensions)."""
+    try:
+        from dimprint import LocalIntrinsicDimension
+        return np.asarray(LocalIntrinsicDimension(k=k).fit(X).dimension_pw_, dtype=np.float64)
+    except Exception:
+        from .knn import knn_nndescent
+        ind, dist = knn_nndescent(X, k + 1, random_state=random_state)
+        d = np.maximum(dist, 1e-12)
+        logs = np.log(d[:, -1:] / d[:, :-1])
+        return (k - 1) / np.maximum(logs.sum(1), 1e-12)
+
+
+def local_kernel_exponent(X, k=15, random_state=0, law=None, low=0.3, high=1.0):
+    """Per-point kernel exponent from the local intrinsic dimension m_i. `law` maps m -> b; the default
+    is the fit of the benchmark study (see benchmarks/intrinsic_dim_study.py)."""
+    m = local_intrinsic_dimension(X, k, random_state)
+    if law is None:
+        law = lambda m: 0.6 * np.ones_like(m)   # placeholder until the study fixes the law
+    return np.clip(law(np.asarray(m, dtype=np.float64)), low, high).astype(np.float32)
+
+
+def select_kernel_exponent(X, candidates=(0.4, 0.5, 0.6, 0.7), n_sub=4000, n_epochs=150, metric="euclidean",
+                           random_state=0, n_threads=-1, **magnet_kwargs):
+    """Empirical choice of the kernel exponent: fit each candidate on a random subsample and keep the one
+    whose layout preserves the most 15-nearest-neighbour sets (exact neighbours on the subsample)."""
+    from sklearn.neighbors import NearestNeighbors
+    from . import MAGNET
+
+    rng = np.random.default_rng(random_state)
+    n = X.shape[0]
+    idx = rng.choice(n, min(n_sub, n), replace=False)
+    Xs = X[idx]
+    hnn = NearestNeighbors(n_neighbors=16, metric=metric, algorithm="brute").fit(Xs).kneighbors(Xs, return_distance=False)[:, 1:]
+    best, best_score = candidates[0], -1.0
+    scores = {}
+    for b in candidates:
+        Y = MAGNET(kernel_b=b, n_epochs=n_epochs, metric=metric, random_state=random_state, n_threads=n_threads,
+                   **magnet_kwargs).fit_transform(Xs)
+        lnn = NearestNeighbors(n_neighbors=16).fit(Y).kneighbors(Y, return_distance=False)[:, 1:]
+        score = float(np.mean([len(np.intersect1d(a, c)) for a, c in zip(hnn, lnn)]) / 15)
+        scores[b] = score
+        if score > best_score:
+            best, best_score = b, score
+    return best, scores

@@ -35,7 +35,8 @@ struct Ctx {
     const int32_t* mid_pairs; int n_mid;
     const int32_t* jump_indptr; const int32_t* jump_indices; float mid_jump;  // two-layer walks
     float a, b, two_ab, two_b, negative_sample_rate, exaggeration, repulsion_strength, mid_rate;
-    bool b_is_one; int m_neg, walk_len, loss, clip_mode; int64_t n_fixed;
+    bool b_is_one; int m_neg, walk_len, loss, clip_mode, kernel; int64_t n_fixed;
+    const float* node_b;  // optional per-node kernel exponent (power kernel)
     Adam ad; uint64_t seed; int nt;
 };
 
@@ -90,12 +91,18 @@ void epoch_worker(const Ctx& c, int epoch, float alpha, float mid_w, int tid) {
 
         float d2 = 0.0f;
         for (int d = 0; d < dim; ++d) { diff[d] = yu[d] - yv[d]; d2 += diff[d] * diff[d]; }
-        const float pw_v = c.b_is_one ? d2 : (d2 > 0.0f ? powf(d2, c.b) : 0.0f);
+        const float b_u = c.node_b ? c.node_b[u] : c.b;
+        const float b_uv = c.node_b ? 0.5f * (c.node_b[u] + c.node_b[v]) : c.b;
+        const float pw_v = (c.b_is_one && !c.node_b) ? d2 : (d2 > 0.0f ? powf(d2, b_uv) : 0.0f);
 
         if (c.loss == 0) {
             // ---- attraction along the edge (gradient of log q)
             if (d2 > 0.0f) {
-                const float coeff = -c.exaggeration * c.two_ab * pw_v / (d2 * (c.a * pw_v + 1.0f));
+                float coeff;
+                if (c.kernel == 0) coeff = -c.exaggeration * 2.0f * c.a * b_uv * pw_v / (d2 * (c.a * pw_v + 1.0f));
+                else if (c.kernel == 1) coeff = -c.exaggeration * 2.0f * c.a;                       // gaussian: q = exp(-a d^2)
+                else if (c.kernel == 2) { const float dd = sqrtf(d2); coeff = -c.exaggeration * c.a * tanhf(c.a * dd) / dd; }  // sech: q = 1 / cosh(a d)
+                else coeff = -c.exaggeration * 2.0f * c.a * (1.0f + tanhf(c.a * d2));               // tanh: q = 1 - tanh(a d^2)
                 for (int d = 0; d < dim; ++d) { const float g = coeff * diff[d]; gu[d] += g; gk[d] = -g; }
                 if (move_v) apply_step<DIM>(c, yv, gk, alpha, v);
             }
@@ -110,8 +117,11 @@ void epoch_worker(const Ctx& c, int epoch, float alpha, float mid_w, int tid) {
                 float dd = 0.0f;
                 for (int d = 0; d < dim; ++d) { diff[d] = yu[d] - yk[d]; dd += diff[d] * diff[d]; }
                 if (dd > 0.0f) {
-                    const float pw = c.b_is_one ? dd : powf(dd, c.b);
-                    const float coeff = c.two_b / ((0.001f + dd) * (c.a * pw + 1.0f));
+                    float coeff;
+                    if (c.kernel == 0) { const float pw = (c.b_is_one && !c.node_b) ? dd : powf(dd, b_u); coeff = 2.0f * b_u * c.repulsion_strength / ((0.001f + dd) * (c.a * pw + 1.0f)); }
+                    else if (c.kernel == 1) { const float q = expf(-c.a * dd); coeff = c.repulsion_strength * 2.0f * c.a * q / std::max(1.0f - q, 1e-3f); }
+                    else if (c.kernel == 2) { const float r = sqrtf(dd); const float q = 1.0f / coshf(c.a * r); coeff = c.repulsion_strength * c.a * q * tanhf(c.a * r) / (r * std::max(1.0f - q, 1e-3f)); }
+                    else { const float th = std::max(tanhf(c.a * dd), 1e-3f); coeff = c.repulsion_strength * 2.0f * c.a * (1.0f - th * th) / th; }
                     for (int d = 0; d < dim; ++d) gu[d] += coeff * diff[d];
                 } else {
                     for (int d = 0; d < dim; ++d) gu[d] += (rng.uniform() - 0.5f) * 1e-3f / std::max(alpha, 1e-6f);
@@ -218,7 +228,7 @@ void optimize_layout(
     arr<float> adam_m_, arr<float> adam_v_, arr<int32_t> adam_t_, float beta1, float beta2,
     arr<int32_t> walk_lens_, arr<int32_t> mid_pairs_,
     arr<int32_t> jump_indptr_, arr<int32_t> jump_indices_, float mid_jump,
-    uint64_t seed, int n_threads)
+    int kernel, arr<float> node_b_, uint64_t seed, int n_threads)
 {
     auto Yb = Y_.request();
     require(Yb.ndim == 2, "Y must be 2-dimensional");
@@ -234,6 +244,8 @@ void optimize_layout(
     require(epoch_start >= 0 && epoch_end >= epoch_start, "invalid epoch range");
     require(negative_sample_rate > 0.0f, "negative_sample_rate must be positive");
     require(loss == 0 || loss == 1, "loss must be 0 (umap) or 1 (infonce)");
+    require(kernel >= 0 && kernel <= 3, "kernel must be 0 (power), 1 (gaussian), 2 (sech) or 3 (tanh)");
+    require(loss == 0 || kernel == 0, "the InfoNCE loss supports the power kernel only");
     require(n_fixed >= 0 && n_fixed <= n_nodes, "n_fixed out of range");
 
     Ctx c;
@@ -283,7 +295,13 @@ void optimize_layout(
     c.repulsion_strength = repulsion_strength; c.mid_rate = mid_rate;
     c.b_is_one = std::fabs(b - 1.0f) < 1e-6f;
     c.m_neg = std::min(64, std::max(1, (int)std::lround(negative_sample_rate)));
-    c.walk_len = walk_len; c.loss = loss; c.clip_mode = clip_mode; c.n_fixed = n_fixed; c.seed = seed;
+    c.walk_len = walk_len; c.loss = loss; c.clip_mode = clip_mode; c.kernel = kernel; c.n_fixed = n_fixed; c.seed = seed;
+    c.node_b = nullptr;
+    if (node_b_.size() > 0) {
+        require(node_b_.ndim() == 1 && node_b_.shape(0) == n_nodes, "node_b must have n entries");
+        for (int64_t i = 0; i < n_nodes; ++i) require(node_b_.data()[i] > 0.05f && node_b_.data()[i] <= 2.0f, "node_b out of range");
+        c.node_b = node_b_.data();
+    }
     const int n_span = std::max(1, epoch_end - epoch_start);
 
     py::gil_scoped_release release;

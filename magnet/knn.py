@@ -190,9 +190,25 @@ def smooth_knn(dist, n_neighbors, bandwidth=1.0, n_iter=64):
     return vals
 
 
-def fuzzy_graph(ind, dist, n_neighbors, n=None, set_op_mix_ratio=1.0):
+def rescale_neighbor_distances(dist, power=1.0, rank_exponent=0.0):
+    """Reshape the neighbour-distance profile before the affinities are computed:
+    power: d_k <- d_1 (d_k / d_1)^power (a power transform relative to the nearest neighbour);
+    rank_exponent: d_k <- d_k * k^rank_exponent (the k-th neighbour pushed by a rank-dependent factor,
+    k^(1/2 - 1/m) maps an m-dimensional neighbour profile onto a 2-D one)."""
+    dist = np.asarray(dist, dtype=np.float32)
+    if power != 1.0:
+        d1 = np.maximum(dist[:, :1], 1e-12)
+        dist = d1 * (np.maximum(dist, 0.0) / d1) ** power
+    if rank_exponent != 0.0:
+        dist = dist * (np.arange(1, dist.shape[1] + 1, dtype=np.float32) ** rank_exponent)[None, :]
+    return dist.astype(np.float32)
+
+
+def fuzzy_graph(ind, dist, n_neighbors, n=None, set_op_mix_ratio=1.0, power=1.0, rank_exponent=0.0):
     """Symmetric fuzzy neighbourhood graph (CSR, float32) from kNN indices and distances."""
     n = ind.shape[0] if n is None else n
+    if power != 1.0 or rank_exponent != 0.0:
+        dist = rescale_neighbor_distances(dist, power, rank_exponent)
     vals = smooth_knn(dist, n_neighbors)
     rows = np.repeat(np.arange(n, dtype=np.int64), ind.shape[1])
     A = sp.csr_matrix((vals.ravel(), (rows, ind.ravel())), shape=(n, n), dtype=np.float32)

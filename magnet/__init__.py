@@ -15,15 +15,24 @@ __version__ = "3.0.0"
 __all__ = ["MAGNET", "find_ab_params"]
 
 
-def find_ab_params(spread=1.0, min_dist=0.1, b=None):
-    """Fit the (a, b) of the low-dim kernel 1 / (1 + a d^(2b)) to the (min_dist, spread) curve.
-    With b given (e.g. b=1: Cauchy kernel, no pow() in the inner loop), only a is fitted."""
+def find_ab_params(spread=1.0, min_dist=0.1, b=None, kernel="power"):
+    """Fit the low-dim kernel to the (min_dist, spread) curve: 1 / (1 + a d^(2b)) ("power", a and b or
+    only a when b is given), exp(-a d^2) ("gaussian") or 1 / cosh(a d) ("sech")."""
     from scipy.optimize import curve_fit
 
     xv = np.linspace(0, spread * 3, 300)
     yv = np.zeros(xv.shape)
     yv[xv < min_dist] = 1.0
     yv[xv >= min_dist] = np.exp(-(xv[xv >= min_dist] - min_dist) / spread)
+    if kernel == "gaussian":
+        params, _ = curve_fit(lambda x, a: np.exp(-a * x ** 2), xv, yv, p0=[1.0])
+        return float(params[0]), 1.0
+    if kernel == "sech":
+        params, _ = curve_fit(lambda x, a: 1.0 / np.cosh(a * x), xv, yv, p0=[1.0])
+        return float(params[0]), 1.0
+    if kernel == "tanh":
+        params, _ = curve_fit(lambda x, a: 1.0 - np.tanh(a * x ** 2), xv, yv, p0=[1.0])
+        return float(params[0]), 1.0
     if b is None:
         params, _ = curve_fit(lambda x, a, b: 1.0 / (1.0 + a * x ** (2 * b)), xv, yv)
         return float(params[0]), float(params[1])
@@ -63,8 +72,18 @@ class MAGNET:
     tsne_early : early-exaggeration iterations for loss="tsne" (default min(250, n_epochs // 3));
         with loss="tsne", n_epochs is the number of iterations (default 600 = 200 + 400; 450 with
         fft_box=1.5 is a fast preset at 7 s instead of 11 s on MNIST 70k, 750 the FIt-SNE schedule).
-    kernel_b : fix the exponent b of the kernel 1 / (1 + a d^(2b)) and fit only a (kernel_b=1 is the
-        Cauchy / t-SNE kernel and removes the pow() from the inner loop, about 30% faster SGD).
+    kernel : low-dimensional similarity family of the SGD mode: "power" (1 / (1 + a d^2b), heavy tail),
+        "gaussian" (exp(-a d^2)), "sech" (1 / cosh(a d)) or "tanh" (1 - tanh(a d^2)); the last three
+        have exponential or lighter tails (kept for comparison).
+    kernel_b : exponent b of the kernel 1 / (1 + a d^(2b)); a is fitted to the (min_dist, spread) curve.
+        None reproduces UMAP's fit (b ~ 0.8). Heavier tails preserve neighbourhoods much better:
+        on MNIST 70k, 15-NN preservation 0.13 (b 0.8) -> 0.19 (0.6) -> 0.21 (0.5) at equal global
+        structure and label accuracy; text data peaks at 0.6-0.7, images at 0.5. Default 0.6.
+        kernel_b=1 (Cauchy) removes the pow() from the inner loop (faster, but the worst local quality).
+        "auto" picks it among {0.4, 0.5, 0.6, 0.7} by 15-NN preservation on a 4k subsample (a few
+        seconds; the optimum drifts with the sample size, so the fixed default is usually as good);
+        an array gives one exponent per point; "local" derives it from the local intrinsic dimension
+        (dimprint if installed, Levina-Bickel MLE on the kNN distances otherwise).
     n_epochs : int -> that many epochs with a linear learning-rate decay (default None: 500 for
         n <= 10k, 300 for n <= 100k, else 200); (constant, anneal) tuple -> constant learning rate for
         the first count then linear decay over the second; "auto" -> constant learning rate until the
@@ -75,6 +94,8 @@ class MAGNET:
         full-batch gradient descent as FIt-SNE / openTSNE; 2-D only; `exaggeration` is then the
         attraction multiplier of the final phase: 1 = t-SNE, ~4 looks like UMAP).
     exaggeration : multiplier on the attractive gradient (UMAP ~ t-SNE with exaggeration 4).
+    tsne_dof : degrees of freedom of the Student-t kernel of loss="tsne" (1 = Cauchy, the t-SNE kernel;
+        smaller values give heavier tails, as in Kobak et al. 2019).
     late_exaggeration, late_phase : attraction multiplier applied during the last late_phase fraction
         of the SGD epochs (FIt-SNE's late exaggeration): tightens the clusters once the layout is set.
         late_exaggeration=1.5 gives UMAP-like compact clusters (silhouette 0.54 against 0.52 for UMAP
@@ -111,6 +132,9 @@ class MAGNET:
         kNN search (much faster on wide data such as images; neighbours change very little).
     knn : "nndescent" (native NN-descent kernel, default) or "hnsw" (hnswlib).
     ef_construction, M, ef : hnswlib parameters (higher = more exact, slower).
+    neighbor_power, neighbor_rank_exponent : reshape the neighbour-distance profile before the
+        affinities (d_k <- d_1 (d_k/d_1)^power, then d_k <- d_k k^rank_exponent): an input-side way
+        of compensating the dimension mismatch between the data manifold and the plane.
     samples_per_node : budget of attractive samples per node and per epoch. Edge i is sampled
         with frequency min(1, s * w_i) per epoch, s being chosen so that the total number of samples
         is samples_per_node * n. The cost of an epoch is therefore the same whatever the input graph.
@@ -126,13 +150,14 @@ class MAGNET:
 
     def __init__(self, n_components=2, n_neighbors=15, metric="euclidean", min_dist=0.05, spread=1.0,
                  n_epochs=None, learning_rate=1.0, negative_sample_rate=5, repulsion_strength=2.0,
-                 kernel_b=None, fft_interp=3, fft_box=1.0, tsne_early=None, loss="umap", exaggeration=1.0,
-                 late_exaggeration=1.0, late_phase=0.2, optimizer="sgd", clip="coord", beta1=0.9, beta2=0.999,
+                 kernel="power", kernel_b=0.6, fft_interp=3, fft_box=1.0, tsne_early=None, loss="umap", exaggeration=1.0,
+                 late_exaggeration=1.0, late_phase=0.2, tsne_dof=1.0, optimizer="sgd", clip="coord", beta1=0.9, beta2=0.999,
                  walk_len=4, mid_weight=0.1, mid_rate=0.25, mid_phase=0.5, mid_scale="fixed", mid_source="auto",
                  n_mid_pairs=5, mid_jump=0.5,
                  component_placement="centroid",
                  init="auto", pca=None, knn="nndescent", ef_construction=80, M=16, ef=None,
-                 set_op_mix_ratio=1.0, samples_per_node=5.0, graph_norm="sym", input="auto",
+                 set_op_mix_ratio=1.0, neighbor_power=1.0, neighbor_rank_exponent=0.0,
+                 samples_per_node=5.0, graph_norm="sym", input="auto",
                  transform_epochs=None, n_threads=-1, random_state=None, verbose=False):
         self.n_components = n_components
         self.n_neighbors = n_neighbors
@@ -143,6 +168,7 @@ class MAGNET:
         self.learning_rate = learning_rate
         self.negative_sample_rate = negative_sample_rate
         self.repulsion_strength = repulsion_strength
+        self.kernel = kernel
         self.kernel_b = kernel_b
         self.fft_interp = fft_interp
         self.fft_box = fft_box
@@ -151,6 +177,7 @@ class MAGNET:
         self.exaggeration = exaggeration
         self.late_exaggeration = late_exaggeration
         self.late_phase = late_phase
+        self.tsne_dof = tsne_dof
         self.optimizer = optimizer
         self.clip = clip
         self.beta1 = beta1
@@ -171,6 +198,8 @@ class MAGNET:
         self.M = M
         self.ef = ef
         self.set_op_mix_ratio = set_op_mix_ratio
+        self.neighbor_power = neighbor_power
+        self.neighbor_rank_exponent = neighbor_rank_exponent
         self.samples_per_node = samples_per_node
         self.graph_norm = graph_norm
         self.input = input
@@ -224,7 +253,8 @@ class MAGNET:
             else:
                 raise ValueError("knn must be 'nndescent' or 'hnsw'")
             self.knn_indices_, self.knn_dists_ = ind, dist
-            P = fuzzy_graph(ind, dist, self.n_neighbors, set_op_mix_ratio=self.set_op_mix_ratio)
+            P = fuzzy_graph(ind, dist, self.n_neighbors, set_op_mix_ratio=self.set_op_mix_ratio,
+                            power=self.neighbor_power, rank_exponent=self.neighbor_rank_exponent)
         P.setdiag(0)
         P.eliminate_zeros()
         if not is_data and self.graph_norm == "sym":
@@ -279,7 +309,30 @@ class MAGNET:
         n = P.shape[0]
         self.graph_ = P
 
-        a, b = find_ab_params(self.spread, self.min_dist, self.kernel_b)
+        kb = self.kernel_b
+        self.node_b_ = None
+        if isinstance(kb, str) and kb == "auto":
+            if not hasattr(self, "_prepared_"):
+                raise ValueError("kernel_b='auto' needs a data matrix")
+            from .roles import select_kernel_exponent
+            t_auto = time.time()
+            kb, self.kernel_b_scores_ = select_kernel_exponent(
+                X if isinstance(X, np.ndarray) else self._prepared_, metric=self.metric, random_state=self.random_state or 0,
+                n_threads=self.n_threads, mid_source="walk" if sp.issparse(X) else "auto")
+            if self.verbose:
+                print(f"kernel_b='auto' -> {kb} {self.kernel_b_scores_} - T={time.time() - t_auto:.2f}s")
+        if isinstance(kb, str) and kb == "local":
+            if not isinstance(X, np.ndarray):
+                raise ValueError("kernel_b='local' needs a dense data matrix (local intrinsic dimension)")
+            from .roles import local_kernel_exponent
+            self.node_b_ = local_kernel_exponent(X, self.n_neighbors, random_state=self.random_state or 0)
+            kb = float(np.median(self.node_b_))
+        elif kb is not None and not np.isscalar(kb):
+            self.node_b_ = np.asarray(kb, dtype=np.float32)
+            if self.node_b_.shape != (n,):
+                raise ValueError("kernel_b array must have one entry per point")
+            kb = float(np.median(self.node_b_))
+        a, b = find_ab_params(self.spread, self.min_dist, kb, self.kernel)
         self.a_, self.b_ = a, b
 
         data_matrix = X if isinstance(X, np.ndarray) and X.ndim == 2 else None
@@ -302,7 +355,7 @@ class MAGNET:
                               exaggeration=float(self.exaggeration), learning_rate=None,
                               n_interp=int(self.fft_interp), box_width=float(self.fft_box),
                               n_threads=self.n_threads, mid_pairs=pairs, mid_weight=3.0 * float(self.mid_weight),
-                              mid_phase=float(self.mid_phase), verbose=self.verbose)
+                              mid_phase=float(self.mid_phase), dof=float(self.tsne_dof), verbose=self.verbose)
             self.n_epochs_ = int(n_iter)
             head = np.zeros(0, dtype=np.int32)
         else:
@@ -359,6 +412,9 @@ class MAGNET:
         n = Y.shape[0]
         lr = float(self.learning_rate)
         loss = {"umap": 0, "infonce": 1}[self.loss]
+        kernel = {"power": 0, "gaussian": 1, "sech": 2, "tanh": 3}[self.kernel]
+        node_b = getattr(self, "node_b_", None)
+        node_b = np.zeros(0, dtype=np.float32) if node_b is None else np.ascontiguousarray(node_b, dtype=np.float32)
         optimizer = {"sgd": 0, "adam": 1}[self.optimizer]
         clip = {"coord": 0, "norm": 1}[self.clip]
         if optimizer == 1:
@@ -391,7 +447,7 @@ class MAGNET:
                             float(self.exaggeration if exag is None else exag), float(self.repulsion_strength), int(self.walk_len),
                             float(self.mid_rate), optimizer, clip, int(n_fixed),
                             adam_m, adam_v, adam_t, float(self.beta1), float(self.beta2), walk_lens, mid_pairs, jump_indptr, jump_indices,
-                            float(self.mid_jump) if J is not None else 0.0, seed, int(self.n_threads))
+                            float(self.mid_jump) if J is not None else 0.0, kernel, node_b, seed, int(self.n_threads))
 
         # ---- schedule: list of (epoch_start, epoch_end, lr_start, lr_end), plus the mid-range weight
         if isinstance(n_epochs, (int, np.integer)):

@@ -47,7 +47,7 @@ void optimize_layout(
     arr<float> adam_m, arr<float> adam_v, arr<int32_t> adam_t, float beta1, float beta2,
     arr<int32_t> walk_lens, arr<int32_t> mid_pairs,
     arr<int32_t> jump_indptr, arr<int32_t> jump_indices, float mid_jump,
-    uint64_t seed, int n_threads);
+    int kernel, arr<float> node_b, uint64_t seed, int n_threads);
 
 arr<float> subspace_iteration(
     arr<int32_t> indptr, arr<int32_t> indices, arr<float> data,
@@ -82,7 +82,7 @@ arr<float> interp_scatter(arr<float> Y, arr<float> charges, float xmin, float ym
                           int n_boxes, int n_interp, int n_threads);
 arr<float> interp_gather(arr<float> Y, arr<float> grid, float xmin, float ymin, float width,
                          int n_boxes, int n_interp, int n_threads);
-arr<float> tsne_attraction(arr<int32_t> indptr, arr<int32_t> indices, arr<float> data, arr<float> Y, int n_threads);
+arr<float> tsne_attraction(arr<int32_t> indptr, arr<int32_t> indices, arr<float> data, arr<float> Y, float dof, int n_threads);
 
 void tsne_update(arr<float> Y, arr<float> update, arr<float> gains, arr<float> grad, float lr, float momentum, int n_threads);
 

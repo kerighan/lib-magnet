@@ -128,9 +128,12 @@ arr<float> interp_gather(arr<float> Y_, arr<float> grid_, float xmin, float ymin
     return out;
 }
 
-// attraction term of t-SNE: out_i = sum_j p_ij q_ij (y_i - y_j), q = 1 / (1 + |y_i - y_j|^2)
-arr<float> tsne_attraction(arr<int32_t> indptr_, arr<int32_t> indices_, arr<float> data_, arr<float> Y_, int n_threads)
+// attraction term of t-SNE with a Student-t kernel of dof degrees of freedom (Kobak et al. 2019):
+// out_i = sum_j p_ij (1 + |y_i - y_j|^2 / dof)^-1 (y_i - y_j)   (dof = 1 is the usual Cauchy kernel)
+arr<float> tsne_attraction(arr<int32_t> indptr_, arr<int32_t> indices_, arr<float> data_, arr<float> Y_, float dof, int n_threads)
 {
+    require(dof > 0.f, "dof must be positive");
+    const float inv_dof = 1.f / dof;
     require(Y_.ndim() == 2, "Y must be 2-d");
     const int64_t n = Y_.shape(0); const int dim = (int)Y_.shape(1);
     require(dim >= 1 && dim <= MAX_DIM, "dim out of range");
@@ -150,7 +153,7 @@ arr<float> tsne_attraction(arr<int32_t> indptr_, arr<int32_t> indices_, arr<floa
                 const float* yj = Y + (int64_t)ix[e] * dim;
                 float d2 = 0.f;
                 for (int d = 0; d < dim; ++d) { diff[d] = yi[d] - yj[d]; d2 += diff[d] * diff[d]; }
-                const float w = P[e] / (1.f + d2);
+                const float w = P[e] / (1.f + d2 * inv_dof);
                 for (int d = 0; d < dim; ++d) acc[d] += w * diff[d];
             }
             for (int d = 0; d < dim; ++d) O[i * dim + d] = acc[d];

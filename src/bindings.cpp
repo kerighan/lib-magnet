@@ -16,7 +16,7 @@ PYBIND11_MODULE(_magnet, m) {
           py::arg("optimizer"), py::arg("clip_mode"), py::arg("n_fixed"),
           py::arg("adam_m"), py::arg("adam_v"), py::arg("adam_t"), py::arg("beta1"), py::arg("beta2"),
           py::arg("walk_lens"), py::arg("mid_pairs"), py::arg("jump_indptr"), py::arg("jump_indices"),
-          py::arg("mid_jump"), py::arg("seed"), py::arg("n_threads"));
+          py::arg("mid_jump"), py::arg("kernel"), py::arg("node_b"), py::arg("seed"), py::arg("n_threads"));
     m.def("subspace_iteration", &subspace_iteration, "Block power iteration for spectral init",
           py::arg("indptr"), py::arg("indices"), py::arg("data"), py::arg("X"),
           py::arg("inv_sqrt_deg"), py::arg("component"), py::arg("n_iter"), py::arg("tol"),
@@ -49,8 +49,8 @@ PYBIND11_MODULE(_magnet, m) {
     m.def("interp_gather", &interp_gather, "Read grid potentials back at the points (2-D)",
           py::arg("Y"), py::arg("grid"), py::arg("xmin"), py::arg("ymin"), py::arg("width"),
           py::arg("n_boxes"), py::arg("n_interp"), py::arg("n_threads") = -1);
-    m.def("tsne_attraction", &tsne_attraction, "sum_j p_ij q_ij (y_i - y_j) over a CSR graph",
-          py::arg("indptr"), py::arg("indices"), py::arg("data"), py::arg("Y"), py::arg("n_threads") = -1);
+    m.def("tsne_attraction", &tsne_attraction, "sum_j p_ij (1 + d^2/dof)^-1 (y_i - y_j) over a CSR graph",
+          py::arg("indptr"), py::arg("indices"), py::arg("data"), py::arg("Y"), py::arg("dof") = 1.0f, py::arg("n_threads") = -1);
     m.def("mid_near_pairs_dense", &mid_near_pairs_dense, "PaCMAP-style mid-near partners (dense rows)",
           py::arg("X"), py::arg("n_pairs") = 5, py::arg("n_cand") = 6, py::arg("seed") = 0, py::arg("n_threads") = -1);
     m.def("mid_near_pairs_sparse", &mid_near_pairs_sparse, "PaCMAP-style mid-near partners (CSR rows)",
