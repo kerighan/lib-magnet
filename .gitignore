@@ -16,6 +16,7 @@ benchmarks/plots/*.png
 !benchmarks/plots/compare_fmnist70000.png
 !benchmarks/plots/graph_demo.png
 !benchmarks/plots/compare_mnist70000_tsne.png
+!benchmarks/plots/tradeoff.png
 
 # local data
 data.npy
