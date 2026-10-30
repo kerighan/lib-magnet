@@ -45,7 +45,7 @@ void optimize_layout(
     float repulsion_strength, int walk_len, float mid_rate,
     int optimizer, int clip_mode, int64_t n_fixed,
     arr<float> adam_m, arr<float> adam_v, arr<int32_t> adam_t, float beta1, float beta2,
-    arr<int32_t> walk_lens,
+    arr<int32_t> walk_lens, arr<int32_t> mid_pairs,
     uint64_t seed, int n_threads);
 
 arr<float> subspace_iteration(
@@ -84,3 +84,9 @@ arr<float> interp_gather(arr<float> Y, arr<float> grid, float xmin, float ymin, 
 arr<float> tsne_attraction(arr<int32_t> indptr, arr<int32_t> indices, arr<float> data, arr<float> Y, int n_threads);
 
 void tsne_update(arr<float> Y, arr<float> update, arr<float> gains, arr<float> grad, float lr, float momentum, int n_threads);
+
+arr<int32_t> mid_near_pairs_dense(arr<float> X, int n_pairs, int n_cand, uint64_t seed, int n_threads);
+arr<int32_t> mid_near_pairs_sparse(arr<int32_t> indptr, arr<int32_t> indices, arr<float> data, int d,
+                                   int n_pairs, int n_cand, uint64_t seed, int n_threads);
+
+void mid_spring(arr<float> Y, arr<int32_t> pairs, arr<float> grad, float w, int n_threads);

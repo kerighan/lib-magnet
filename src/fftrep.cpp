@@ -192,3 +192,24 @@ void tsne_update(arr<float> Y_, arr<float> update_, arr<float> gains_, arr<float
         for (int64_t i = r0; i < r1; ++i) for (int d = 0; d < dim; ++d) Y[i * dim + d] -= mean[d];
     });
 }
+
+
+// grad += w * (Y_i - mean of the partners' positions), partners given as (n, m) indices
+void mid_spring(arr<float> Y_, arr<int32_t> pairs_, arr<float> grad_, float w, int n_threads)
+{
+    require(Y_.ndim() == 2 && grad_.ndim() == 2 && pairs_.ndim() == 2, "bad shapes");
+    const int64_t n = Y_.shape(0); const int dim = (int)Y_.shape(1); const int m = (int)pairs_.shape(1);
+    require(pairs_.shape(0) == n && grad_.shape(0) == n && grad_.shape(1) == dim && m >= 1, "bad shapes");
+    const float* Y = Y_.data(); const int32_t* Pp = pairs_.data(); float* G = grad_.mutable_data();
+    const int nt = (int)std::min<int64_t>(resolve(n_threads), std::max<int64_t>(1, n / 8192));
+    py::gil_scoped_release release;
+    run_threads(nt, [&](int t) {
+        const int64_t r0 = n * t / nt, r1 = n * (t + 1) / nt;
+        float acc[MAX_DIM];
+        for (int64_t i = r0; i < r1; ++i) {
+            for (int d = 0; d < dim; ++d) acc[d] = 0.f;
+            for (int k = 0; k < m; ++k) { const float* yp = Y + (int64_t)Pp[i * m + k] * dim; for (int d = 0; d < dim; ++d) acc[d] += yp[d]; }
+            for (int d = 0; d < dim; ++d) G[i * dim + d] += w * (Y[i * dim + d] - acc[d] / m);
+        }
+    });
+}

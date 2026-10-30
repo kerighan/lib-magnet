@@ -690,3 +690,51 @@ std::tuple<arr<int32_t>, arr<float>> knn_search_sparse(
     });
     return std::make_tuple(out_i, out_d);
 }
+
+
+// PaCMAP-style mid-near partners: for every row, the second closest of n_cand random rows, n_pairs times.
+template <class Data>
+arr<int32_t> mid_near_core(const Data& D, int n_pairs, int n_cand, uint64_t seed, int n_threads)
+{
+    const int64_t n = D.n;
+    require(n_pairs >= 1 && n_cand >= 2 && n >= n_cand + 1, "need n_pairs >= 1, n_cand >= 2 and n > n_cand");
+    arr<int32_t> out({n, (int64_t)n_pairs});
+    int32_t* O = out.mutable_data();
+    const int nt = (int)std::min<int64_t>(resolve(n_threads), std::max<int64_t>(1, n / 2048));
+    py::gil_scoped_release release;
+    run_threads(nt, [&](int t) {
+        Rng rng(seed + 48271ULL * (uint64_t)(t + 1));
+        std::vector<std::pair<float, int32_t>> cand(n_cand);
+        const int64_t r0 = n * t / nt, r1 = n * (t + 1) / nt;
+        for (int64_t i = r0; i < r1; ++i) {
+            for (int p = 0; p < n_pairs; ++p) {
+                for (int c = 0; c < n_cand; ++c) {
+                    int32_t j = (int32_t)rng.below((uint32_t)n);
+                    if (j == i) j = (int32_t)((j + 1) % n);
+                    cand[c] = {D.dist((int32_t)i, j), j};
+                }
+                std::partial_sort(cand.begin(), cand.begin() + 2, cand.end());
+                O[i * n_pairs + p] = cand[1].second;
+            }
+        }
+    });
+    return out;
+}
+
+arr<int32_t> mid_near_pairs_dense(arr<float> X_, int n_pairs, int n_cand, uint64_t seed, int n_threads)
+{
+    auto Xb = X_.request();
+    require(Xb.ndim == 2 && Xb.shape[1] >= 1, "X must be 2-d");
+    DenseData D{static_cast<const float*>(Xb.ptr), Xb.shape[0], (int)Xb.shape[1], pick_sqeuclid(), pick_dot()};
+    return mid_near_core(D, n_pairs, n_cand, seed, n_threads);
+}
+
+arr<int32_t> mid_near_pairs_sparse(arr<int32_t> indptr_, arr<int32_t> indices_, arr<float> data_, int d,
+                                   int n_pairs, int n_cand, uint64_t seed, int n_threads)
+{
+    const int64_t n = indptr_.shape(0) - 1;
+    validate_csr(indptr_, indices_, &data_, n, d);
+    SparseData D{indptr_.data(), indices_.data(), data_.data(), n, d, {}};
+    D.init();
+    return mid_near_core(D, n_pairs, n_cand, seed, n_threads);
+}

@@ -244,3 +244,31 @@ def test_rolewalk_component_placement_groups_similar_components():
     D = np.linalg.norm(centers[:, None] - centers[None], axis=-1)
     np.fill_diagonal(D, np.inf)
     assert (ctype[D.argmin(1)] == ctype).mean() >= 0.4   # chance level is 0.18
+
+
+def test_mid_near_pairs_are_closer_than_random():
+    from magnet.roles import mid_near_pairs
+    X, y = blobs(3000, d=20, centers=6, seed=7)
+    M = mid_near_pairs(X, n_pairs=5, random_state=0)
+    assert M.shape == (3000, 5) and (M != np.arange(3000)[:, None]).all()
+    d_mid = np.linalg.norm(X[M] - X[:, None, :], axis=-1).mean()
+    R = np.random.default_rng(0).integers(0, 3000, M.shape)
+    d_rand = np.linalg.norm(X[R] - X[:, None, :], axis=-1).mean()
+    assert d_mid < d_rand
+    import scipy.sparse as sp
+    Ms = mid_near_pairs(sp.csr_matrix(X), n_pairs=3, random_state=0)
+    assert Ms.shape == (3000, 3)
+
+
+def test_mid_source_data_is_default_on_data_and_improves_global_structure():
+    X, y = blobs(4000, d=30, centers=12, seed=8)
+    from scipy.stats import spearmanr
+    rng = np.random.default_rng(0)
+    i, j = rng.integers(0, 4000, (2, 3000))
+    dh = np.linalg.norm(X[i] - X[j], axis=1)
+    res = {}
+    for src in ("walk", "auto"):
+        m = MAGNET(n_epochs=200, mid_source=src, random_state=0).fit(X)
+        res[src] = spearmanr(dh, np.linalg.norm(m.embedding_[i] - m.embedding_[j], axis=1)).correlation
+    assert m._mid_pairs_ is not None
+    assert res["auto"] > res["walk"] - 0.05

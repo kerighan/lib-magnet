@@ -69,10 +69,12 @@ class FFTRepulsion2D:
 
 def optimize_tsne(P, Y, n_iter=750, early_iter=250, early_exaggeration=12.0, exaggeration=1.0,
                   learning_rate=None, momentum=(0.5, 0.8), n_interp=3, box_width=1.0, n_threads=-1,
-                  verbose=False, callback=None):
+                  mid_pairs=None, mid_weight=0.0, mid_phase=0.5, verbose=False, callback=None):
     """Full-batch t-SNE gradient descent. P: symmetric CSR affinities (will be normalised to sum 1),
-    Y: (n, 2) float32 initial layout (modified in place and returned)."""
-    from _magnet import tsne_attraction, tsne_update
+    Y: (n, 2) float32 initial layout (modified in place and returned).
+    mid_pairs: optional (n, m) partners (PaCMAP-style mid-near pairs); a spring of stiffness
+    mid_weight / n towards their mean position is added, annealed to zero over mid_phase * n_iter."""
+    from _magnet import tsne_attraction, tsne_update, mid_spring
 
     n = P.shape[0]
     P = sp.csr_matrix(P, dtype=np.float32)
@@ -81,6 +83,8 @@ def optimize_tsne(P, Y, n_iter=750, early_iter=250, early_exaggeration=12.0, exa
     if learning_rate is None:
         learning_rate = max(200.0, n / early_exaggeration)
     Y = np.ascontiguousarray(Y, dtype=np.float32)
+    if mid_pairs is not None:
+        mid_pairs = np.ascontiguousarray(mid_pairs, dtype=np.int32)
     update = np.zeros_like(Y)
     gains = np.ones_like(Y)
     rep = FFTRepulsion2D(n_interp=n_interp, box_width=box_width, n_threads=n_threads)
@@ -97,6 +101,11 @@ def optimize_tsne(P, Y, n_iter=750, early_iter=250, early_exaggeration=12.0, exa
         t3 = time.time()
         grad = rho * attr
         grad -= F * (1.0 / max(sumQ, 1e-12))
+        if mid_pairs is not None and mid_weight > 0:
+            w_mid = mid_weight * max(0.0, 1.0 - it / max(1.0, mid_phase * n_iter)) / n
+            if w_mid > 0:
+                grad = np.ascontiguousarray(grad, dtype=np.float32)
+                mid_spring(Y, mid_pairs, grad, float(w_mid), n_threads)
         tsne_update(Y, update, gains, np.ascontiguousarray(grad, dtype=np.float32), float(learning_rate), float(mom), n_threads)
         t4 = time.time()
         timers["attraction"] += t2 - t1; timers["repulsion"] += t3 - t2; timers["update"] += t4 - t3

@@ -57,3 +57,21 @@ def adaptive_walk_lengths(P, mode="spread", base=4, low=2, high=6, n_roles=None)
         out[:] = role_len[labels]
         return out
     raise ValueError("mode must be 'spread' or 'rolewalk'")
+
+
+def mid_near_pairs(X, n_pairs=5, n_candidates=6, random_state=0, n_threads=-1):
+    """PaCMAP-style mid-near partners: for every row, the second closest (in the data) of
+    n_candidates random rows, repeated n_pairs times. Dense array or CSR matrix (prepared with
+    prepare_data for the cosine metric). Returns (n, n_pairs) int32."""
+    from _magnet import mid_near_pairs_dense, mid_near_pairs_sparse
+
+    seed = int(random_state) if random_state is not None else 0
+    threads = n_threads if n_threads and n_threads > 0 else -1
+    if sp.issparse(X):
+        X = sp.csr_matrix(X, dtype=np.float32)
+        X.sort_indices()
+        return np.asarray(mid_near_pairs_sparse(X.indptr.astype(np.int32), X.indices.astype(np.int32),
+                                                X.data.astype(np.float32), int(X.shape[1]), int(n_pairs),
+                                                int(n_candidates), seed, int(threads)))
+    return np.asarray(mid_near_pairs_dense(np.ascontiguousarray(X, dtype=np.float32), int(n_pairs),
+                                           int(n_candidates), seed, int(threads)))

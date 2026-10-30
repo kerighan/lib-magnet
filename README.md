@@ -7,11 +7,12 @@ and t-SNE do: a neighbour graph pulls close points together, everything else pus
 rebuilds that pipeline from scratch in C++ and makes the one choice that matters explicit: how the
 repulsion is estimated.
 
-* `loss="umap"` (default): negative sampling, lock-free multithreaded SGD. **MNIST 70k in 5.6 s**
-  against 16 s for UMAP, with better neighbourhood preservation.
+* `loss="umap"` (default): negative sampling, lock-free multithreaded SGD. **MNIST 70k in 4.2 s**
+  against 18 s for UMAP, better neighbourhood preservation and a distance correlation of 0.42
+  against 0.30: the best global structure of the seven methods benchmarked.
 * `loss="tsne"`: exact repulsion over all pairs through FFT interpolation. **MNIST 70k in 12 s**
-  against 102 s for openTSNE and 196 s for scikit-learn's t-SNE, with the best neighbourhood
-  preservation of all the methods tested, three times that of UMAP in less time.
+  against 102 s for openTSNE and 196 s for scikit-learn's t-SNE, with the same neighbourhood
+  preservation as those two, three times that of UMAP in less time.
 * 1M points in 55 s and 3 GB. Native NN-descent (1.2 s for 70k x 784), spectral initialisation by
   Chebyshev-filtered subspace iteration, `transform()` for new points, sparse inputs, networkx graphs.
 
@@ -51,7 +52,7 @@ Hamprecht 2021). MAGNET exposes this directly:
 
 | | repulsion | look | when |
 |---|---|---|---|
-| `loss="umap"` | sampled (5 random points per positive sample) | compact clusters, UMAP-like | speed, 3-D, graphs, millions of points |
+| `loss="umap"` | sampled (5 random points per positive sample) | UMAP-like, with the global structure of PaCMAP | speed, 3-D, graphs, millions of points |
 | `loss="tsne"` | exact, all pairs, FFT-accelerated (2-D) | t-SNE-like, finest local structure | best neighbourhood preservation |
 | `loss="tsne", exaggeration=4` | exact | UMAP-like again | the two regimes really are one spectrum |
 
@@ -74,9 +75,13 @@ networkx graph / sparse adjacency ───────────────�
    Chebyshev-filtered subspace iteration in C++ (0.2 s for 20k points; ARPACK needs seconds and
    sometimes fails to converge). Disconnected components are laid out separately and placed according
    to their centroids. PCA is used instead for `loss="tsne"` on data (better global structure).
-4. **Optimiser.** Either Hogwild SGD with an explicit sampling budget per node (`samples_per_node`,
-   so the cost of an epoch does not depend on the graph), negatives, and an optional mid-range
-   attraction through short random walks; or full-batch gradient descent with the t-SNE objective,
+4. **Mid-range pairs.** For every point, the second closest of six random points measured in the
+   data (PaCMAP's mid-near pairs, 0.2 s for 70k x 784 in C++): a weak spring towards them, annealed
+   to zero over the first half of the optimisation, tells the layout where the clusters go relative
+   to each other. For graphs, short random walks play that role.
+5. **Optimiser.** Either Hogwild SGD with an explicit sampling budget per node (`samples_per_node`,
+   so the cost of an epoch does not depend on the graph) and negatives; or full-batch gradient
+   descent with the t-SNE objective,
    early exaggeration, gains and momentum, where the repulsive field is the convolution of the point
    density with a radial kernel, evaluated by Lagrange interpolation on a grid and FFT.
 
@@ -89,25 +94,25 @@ UMAP, openTSNE, PaCMAP, TriMap and scikit-learn's t-SNE is in [benchmarks/BENCHM
 
 **MNIST 70k**
 
-| | time | 15-NN pres. | trustworthiness | dist. Spearman | 10-NN acc. |
-|---|---|---|---|---|---|
-| **MAGNET** | **5.6 s** | 0.128 | 0.953 | 0.321 | 0.967 |
-| **MAGNET `loss="tsne"`** | 12.6 s | **0.352** | 0.967 | 0.335 | 0.967 |
-| MAGNET `loss="tsne"`, fast preset (`n_epochs=450, fft_box=1.5`) | 7.3 s | 0.324 | 0.967 | 0.340 | 0.968 |
-| UMAP 0.5.11 | 18.2 s | 0.116 | 0.951 | 0.300 | 0.967 |
-| openTSNE 1.0.4 | 102.5 s | 0.347 | **0.968** | 0.330 | 0.965 |
-| sklearn t-SNE (Barnes-Hut) | 195.7 s | 0.350 | 0.968 | **0.338** | 0.967 |
-| PaCMAP | 24.8 s | 0.093 | 0.946 | 0.307 | **0.976** |
-| TriMap | 57.0 s | 0.088 | 0.933 | 0.184 | 0.964 |
+| | time | 15-NN pres. | trustworthiness | dist. Spearman | triplet acc. | 10-NN acc. |
+|---|---|---|---|---|---|---|
+| **MAGNET** | **4.2 s** | 0.123 | 0.950 | **0.419** | **0.645** | 0.966 |
+| **MAGNET `loss="tsne"`** | 11.7 s | 0.349 | 0.966 | 0.346 | 0.627 | 0.966 |
+| UMAP 0.5.11 | 18.2 s | 0.116 | 0.951 | 0.300 | 0.607 | 0.967 |
+| openTSNE 1.0.4 | 102.5 s | 0.347 | **0.968** | 0.330 | 0.619 | 0.965 |
+| PaCMAP | 24.8 s | 0.093 | 0.946 | 0.307 | 0.614 | **0.976** |
+| TriMap | 57.0 s | 0.088 | 0.933 | 0.184 | 0.597 | 0.964 |
+| sklearn t-SNE (Barnes-Hut) | 195.7 s | **0.350** | **0.968** | 0.338 | 0.622 | 0.967 |
 
-**Other data sets** (MAGNET default / UMAP)
+**Other data sets** (MAGNET default / best competitor on that column)
 
 | dataset | time | 15-NN pres. | trust. | dist. Spearman |
 |---|---|---|---|---|
-| Fashion-MNIST 70k | 5.2 s / 11.1 s | 0.136 / 0.133 | 0.974 / 0.975 | 0.56 / 0.58 |
-| 20 newsgroups TF-IDF, sparse 18.8k x 24k | 5.7 s / 22.2 s | 0.145 / 0.140 | 0.730 / 0.716 | 0.144 / 0.145 |
-| 15 Gaussian blobs 10k x 200 | 1.3 s / 9.2 s | 0.049 / 0.046 | 0.971 / 0.971 | 0.55 / 0.13 |
-| SBM graph, 30k nodes, 782k edges | 4.9 s / 36 s | | | 10-NN acc. 1.00 / 0.26 |
+| Fashion-MNIST 70k | **4.2 s** / 15.0 s UMAP | 0.140 / 0.327 sklearn t-SNE | 0.974 / 0.983 openTSNE | **0.710** / 0.672 TriMap |
+| 20 newsgroups SVD-300, cosine | **1.3 s** / 5.9 s UMAP | 0.119 / 0.192 sklearn t-SNE | 0.746 / 0.772 openTSNE | 0.037 / 0.232 sklearn t-SNE |
+| 20 newsgroups TF-IDF, sparse 18.8k x 24k | **5.7 s** / 22.2 s UMAP | 0.145 / 0.140 UMAP | 0.730 / 0.716 UMAP | 0.144 / 0.145 UMAP |
+| 15 Gaussian blobs 10k x 200 | **1.2 s** / 2.3 s UMAP | 0.048 / 0.114 sklearn t-SNE | 0.971 / 0.975 sklearn t-SNE | **0.693** / 0.666 PaCMAP |
+| SBM graph, 30k nodes, 782k edges | **4.9 s** / 36 s UMAP | | | 10-NN acc. 1.00 / 0.26 |
 
 **Scaling** (50 anisotropic clusters in 50 dimensions)
 
@@ -144,7 +149,8 @@ Any networkx graph or sparse adjacency matrix is laid out directly, in linear ti
 | `n_epochs` | auto | SGD epochs (500 / 300 / 200 by size) or t-SNE iterations (450); also `(constant, anneal)` or `"auto"` |
 | `samples_per_node` | 5 | attractive samples per node and per epoch |
 | `negative_sample_rate` | 5 | negatives per positive sample |
-| `walk_len`, `mid_weight`, `mid_rate`, `mid_phase` | 4, 0.1, 0.25, 0.5 | mid-range attraction through random walks (`mid_weight=0` disables) |
+| `mid_source`, `n_mid_pairs` | `"auto"`, 5 | mid-range partners from the data (PaCMAP-style pairs) or from random walks on the graph |
+| `walk_len`, `mid_weight`, `mid_rate`, `mid_phase` | 4, 0.1, 0.25, 0.5 | strength and schedule of the mid-range attraction (`mid_weight=0` disables) |
 | `init` | `"auto"` | PCA for `loss="tsne"` on data, spectral otherwise; or `"spectral"`, `"pca"`, `"random"`, an array |
 | `knn` | `"nndescent"` | or `"hnsw"` (needs hnswlib) |
 | `pca` | None | project wide data to this many components before the neighbour search |
@@ -169,9 +175,10 @@ A per-node diffusion scale for the mid-range walks (`mid_scale="spread"` or `"ro
 nothing measurable on MNIST: the mid-range term itself matters (distance correlation 0.35 against
 0.29 without it) but not its per-node length. What did make the cut: `repulsion_strength=2` (+8%
 neighbourhood preservation, nothing lost), the centroid placement of disconnected components, PCA
-initialisation for the exact-repulsion mode, and for graphs the placement of disconnected components
-by RoleWalk signature (`component_placement="rolewalk"`: structurally similar components end up next
-to each other).
+initialisation for the exact-repulsion mode, PaCMAP-style mid-near pairs in place of random walks for
+data inputs (distance correlation +30% on MNIST, +25% on Fashion-MNIST, for 3% of 15-NN preservation),
+and for graphs the placement of disconnected components by RoleWalk signature
+(`component_placement="rolewalk"`: structurally similar components end up next to each other).
 
 ## History
 
