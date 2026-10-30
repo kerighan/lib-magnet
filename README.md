@@ -67,7 +67,12 @@ the kernel into a step and trades off against the global scale); it is a per-dat
 benchmark harness is the way to make it. In 3-D the crowding is milder and the optimum moves back to
 b = 0.8 (MNIST 20k, `n_components=3`: 15-NN 0.327 at 0.8 against 0.326 at 0.6 and 0.316 at 0.5, with
 better trustworthiness and global structure), hence the dimension-dependent default. `n_neighbors`
-stays at 15: 10 gains 4% of 15-NN preservation and loses a little global structure, 30 the opposite.
+stays at 15 for robustness, knowing that fewer neighbours give more local detail on dense data: from
+50 down to 5, 15-NN preservation rises monotonically on MNIST, Fashion-MNIST and 20 newsgroups
+(0.228 / 0.248 / 0.285 / 0.297 / 0.304 at 50 / 30 / 15 / 10 / 8 on MNIST 20k), trustworthiness and
+global structure stay flat, label accuracy peaks between 8 and 15, and the run is 5% faster at 10.
+The kernel exponent does not interact with it (b = 0.5 at k = 30 or b = 0.7 at k = 10 change nothing
+systematic).
 Graph inputs are unaffected by the new kernel (SBM: label accuracy 1.00 either way), `transform()`
 keeps 0.958 of 10-NN accuracy on MNIST test points, and the 1M synthetic point runs in 54 s.
 (`kernel_b="auto"` sweeps 0.4-0.7 on a 4k subsample by
