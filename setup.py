@@ -24,7 +24,5 @@ setup(
     packages=find_packages(exclude=("benchmarks", "tests")),
     ext_modules=ext_modules,
     cmdclass={"build_ext": build_ext},
-    install_requires=["numpy", "scipy", "tqdm"],
-    extras_require={"hnsw": ["hnswlib"]},
     python_requires=">=3.8",
 )

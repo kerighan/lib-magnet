@@ -45,6 +45,7 @@ void optimize_layout(
     float repulsion_strength, int walk_len, float mid_rate,
     int optimizer, int clip_mode, int64_t n_fixed,
     arr<float> adam_m, arr<float> adam_v, arr<int32_t> adam_t, float beta1, float beta2,
+    arr<int32_t> walk_lens,
     uint64_t seed, int n_threads);
 
 arr<float> subspace_iteration(

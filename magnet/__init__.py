@@ -57,11 +57,11 @@ class MAGNET:
     n_neighbors : size of the local neighbourhood (counts the point itself, like UMAP).
     metric : "euclidean" or "cosine" (hnswlib spaces).
     min_dist, spread : shape of the low-dimensional kernel (same meaning as in UMAP).
-    fft_interp, fft_box : interpolation points per box and box width for loss="tsne" (FIt-SNE uses 3
-        and 1.0; 1.5 halves the FFT cost for a loss of about 1% on 15-NN preservation).
+    fft_interp, fft_box : interpolation points per box and box width for loss="tsne" (3 and 1.0, as
+        FIt-SNE; fft_box=1.5 halves the FFT cost for about 3% less 15-NN preservation).
     tsne_early : early-exaggeration iterations for loss="tsne" (default min(250, n_epochs // 3));
-        with loss="tsne", n_epochs is the number of iterations (default 450: 150 + 300, enough from a
-        spectral initialisation where openTSNE's 250 + 500 are tuned for PCA or random starts).
+        with loss="tsne", n_epochs is the number of iterations (default 600 = 200 + 400; 450 with
+        fft_box=1.5 is a fast preset at 7 s instead of 11 s on MNIST 70k, 750 the FIt-SNE schedule).
     kernel_b : fix the exponent b of the kernel 1 / (1 + a d^(2b)) and fit only a (kernel_b=1 is the
         Cauchy / t-SNE kernel and removes the pow() from the inner loop, about 30% faster SGD).
     n_epochs : int -> that many epochs with a linear learning-rate decay (default None: 500 for
@@ -83,6 +83,10 @@ class MAGNET:
         positive sample (u, v) is followed by a random walk of walk_len steps from v, ending at w,
         and u is pulled towards w with a spring of stiffness mid_weight (annealed to zero over the
         first mid_phase fraction of the epochs). Set mid_weight=0 to disable.
+    mid_scale : "fixed" (walk_len steps for every node), "spread" (per-node length from the 2-step
+        diffusion spread of the graph) or "rolewalk" (per-role length from RoleWalk signatures).
+    component_placement : "centroid" (data centroids, spiral for graphs) or "rolewalk" (components
+        of a graph placed by their mean RoleWalk signature).
     init : "auto" (default: PCA for loss="tsne" on a data matrix, spectral otherwise), "spectral",
         "pca" (data only), "random" or an (n, n_components) array. PCA gives the exact-repulsion mode
         a better global structure (distance correlation 0.34 against 0.30 on MNIST 70k) at equal local
@@ -106,8 +110,9 @@ class MAGNET:
 
     def __init__(self, n_components=2, n_neighbors=15, metric="euclidean", min_dist=0.1, spread=1.0,
                  n_epochs=None, learning_rate=1.0, negative_sample_rate=5, repulsion_strength=2.0,
-                 kernel_b=None, fft_interp=3, fft_box=1.5, tsne_early=None, loss="umap", exaggeration=1.0, optimizer="sgd", clip="coord", beta1=0.9, beta2=0.999,
-                 walk_len=4, mid_weight=0.1, mid_rate=0.25, mid_phase=0.5,
+                 kernel_b=None, fft_interp=3, fft_box=1.0, tsne_early=None, loss="umap", exaggeration=1.0, optimizer="sgd", clip="coord", beta1=0.9, beta2=0.999,
+                 walk_len=4, mid_weight=0.1, mid_rate=0.25, mid_phase=0.5, mid_scale="fixed",
+                 component_placement="centroid",
                  init="auto", pca=None, knn="nndescent", ef_construction=80, M=16, ef=None,
                  set_op_mix_ratio=1.0, samples_per_node=5.0, graph_norm="sym", input="auto",
                  transform_epochs=None, n_threads=-1, random_state=None, verbose=False):
@@ -134,6 +139,8 @@ class MAGNET:
         self.mid_weight = mid_weight
         self.mid_rate = mid_rate
         self.mid_phase = mid_phase
+        self.mid_scale = mid_scale
+        self.component_placement = component_placement
         self.init = init
         self.pca = pca
         self.knn = knn
@@ -223,8 +230,12 @@ class MAGNET:
             from sklearn.decomposition import PCA
             Y = PCA(self.n_components, random_state=self.random_state).fit_transform(X).astype(np.float32)
         elif init == "spectral":
+            data_for_components = X if isinstance(X, np.ndarray) else None
+            if data_for_components is None and self.component_placement == "rolewalk":
+                from .roles import rolewalk_embedding
+                data_for_components = rolewalk_embedding(P)
             Y = spectral_init(P, self.n_components, self.random_state, n_threads=self.n_threads,
-                              data=X if isinstance(X, np.ndarray) else None, verbose=self.verbose)
+                              data=data_for_components, verbose=self.verbose)
         else:
             raise ValueError(f"unknown init {init!r}")
         Y -= Y.mean(0)
@@ -256,7 +267,7 @@ class MAGNET:
             if self.n_components != 2:
                 raise ValueError("loss='tsne' (FFT repulsion) is implemented for n_components=2 only")
             from .tsne import optimize_tsne
-            n_iter = self.n_epochs if isinstance(self.n_epochs, (int, np.integer)) else 450
+            n_iter = self.n_epochs if isinstance(self.n_epochs, (int, np.integer)) else 600
             Y = Y / max(float(Y[:, 0].std()), 1e-12) * 1e-4   # t-SNE convention: tiny initial spread
             early = self.tsne_early if self.tsne_early is not None else min(250, int(n_iter) // 3)
             Y = optimize_tsne(P, Y, n_iter=int(n_iter), early_iter=int(early),
@@ -310,9 +321,14 @@ class MAGNET:
         eons = epochs_per_sample.copy()
         eonns = (epochs_per_sample / self.negative_sample_rate).astype(np.float32)
         use_mid = P is not None and mid_weight > 0 and self.walk_len > 0 and self.mid_rate > 0
+        walk_lens = np.zeros(0, dtype=np.int32)
         if use_mid:
             indptr = P.indptr.astype(np.int32)
             indices = P.indices.astype(np.int32)
+            if self.mid_scale != "fixed":
+                from .roles import adaptive_walk_lengths
+                walk_lens = adaptive_walk_lengths(P, self.mid_scale, base=self.walk_len)
+                self.walk_lens_ = walk_lens
         else:
             indptr = indices = np.zeros(0, dtype=np.int32)
 
@@ -322,7 +338,7 @@ class MAGNET:
                             float(self.a_), float(self.b_), float(self.negative_sample_rate), loss,
                             float(self.exaggeration), float(self.repulsion_strength), int(self.walk_len),
                             float(self.mid_rate), optimizer, clip, int(n_fixed),
-                            adam_m, adam_v, adam_t, float(self.beta1), float(self.beta2), seed, int(self.n_threads))
+                            adam_m, adam_v, adam_t, float(self.beta1), float(self.beta2), walk_lens, seed, int(self.n_threads))
 
         # ---- schedule: list of (epoch_start, epoch_end, lr_start, lr_end), plus the mid-range weight
         if isinstance(n_epochs, (int, np.integer)):

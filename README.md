@@ -9,9 +9,9 @@ repulsion is estimated.
 
 * `loss="umap"` (default): negative sampling, lock-free multithreaded SGD. **MNIST 70k in 5.6 s**
   against 16 s for UMAP, with better neighbourhood preservation.
-* `loss="tsne"`: exact repulsion over all pairs through FFT interpolation. **MNIST 70k in 7.6 s**
-  against 102 s for openTSNE, same quality, 2.7x the neighbourhood preservation of UMAP in half its
-  time.
+* `loss="tsne"`: exact repulsion over all pairs through FFT interpolation. **MNIST 70k in 11 s**
+  against 102 s for openTSNE and 196 s for scikit-learn's t-SNE, with the best neighbourhood
+  preservation of all the methods tested, three times that of UMAP in less time.
 * 1M points in 55 s and 3 GB. Native NN-descent (1.2 s for 70k x 784), spectral initialisation by
   Chebyshev-filtered subspace iteration, `transform()` for new points, sparse inputs, networkx graphs.
 
@@ -92,9 +92,12 @@ UMAP, openTSNE, PaCMAP, TriMap and scikit-learn's t-SNE is in [benchmarks/BENCHM
 | | time | 15-NN pres. | trustworthiness | dist. Spearman | 10-NN acc. |
 |---|---|---|---|---|---|
 | **MAGNET** | **5.6 s** | 0.128 | 0.953 | 0.321 | 0.967 |
-| **MAGNET `loss="tsne"`** | 7.6 s | **0.324** | **0.967** | **0.340** | **0.968** |
-| UMAP 0.5.11 | 16.2 s | 0.118 | 0.951 | 0.301 | 0.967 |
-| openTSNE 1.0.4 | 101.8 s | 0.348 | 0.968 | 0.331 | 0.965 |
+| **MAGNET `loss="tsne"`** | 11.1 s | **0.352** | 0.967 | **0.335** | 0.967 |
+| MAGNET `loss="tsne"`, fast preset (`n_epochs=450, fft_box=1.5`) | 7.3 s | 0.324 | 0.967 | 0.340 | 0.968 |
+| UMAP 0.5.11 | 18.2 s | 0.116 | 0.951 | 0.300 | 0.967 |
+| openTSNE 1.0.4 | 102.5 s | 0.347 | **0.968** | 0.330 | 0.965 |
+| sklearn t-SNE (Barnes-Hut) | 195.7 s | 0.350 | 0.968 | 0.338 | 0.967 |
+| TriMap | 57.0 s | 0.088 | 0.933 | 0.184 | 0.964 |
 
 **Other data sets** (MAGNET default / UMAP)
 
@@ -145,7 +148,9 @@ Any networkx graph or sparse adjacency matrix is laid out directly, in linear ti
 | `knn` | `"nndescent"` | or `"hnsw"` (needs hnswlib) |
 | `pca` | None | project wide data to this many components before the neighbour search |
 | `kernel_b` | None | fix the kernel exponent (`1` = Cauchy: 30% faster SGD, ~10% less 15-NN preservation) |
-| `fft_interp`, `fft_box` | 3, 1.5 | grid of the exact repulsion (FIt-SNE uses 3 and 1.0) |
+| `fft_interp`, `fft_box` | 3, 1.0 | grid of the exact repulsion (`fft_box=1.5` is the fast preset) |
+| `mid_scale` | `"fixed"` | or `"spread"` / `"rolewalk"`: per-node length of the mid-range walks from the graph's diffusion spread or from RoleWalk roles |
+| `component_placement` | `"centroid"` | or `"rolewalk"`: disconnected components of a graph placed by their structural-role signature |
 | `optimizer`, `clip` | `"sgd"`, `"coord"` | or `"adam"`; `"norm"` clips the step norm |
 | `input` | `"auto"` | a sparse square matrix is an adjacency; `"data"` or `"graph"` to force |
 | `graph_norm` | `"sym"` | degree normalisation of graph inputs |
@@ -159,8 +164,13 @@ Runs are reproducible only with `n_threads=1`: the SGD is lock-free.
 Measured with the harness, kept as options: constant-then-anneal and automatic epoch schedules
 (lose local structure against a plain linear decay), per-node Adam, norm clipping, InfoNCE
 (more global, less local), a bit-level `pow` approximation (no gain), the Cauchy kernel as default.
-What did make the cut: `repulsion_strength=2` (+8% neighbourhood preservation, nothing lost), the
-centroid placement of disconnected components, PCA initialisation for the exact-repulsion mode.
+A per-node diffusion scale for the mid-range walks (`mid_scale="spread"` or `"rolewalk"`) changes
+nothing measurable on MNIST: the mid-range term itself matters (distance correlation 0.35 against
+0.29 without it) but not its per-node length. What did make the cut: `repulsion_strength=2` (+8%
+neighbourhood preservation, nothing lost), the centroid placement of disconnected components, PCA
+initialisation for the exact-repulsion mode, and for graphs the placement of disconnected components
+by RoleWalk signature (`component_placement="rolewalk"`: structurally similar components end up next
+to each other).
 
 ## History
 

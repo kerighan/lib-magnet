@@ -31,7 +31,7 @@ struct Adam {
 struct Ctx {
     float* Y; int64_t n_nodes; int dim;
     const int32_t* head; const int32_t* tail; const float* eps; float* eons; float* eonns; int64_t n_edges;
-    const int32_t* indptr; const int32_t* indices; bool use_mid;
+    const int32_t* indptr; const int32_t* indices; const int32_t* walk_lens; bool use_mid;
     float a, b, two_ab, two_b, negative_sample_rate, exaggeration, repulsion_strength, mid_rate;
     bool b_is_one; int m_neg, walk_len, loss, clip_mode; int64_t n_fixed;
     Adam ad; uint64_t seed; int nt;
@@ -159,7 +159,8 @@ void epoch_worker(const Ctx& c, int epoch, float alpha, float mid_w, int tid) {
         // ---- mid-range attraction: node reached by a short random walk from v
         if (mid_w > 0.0f && rng.uniform() < c.mid_rate) {
             int32_t w = v;
-            for (int h = 0; h < c.walk_len; ++h) {
+            const int L = c.walk_lens ? c.walk_lens[v] : c.walk_len;
+            for (int h = 0; h < L; ++h) {
                 const int32_t s0 = c.indptr[w], e0w = c.indptr[w + 1];
                 if (e0w <= s0) break;
                 w = c.indices[s0 + (int32_t)rng.below((uint32_t)(e0w - s0))];
@@ -197,6 +198,7 @@ void optimize_layout(
     float repulsion_strength, int walk_len, float mid_rate,
     int optimizer, int clip_mode, int64_t n_fixed,
     arr<float> adam_m_, arr<float> adam_v_, arr<int32_t> adam_t_, float beta1, float beta2,
+    arr<int32_t> walk_lens_,
     uint64_t seed, int n_threads)
 {
     auto Yb = Y_.request();
@@ -235,6 +237,12 @@ void optimize_layout(
     if (c.use_mid) validate_csr(indptr_, indices_, nullptr, n_nodes);
     c.indptr = c.use_mid ? indptr_.data() : nullptr;
     c.indices = c.use_mid ? indices_.data() : nullptr;
+    c.walk_lens = nullptr;
+    if (c.use_mid && walk_lens_.size() > 0) {
+        require(walk_lens_.ndim() == 1 && walk_lens_.shape(0) == n_nodes, "walk_lens must have n entries");
+        for (int64_t i = 0; i < n_nodes; ++i) require(walk_lens_.data()[i] >= 0 && walk_lens_.data()[i] <= 64, "walk_lens out of range");
+        c.walk_lens = walk_lens_.data();
+    }
     c.nt = (int)std::min<int64_t>(resolve_threads(n_threads), std::max<int64_t>(1, n_edges / 4096));
     c.a = a; c.b = b; c.two_ab = 2.0f * a * b; c.two_b = 2.0f * b * repulsion_strength;
     c.negative_sample_rate = negative_sample_rate; c.exaggeration = exaggeration;

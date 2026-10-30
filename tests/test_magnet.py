@@ -218,3 +218,29 @@ def test_tsne_loss_separates_blobs():
     from sklearn.neighbors import NearestNeighbors
     nn = NearestNeighbors(n_neighbors=11).fit(m.embedding_).kneighbors(m.embedding_, return_distance=False)[:, 1:]
     assert (y[nn] == y[:, None]).mean() > 0.95
+
+
+def test_adaptive_walk_lengths_spread():
+    from magnet.roles import adaptive_walk_lengths
+    X, y = blobs(2000, d=10, centers=4, seed=6)
+    m = MAGNET(n_epochs=80, mid_scale="spread", random_state=0).fit(X)
+    assert m.walk_lens_.shape == (2000,) and m.walk_lens_.min() >= 2 and m.walk_lens_.max() <= 6
+    assert np.isfinite(m.embedding_).all()
+    wl = adaptive_walk_lengths(m.graph_, "spread", low=1, high=3)
+    assert set(np.unique(wl)) <= {1, 2, 3}
+
+
+def test_rolewalk_component_placement_groups_similar_components():
+    pytest.importorskip("rolewalk")
+    parts = []
+    for _ in range(3):
+        parts += [nx.complete_graph(30), nx.cycle_graph(60), nx.balanced_tree(2, 5), nx.grid_2d_graph(7, 7)]
+    G = nx.disjoint_union_all([nx.convert_node_labels_to_integers(g) for g in parts])
+    sizes = [g.number_of_nodes() for g in parts]
+    comp_of = np.repeat(np.arange(12), sizes)
+    ctype = np.arange(12) % 4
+    Y = MAGNET(n_epochs=100, component_placement="rolewalk", random_state=0).fit_transform(G)
+    centers = np.array([Y[comp_of == c].mean(0) for c in range(12)])
+    D = np.linalg.norm(centers[:, None] - centers[None], axis=-1)
+    np.fill_diagonal(D, np.inf)
+    assert (ctype[D.argmin(1)] == ctype).mean() >= 0.4   # chance level is 0.18
