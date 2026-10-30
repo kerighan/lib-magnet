@@ -57,6 +57,9 @@ Hamprecht 2021). MAGNET exposes this directly:
 | `loss="tsne", exaggeration=4` | exact | UMAP-like again | the two regimes really are one spectrum |
 
 `repulsion_strength` (default 2) and `exaggeration` move along the spectrum within each mode.
+Cluster compactness is a look, not a fidelity measure (it can always be bought with neighbourhood
+quality); if you want UMAP's tight blobs, `late_exaggeration=1.5` gives a silhouette of 0.54 on MNIST
+against 0.52 for UMAP while staying ahead of it on every other metric.
 
 ## How it works
 
@@ -96,7 +99,8 @@ UMAP, openTSNE, PaCMAP, TriMap and scikit-learn's t-SNE is in [benchmarks/BENCHM
 
 | | time | 15-NN pres. | trustworthiness | dist. Spearman | triplet acc. | 10-NN acc. |
 |---|---|---|---|---|---|---|
-| **MAGNET** | **4.2 s** | 0.123 | 0.950 | **0.419** | **0.645** | 0.966 |
+| **MAGNET** | **4.2 s** | 0.132 | 0.952 | **0.415** | **0.644** | 0.967 |
+| MAGNET, `late_exaggeration=1.5` (compact preset) | 4.2 s | 0.128 | 0.952 | 0.385 | 0.636 | **0.968** |
 | **MAGNET `loss="tsne"`** | 11.7 s | 0.349 | 0.966 | 0.346 | 0.627 | 0.966 |
 | UMAP 0.5.11 | 18.2 s | 0.116 | 0.951 | 0.300 | 0.607 | 0.967 |
 | openTSNE 1.0.4 | 102.5 s | 0.347 | **0.968** | 0.330 | 0.619 | 0.965 |
@@ -143,7 +147,8 @@ Any networkx graph or sparse adjacency matrix is laid out directly, in linear ti
 | `n_components` | 2 | output dimension (`loss="tsne"` is 2-D only) |
 | `n_neighbors` | 15 | neighbourhood size (counts the point itself, as in UMAP) |
 | `metric` | `"euclidean"` | or `"cosine"` |
-| `min_dist`, `spread` | 0.1, 1.0 | shape of the low-dimensional kernel (UMAP semantics) |
+| `min_dist`, `spread` | 0.05, 1.0 | shape of the low-dimensional kernel (UMAP semantics; 0.05 beats UMAP's 0.1 on every metric here) |
+| `late_exaggeration`, `late_phase` | 1.0, 0.2 | attraction multiplier over the last epochs; `1.5` is the "compact clusters" preset |
 | `loss` | `"umap"` | `"umap"` (sampled repulsion), `"tsne"` (exact), `"infonce"` (contrastive softmax) |
 | `exaggeration`, `repulsion_strength` | 1, 2 | attraction / repulsion multipliers |
 | `n_epochs` | auto | SGD epochs (500 / 300 / 200 by size) or t-SNE iterations (450); also `(constant, anneal)` or `"auto"` |
