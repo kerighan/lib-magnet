@@ -58,6 +58,13 @@ PYBIND11_MODULE(_magnet, m) {
           py::arg("n_pairs") = 5, py::arg("n_cand") = 6, py::arg("seed") = 0, py::arg("n_threads") = -1);
     m.def("mid_spring", &mid_spring, "grad += w (Y_i - mean of partner positions)",
           py::arg("Y"), py::arg("pairs"), py::arg("grad"), py::arg("w"), py::arg("n_threads") = -1);
+    m.def("scatter_padded_2d", &scatter_padded_2d, "Charges (1, x, y) on a zero-padded M x M grid, no reduction",
+          py::arg("Y"), py::arg("xmin"), py::arg("ymin"), py::arg("width"), py::arg("n_boxes"), py::arg("n_interp"), py::arg("M"), py::arg("n_threads") = -1);
+    m.def("spectral_products", &spectral_products, "Kernel-spectrum products of the FFT repulsion",
+          py::arg("K1h"), py::arg("K2h"), py::arg("Wh"), py::arg("n_threads") = -1);
+    m.def("gather_forces_2d", &gather_forces_2d, "Potentials at the points and repulsive forces: (sumQ, F)",
+          py::arg("Y"), py::arg("phi"), py::arg("xmin"), py::arg("ymin"), py::arg("width"), py::arg("n_boxes"), py::arg("n_interp"), py::arg("n_threads") = -1);
+    m.def("bbox_2d", &bbox_2d, "Bounding box of a (n, 2) array", py::arg("Y"), py::arg("n_threads") = -1);
     m.def("tsne_update", &tsne_update, "Fused gains / momentum / position update / recentring",
           py::arg("Y"), py::arg("update"), py::arg("gains"), py::arg("grad"), py::arg("lr"), py::arg("momentum"),
           py::arg("n_threads") = -1);

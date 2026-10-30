@@ -10,7 +10,7 @@ repulsion is estimated.
 * `loss="umap"` (default): negative sampling, lock-free multithreaded SGD. **MNIST 70k in 4.2 s**
   against 18 s for UMAP, better neighbourhood preservation and a distance correlation of 0.42
   against 0.30: the best global structure of the seven methods benchmarked.
-* `loss="tsne"`: exact repulsion over all pairs through FFT interpolation. **MNIST 70k in 12 s**
+* `loss="tsne"`: exact repulsion over all pairs through FFT interpolation. **MNIST 70k in 8.4 s**
   against 102 s for openTSNE and 196 s for scikit-learn's t-SNE, with the same neighbourhood
   preservation as those two, three times that of UMAP in less time.
 * 1M points in 55 s and 3 GB. Native NN-descent (1.2 s for 70k x 784), spectral initialisation by
@@ -101,7 +101,7 @@ UMAP, openTSNE, PaCMAP, TriMap and scikit-learn's t-SNE is in [benchmarks/BENCHM
 |---|---|---|---|---|---|---|
 | **MAGNET** | **4.2 s** | 0.132 | 0.952 | **0.415** | **0.644** | 0.967 |
 | MAGNET, `late_exaggeration=1.5` (compact preset) | 4.2 s | 0.128 | 0.952 | 0.385 | 0.636 | **0.968** |
-| **MAGNET `loss="tsne"`** | 11.7 s | 0.349 | 0.966 | 0.346 | 0.627 | 0.966 |
+| **MAGNET `loss="tsne"`** | 8.4 s | 0.349 | 0.966 | 0.348 | 0.627 | 0.966 |
 | UMAP 0.5.11 | 18.2 s | 0.116 | 0.951 | 0.300 | 0.607 | 0.967 |
 | openTSNE 1.0.4 | 102.5 s | 0.347 | **0.968** | 0.330 | 0.619 | 0.965 |
 | PaCMAP | 24.8 s | 0.093 | 0.946 | 0.307 | 0.614 | **0.976** |
@@ -126,6 +126,11 @@ UMAP, openTSNE, PaCMAP, TriMap and scikit-learn's t-SNE is in [benchmarks/BENCHM
 | 250k | 16 s | 55 s | 0.8 / 3.0 GB |
 | 500k | 30 s | 85 s | 1.6 / 5.1 GB |
 | 1M | 55 s | | 3.1 GB |
+
+`loss="tsne"` on the same data: 17 s at 250k and 56 s at 1M points (600 iterations; at 1M the
+attraction pass over the 40M edges and the position update dominate, the FFT repulsion step costs
+0.1 s). The scatter, spectral products and gather of that step run in C++; the transforms use
+scipy's pocketfft, which was never the bottleneck.
 
 `transform()` on MNIST (fit 60k, transform 10k): 0.6 s and 10-NN accuracy 0.962 against 14.8 s and
 0.956 for UMAP.
@@ -181,7 +186,9 @@ mechanism for every scale on paper, but each walk step after a mid-range jump di
 local structure and dilutes the inter-cluster signal (distance correlation 0.39 against 0.42 on
 MNIST, 0.68 against 0.71 on Fashion-MNIST, local unchanged). A per-node diffusion scale for the
 mid-range walks (`mid_scale="spread"` or `"rolewalk"`) changes nothing measurable on MNIST: the mid-range term itself matters (distance correlation 0.35 against
-0.29 without it) but not its per-node length. What did make the cut: `repulsion_strength=2` (+8%
+0.29 without it) but not its per-node length. For graph inputs, mid-near pairs measured in an 8-d
+spectral embedding (`mid_source="spectral"`) lose to the random walks (0.31 against 0.34 on the kNN
+graph of MNIST evaluated against the hidden data): walks stay the default for graphs. What did make the cut: `repulsion_strength=2` (+8%
 neighbourhood preservation, nothing lost), the centroid placement of disconnected components, PCA
 initialisation for the exact-repulsion mode, PaCMAP-style mid-near pairs in place of random walks for
 data inputs (distance correlation +30% on MNIST, +25% on Fashion-MNIST, for 3% of 15-NN preservation),

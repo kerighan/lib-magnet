@@ -92,7 +92,8 @@ class MAGNET:
     mid_source : where the mid-range partners come from: "data" (PaCMAP-style mid-near pairs: the
         second closest of 6 random rows in the data space, n_mid_pairs per point; +30% distance
         correlation on MNIST for -3% 15-NN preservation), "walk" (short random walks on the graph)
-        "hybrid" (random walks of walk_len steps on the two-layer graph made of the kNN edges and the
+        "spectral" (for graphs: mid-near pairs measured in an 8-dimensional spectral embedding of the
+        graph, a diffusion-distance proxy), "hybrid" (random walks of walk_len steps on the two-layer graph made of the kNN edges and the
         mid-near edges, each step jumping along a mid-near edge with probability mid_jump: one
         mechanism for every scale) or "auto" (default: data when a data matrix is given, walks for
         graphs). With loss="tsne" the
@@ -309,6 +310,12 @@ class MAGNET:
             head, tail, epochs_per_sample = self._edge_schedule(P, n_epochs)
             self._mid_pairs_ = None
             self._jump_graph_ = None
+            if self.mid_source == "spectral" and self.mid_weight > 0:
+                # graphs: mid-near pairs measured in a spectral (diffusion) embedding of the graph
+                from .roles import mid_near_pairs
+                S = spectral_init(P, 8, self.random_state, n_threads=self.n_threads)
+                self._mid_pairs_ = mid_near_pairs(np.ascontiguousarray(S, dtype=np.float32), self.n_mid_pairs,
+                                                  random_state=self.random_state or 0, n_threads=self.n_threads)
             if self.mid_source in ("data", "auto", "hybrid") and hasattr(self, "_prepared_") and self.mid_weight > 0:
                 from .roles import mid_near_pairs
                 self._mid_pairs_ = mid_near_pairs(self._prepared_, self.n_mid_pairs, random_state=self.random_state or 0,

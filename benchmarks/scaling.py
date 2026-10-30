@@ -34,7 +34,11 @@ def main():
     base_rss = rss_gb()
     phases = {}
     t0 = time.time()
-    if method == "magnet":
+    if method == "magnet_tsne":
+        from magnet import MAGNET
+        m = MAGNET(loss="tsne", random_state=0, verbose=True)
+        t = time.time(); Y = m.fit_transform(X); phases["fit_total"] = time.time() - t
+    elif method == "magnet":
         from magnet import MAGNET
         m = MAGNET(random_state=0)
         t = time.time(); P = m.build_graph(X); phases["knn+graph"] = time.time() - t

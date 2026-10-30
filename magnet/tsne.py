@@ -22,8 +22,14 @@ class FFTRepulsion2D:
         self._cache = {}
 
     def _grid(self, Y):
-        lo = Y.min(0) - 1e-3
-        hi = Y.max(0) + 1e-3
+        try:
+            from _magnet import bbox_2d
+            xmin, ymin, xmax, ymax = bbox_2d(Y, self.n_threads)
+            lo = np.array([xmin, ymin]) - 1e-3
+            hi = np.array([xmax, ymax]) + 1e-3
+        except ImportError:
+            lo = Y.min(0) - 1e-3
+            hi = Y.max(0) + 1e-3
         span = float((hi - lo).max())
         n_boxes = int(np.clip(np.ceil(span / self.box_width), self.min_boxes, self.max_boxes))
         width = max(span / n_boxes, 1e-12)
@@ -42,11 +48,30 @@ class FFTRepulsion2D:
             r2 = off[:, None] ** 2 + off[None, :] ** 2
             K1 = (1.0 / (1.0 + r2)).astype(np.float32)
             workers = self.n_threads if self.n_threads and self.n_threads > 0 else -1
-            self._cache = {key: (M, fft.rfft2(K1, workers=workers), fft.rfft2(K1 * K1, workers=workers))}
+            self._cache = {key: (M, np.ascontiguousarray(fft.rfft2(K1, workers=workers), dtype=np.complex64),
+                                 np.ascontiguousarray(fft.rfft2(K1 * K1, workers=workers), dtype=np.complex64))}
         return self._cache[key]
 
     def __call__(self, Y):
-        """Returns (sumQ, repulsive forces (n, 2)) with q_ij = 1 / (1 + d_ij^2), self terms removed."""
+        """Returns (sumQ, repulsive forces (n, 2)) with q_ij = 1 / (1 + d_ij^2), self terms removed.
+        Scatter, spectral products and gather run in C++; the transforms use scipy's pocketfft."""
+        import scipy.fft as fft
+        from _magnet import scatter_padded_2d, spectral_products, gather_forces_2d
+
+        Y = np.ascontiguousarray(Y, dtype=np.float32)
+        xmin, ymin, width, n_boxes = self._grid(Y)
+        workers = self.n_threads if self.n_threads and self.n_threads > 0 else -1
+        M, K1h, K2h = self._kernels(n_boxes, width)
+        W = np.asarray(scatter_padded_2d(Y, xmin, ymin, width, n_boxes, self.n_interp, int(M), self.n_threads))
+        Wh = fft.rfft2(W, axes=(1, 2), workers=workers)
+        Ph = np.asarray(spectral_products(K1h.view(np.float32).reshape(M, -1, 2), K2h.view(np.float32).reshape(M, -1, 2),
+                                          np.ascontiguousarray(Wh).view(np.float32).reshape(3, M, -1, 2), self.n_threads))
+        phi = fft.irfft2(Ph.view(np.complex64).reshape(4, M, -1), s=(M, M), axes=(1, 2), workers=workers)
+        sumQ, F = gather_forces_2d(Y, np.ascontiguousarray(phi, dtype=np.float32), xmin, ymin, width, n_boxes, self.n_interp, self.n_threads)
+        return float(sumQ), np.asarray(F)
+
+    def _numpy_call(self, Y):
+        """Reference implementation (numpy only), kept for tests."""
         import scipy.fft as fft
         from _magnet import interp_scatter, interp_gather
 
@@ -57,7 +82,7 @@ class FFTRepulsion2D:
         M, K1h, K2h = self._kernels(n_boxes, width)
         charges = np.ascontiguousarray(np.column_stack([np.ones(n, np.float32), Y[:, 0], Y[:, 1]]), dtype=np.float32)
         W = np.asarray(interp_scatter(Y, charges, xmin, ymin, width, n_boxes, self.n_interp, self.n_threads))
-        Wh = fft.rfft2(W, s=(M, M), axes=(1, 2), workers=workers)   # zero-padded to the torus
+        Wh = fft.rfft2(W, s=(M, M), axes=(1, 2), workers=workers)
         phi = np.empty((4, N, N), dtype=np.float32)
         phi[0] = fft.irfft2(K1h * Wh[0], s=(M, M), workers=workers)[:N, :N]
         phi[1:] = fft.irfft2(K2h[None] * Wh, s=(M, M), axes=(1, 2), workers=workers)[:, :N, :N]
