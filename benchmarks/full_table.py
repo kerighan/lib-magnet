@@ -16,6 +16,10 @@ METHODS = [
     ("PaCMAP", "pacmap", {}),
     ("TriMap", "trimap", {}),
     ("sklearn t-SNE (Barnes-Hut)", "sktsne", {}),
+    ("densMAP (umap-learn 0.5.11)", "densmap", {}),
+    ("PHATE 2.0", "phate", {}),
+    ("h-NNE", "hnne", {}),
+    ("t-SNE-CUDA 3.0.1 (GPU, RTX 2070)", "tsnecuda", {}),
 ]
 DATASETS = [  # (dataset key, n, seeds, metric kwargs per method family, label)
     ("mnist", 70000, 2, "MNIST (70k x 784)"),
@@ -39,8 +43,10 @@ def main():
         for name, method, kw in METHODS:
             kw = dict(kw)
             if key == "news20":
-                if method in ("umap", "opentsne", "magnet"):
+                if method in ("umap", "opentsne", "magnet", "densmap", "tsnecuda"):
                     kw["metric"] = "cosine"
+                elif method == "phate":
+                    kw["knn_dist"] = "cosine"
                 elif method == "pacmap":
                     kw["distance"] = "angular"
             if method == "sktsne" and n > 30000 and not QUICK:

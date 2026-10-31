@@ -1,5 +1,5 @@
 """Usage: python benchmarks/bench.py METHOD DATASET [n=70000] [key=value ...]
-METHOD in {umap, magnet, opentsne, pacmap, trimap, sktsne} ; results appended to benchmarks/results.jsonl"""
+METHOD in {umap, magnet, opentsne, pacmap, trimap, sktsne, densmap, phate, hnne, tsnecuda, ncvis} ; results appended to benchmarks/results.jsonl"""
 import sys, os, time, json, warnings
 warnings.filterwarnings("ignore")
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -55,6 +55,31 @@ def run(method, dataset, n=70000, tag="", plot=True, **kw):
         from sklearn.manifold import TSNE
         t = time.time()
         Y = TSNE(n_jobs=-1, init="pca", **kw).fit_transform(np.asarray(data, dtype=np.float32))
+    elif method == "densmap":
+        import umap
+        umap.UMAP(n_neighbors=5, n_epochs=20, densmap=True).fit_transform(np.random.rand(500, 10))  # numba warm-up
+        t = time.time()
+        Y = umap.UMAP(densmap=True, **kw).fit_transform(data)
+    elif method == "phate":
+        import phate
+        t = time.time()
+        Y = phate.PHATE(n_jobs=-1, verbose=0, **kw).fit_transform(np.asarray(data, dtype=np.float32))
+    elif method == "hnne":
+        import hnne
+        t = time.time()
+        Y = hnne.HNNE(**kw).fit_transform(np.asarray(data, dtype=np.float32))
+    elif method == "tsnecuda":   # GPU; needs the CUDA runtime on LD_LIBRARY_PATH (the nvidia pip wheels do)
+        from tsnecuda import TSNE
+        Xc = np.asarray(data, dtype=np.float32)
+        if kw.pop("metric", None) == "cosine":   # no cosine option: L2-normalise, then euclidean
+            Xc = Xc / np.maximum(np.linalg.norm(Xc, axis=1, keepdims=True), 1e-12)
+        TSNE(n_components=2, perplexity=30, random_seed=0).fit_transform(np.random.rand(2000, 10).astype(np.float32))  # context warm-up
+        t = time.time()
+        Y = TSNE(n_components=2, **kw).fit_transform(Xc)
+    elif method == "ncvis":
+        import ncvis
+        t = time.time()
+        Y = ncvis.NCVis(**kw).fit_transform(np.asarray(data, dtype=np.float32))
     else:
         raise ValueError(method)
     elapsed = time.time() - t

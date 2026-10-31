@@ -6,7 +6,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-LABELS = {"magnet": "MAGNET", "umap": "UMAP", "opentsne": "openTSNE", "pacmap": "PaCMAP", "trimap": "TriMap", "sktsne": "sklearn t-SNE"}
+LABELS = {"magnet": "MAGNET", "umap": "UMAP", "opentsne": "openTSNE", "pacmap": "PaCMAP", "trimap": "TriMap", "sktsne": "sklearn t-SNE",
+          "densmap": "densMAP", "phate": "PHATE", "hnne": "h-NNE", "tsnecuda": "t-SNE-CUDA (GPU)"}
 DATASETS = [("mnist70000", "MNIST 70k"), ("fmnist70000", "Fashion-MNIST 70k"), ("news20", "20 newsgroups"), ("blobs10k", "15 blobs 10k")]
 METRICS = [("knn15_preservation", "15-NN preservation (local)"), ("dist_spearman", "distance Spearman (global)")]
 

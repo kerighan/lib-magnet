@@ -189,7 +189,11 @@ networkx graph / sparse adjacency ───────────────�
 Measured on a 20-core i9-9900X, several seeds, defaults everywhere. Local structure: 15-NN
 preservation and trustworthiness. Global structure: Spearman correlation of pairwise distances and
 random-triplet accuracy on a sample. Label structure: 10-NN accuracy in 2-D. The full table against
-UMAP, openTSNE, PaCMAP, TriMap and scikit-learn's t-SNE is in [benchmarks/BENCHMARK.md](benchmarks/BENCHMARK.md).
+UMAP, densMAP, openTSNE, PaCMAP, TriMap, PHATE, h-NNE, scikit-learn's t-SNE and t-SNE-CUDA is in
+[benchmarks/BENCHMARK.md](benchmarks/BENCHMARK.md) (NCVis is missing: its PyPI package does not build
+here). t-SNE-CUDA runs on an RTX 2070 that was shared with another job during the measurement, and
+its defaults (1000 iterations, learning rate 200) are under-converged at 70k points, which is why it
+sits below the CPU t-SNEs on neighbourhood preservation.
 
 **MNIST 70k**
 
@@ -201,10 +205,20 @@ UMAP, openTSNE, PaCMAP, TriMap and scikit-learn's t-SNE is in [benchmarks/BENCHM
 | MAGNET, `late_exaggeration=1.5` (compact preset, silhouette 0.51) | 4.7 s | 0.181 | 0.956 | 0.386 | 0.637 | 0.967 |
 | **MAGNET `loss="tsne"`** | 9.2 s | 0.349 | 0.966 | 0.348 | 0.627 | 0.966 |
 | UMAP 0.5.11 | 18.2 s | 0.116 | 0.951 | 0.300 | 0.607 | 0.967 |
+| densMAP (umap-learn 0.5.11) | 43.2 s | 0.070 | 0.923 | 0.357 | 0.621 | 0.956 |
 | openTSNE 1.0.4 | 102.5 s | 0.347 | **0.968** | 0.330 | 0.619 | 0.965 |
 | PaCMAP | 24.8 s | 0.093 | 0.946 | 0.307 | 0.614 | **0.976** |
 | TriMap | 57.0 s | 0.088 | 0.933 | 0.184 | 0.597 | 0.964 |
+| PHATE 2.0 | 43.2 s | 0.080 | 0.865 | 0.291 | 0.611 | 0.861 |
+| h-NNE | 9.1 s (5.9 s warm) | 0.233 | 0.940 | 0.261 | 0.601 | 0.949 |
 | sklearn t-SNE (Barnes-Hut) | 195.7 s | **0.350** | **0.968** | 0.338 | 0.622 | 0.967 |
+| t-SNE-CUDA 3.0.1 (GPU) | 13.8 s | 0.169 | 0.967 | 0.169 | 0.567 | 0.957 |
+
+h-NNE is the one fast method that beats the default MAGNET on neighbourhood preservation (0.233
+against 0.193 on MNIST, 0.154 against 0.134 on 20 newsgroups, the other way round on Fashion-MNIST,
+0.173 against 0.202); it pays for it on every other column (trustworthiness 0.940, distance
+correlation 0.261, label accuracy 0.949). `kernel_b=0.5` closes a third of that gap and
+`loss="tsne"` all of it.
 
 **Other data sets** (MAGNET default / best competitor on that column)
 
