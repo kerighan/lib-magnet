@@ -191,9 +191,20 @@ limit, a data set where every point would rather be at L2 and the mode only move
 
 ## 5. Open
 
-* Why text settles at 0.6-0.7: the bimodal contamination (hubs) is consistent with section 2 but not
-  derived from it, and MNIST 5k (0.6, flat) is not explained at all. A direct test: damp the hubs
-  (degree cap, mutual kNN) on 20 newsgroups and see whether the optimum moves to 0.5.
+* Why text settles at 0.6-0.7 is still open, and two explanations are now ruled out (`h1_hubs.py`,
+  `h2_degree.py`, 20 newsgroups with MNIST 20k as the control, 2 seeds). Hubs: the edges that end far
+  from their point do not go to hubs, their endpoints have 0.77-0.81 of the mean in-degree on both data
+  sets, and damping the hubs on the graph side (fuzzy intersection, degree cap at 30, symmetric degree
+  normalisation) leaves the text optimum at 0.6-0.7 and MNIST's at 0.5. Degree: the in-degree of the
+  kNN graph is extreme on text (69 % of the points are listed by fewer than 5 others, 20 % by none,
+  against 12 % and 0 % on MNIST), but the optimum is 0.6-0.7 in every in-degree quintile on text and 0.5
+  in every quintile on MNIST, so it is a property of the whole data set, not of the poorly connected
+  points. Two side results worth keeping: the fuzzy intersection raises 15-NN preservation on text from
+  0.135 to 0.163 at the cost of trustworthiness (0.76 to 0.71) and label accuracy (0.51 to 0.44), and a
+  per-point exponent decreasing with the in-degree (0.8 below 5, 0.6 below 15, 0.5 above) gains 2 % on
+  text (0.132 against 0.129), all of it on the well-connected points (0.355 against 0.335 in the top
+  quintile), and is neutral on MNIST: a point's exponent acts on its neighbours' pulls as much as on
+  its own (the edge uses the mean of the two exponents). MNIST 5k (0.6, flat) is not explained either.
 * The repulsion law is a loss-per-octave argument for a smooth cloud; what fixes the optimum in a
   clustered embedding with three far-field octaves is not derived, and the measured optimum is at or a
   little above m/2 in every dimension tested, never below.
@@ -209,7 +220,7 @@ limit, a data set where every point would rather be at L2 and the mode only move
 data set), `e3_huber.py` (needs the research build with the Huber kernel; the C++ and Python patch is
 described in the script's docstring), `e4_oracle_local.py`, `e5_law.py`, `e6_estimator.py`,
 `e7_embedding_estimator.py` (two-phase version, superseded), `g1_gate.py` (crowding distribution on
-real data), `g2_adaptive.py`, `g3_mindeg.py`; the `.log` files are the runs quoted here (4 threads, 2-3
+real data), `g2_adaptive.py`, `g3_mindeg.py`, `h1_hubs.py`, `h2_degree.py` (the text question); the `.log` files are the runs quoted here (4 threads, 2-3
 seeds). The e3 / e4 / e6 / e7 scripts take the package directory and the repository as arguments; g1 and
 g2 take the repository and a data directory holding `coil20/coil-20-proc/*.png` (Columbia CAVE) and
 `paul15/paul15.h5` (falexwolf.de/data); Cora and the airport graphs are read from local copies.

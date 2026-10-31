@@ -128,7 +128,10 @@ uncrowded (adaptive +0.06 and +0.01 edge preservation over the same constant, 0.
 stochastic blocks with chains attached), while MNIST, Fashion-MNIST, 20 newsgroups and the Paul15
 single-cell data are crowded everywhere and the adaptive mode stays neutral there (MNIST 0.293 against
 0.292). A Huber attraction (L2 below a scale c, L1 above) has no universal c (MNIST wants the
-smallest, 2-D manifolds want 0.2-0.5), as Huber's theorem says, and was not kept. `kernel_b="auto"` (subsample sweep) drifts with the sample
+smallest, 2-D manifolds want 0.2-0.5), as Huber's theorem says, and was not kept. Why text sits at
+0.6-0.7 is still open: it is neither the hubs (the unsatisfiable edges end at low-degree points, and
+damping hubs moves nothing) nor the degree (the optimum is 0.6-0.7 in every in-degree quintile of 20
+newsgroups and 0.5 in every quintile of MNIST). `kernel_b="auto"` (subsample sweep) drifts with the sample
 size. Kernels with
 exponential or lighter tails confirm the crowding theory the hard way: on MNIST 20k, 15-NN
 preservation 0.285 (power) against 0.16 (sech), 0.11 (Gaussian) and 0.10 (1 - tanh(d^2)). Reshaping

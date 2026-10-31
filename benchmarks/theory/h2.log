@@ -1,0 +1,22 @@
+== news20: in-degree quintile edges [0. 1. 3. 8.], share with in-degree < 5: 0.69, < 10: 0.83
+   b=0.4  all 0.1045  by in-degree quintile: <= 0: nan  ..1: 0.0106  ..3: 0.0550  ..8: 0.1440  > 8: 0.2693
+   b=0.5  all 0.1186  by in-degree quintile: <= 0: nan  ..1: 0.0115  ..3: 0.0635  ..8: 0.1649  > 8: 0.3037
+   b=0.6  all 0.1282  by in-degree quintile: <= 0: nan  ..1: 0.0131  ..3: 0.0678  ..8: 0.1763  > 8: 0.3299
+   b=0.7  all 0.1289  by in-degree quintile: <= 0: nan  ..1: 0.0129  ..3: 0.0686  ..8: 0.1744  > 8: 0.3345
+   b=0.8  all 0.1231  by in-degree quintile: <= 0: nan  ..1: 0.0126  ..3: 0.0636  ..8: 0.1647  > 8: 0.3227
+   b=1.0  all 0.1080  by in-degree quintile: <= 0: nan  ..1: 0.0116  ..3: 0.0512  ..8: 0.1375  > 8: 0.2949
+   best exponent per quintile: <= 0: 0.4 ..1: 0.6 ..3: 0.7 ..8: 0.6 > 8: 0.7
+   oracle per quintile        all 0.1280  by quintile: nan  0.0136  0.0681  0.1781  0.3260   (mean b 0.65)
+   in-degree law 0.8/0.6/0.5  all 0.1319  by quintile: nan  0.0129  0.0628  0.1753  0.3545   (mean b 0.73)
+   in-degree law 0.7/0.5      all 0.1284  by quintile: nan  0.0125  0.0659  0.1725  0.3377   (mean b 0.67)
+== mnist20k: in-degree quintile edges [ 7. 11. 16. 23.], share with in-degree < 5: 0.12, < 10: 0.33
+   b=0.4  all 0.2771  by in-degree quintile: <= 7: 0.2294  ..11: 0.2623  ..16: 0.2852  ..23: 0.2972  > 23: 0.3063
+   b=0.5  all 0.2925  by in-degree quintile: <= 7: 0.2426  ..11: 0.2774  ..16: 0.3021  ..23: 0.3135  > 23: 0.3213
+   b=0.6  all 0.2829  by in-degree quintile: <= 7: 0.2335  ..11: 0.2703  ..16: 0.2920  ..23: 0.3045  > 23: 0.3093
+   b=0.7  all 0.2620  by in-degree quintile: <= 7: 0.2146  ..11: 0.2495  ..16: 0.2714  ..23: 0.2825  > 23: 0.2870
+   b=0.8  all 0.2387  by in-degree quintile: <= 7: 0.1939  ..11: 0.2265  ..16: 0.2483  ..23: 0.2574  > 23: 0.2625
+   b=1.0  all 0.1999  by in-degree quintile: <= 7: 0.1567  ..11: 0.1874  ..16: 0.2074  ..23: 0.2183  > 23: 0.2250
+   best exponent per quintile: <= 7: 0.5 ..11: 0.5 ..16: 0.5 ..23: 0.5 > 23: 0.5
+   oracle per quintile        all 0.2933  by quintile: 0.2404  0.2798  0.3036  0.3141  0.3235   (mean b 0.50)
+   in-degree law 0.8/0.6/0.5  all 0.2905  by quintile: 0.2261  0.2722  0.2983  0.3192  0.3303   (mean b 0.58)
+   in-degree law 0.7/0.5      all 0.2920  by quintile: 0.2310  0.2691  0.3042  0.3186  0.3298   (mean b 0.57)
