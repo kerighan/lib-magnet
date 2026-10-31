@@ -145,26 +145,62 @@ and c = 0.02 is at 0.656; on q = 10, c = 0.02 equals b = 1/2 (0.197-0.200). Ther
 transition scale, which is what Huber's theorem says (the threshold depends on the contamination), so the
 kernel was not kept: the per-point exponent is the right form of the same idea.
 
-Reading the crowding off the embedding. The contamination of section 2 can be measured on a partial
-layout instead of estimated from the input distances: after 40 % of the epochs at the global exponent,
-the share of a node's edges beyond `d_k` is 0.00 for the q = 2 points, 0.07-0.12 for q = 3, 0.20 for q = 5
-and 0.32 for q = 10 (`e7_embedding_estimator.py`), a cleaner separation than the local dimension gives.
-Finishing from that layout with the per-point exponent did not gain (+0.00 to +0.01 on the mixtures at
-threshold 0.05, -0.02 on MNIST), but the second phase restarts the learning-rate schedule, a cost of the
-same size as the gain being measured (the two-phase run with a constant exponent, the control, was not
-done). The clean version updates the per-point exponent between epoch chunks inside one run; not done.
+Reading the crowding off the layout (`kernel_b="adaptive"`). The contamination of section 2 can be
+measured on the layout itself instead of estimated from the input distances. Measured on a converged
+layout (share of a point's graph edges longer than `d_k`, `g1_gate.py`), it separates the regimes on
+real data where the theory predicts them:
+
+| data | n | uncrowded points (share <= 0.05) | median crowding | note |
+|---|---|---|---|---|
+| COIL-20 (64 x 64, 20 objects x 72 views) | 1440 | 0.31 | 0.13 | objects 11 and 12 at 0.00; local dimension (dimprint) reads 2.3-8 for these 1-D circles |
+| Paul15 single-cell, 50 / 20 / 10 PCs | 2730 | 0.01 / 0.01 / 0.02 | 0.61 / 0.52 / 0.47 | crowded everywhere |
+| Cora citation graph | 2708 | 0.58 | 0.00 | low-degree nodes |
+| US airports graph | 1190 | 0.27 | 0.50 | small airports at 0.00, hubs at 0.84 |
+| Europe airports graph | 399 | 0.10 | 0.83 | |
+| SBM + chains (synthetic) | 3000 | 0.46 | 0.30 | chains 0.00, blocks 0.48 |
+| MNIST 6k | 6000 | 0.06 | 0.33 | digits 0, 1, 6 at 0.22, digits 3, 8, 9 at 0.39 |
+| 1-D / 2-D / 10-D clusters | 6000 | 0.25 | 0.32 | 0.00 / 0.12 / 0.50 by group |
+
+Mid-run the layout is still contracting (median edge length 1.8 at 40 % of the epochs against 0.1-0.5 at
+the end), so the absolute reference `d_k` flags everything; the share of edges longer than twice the
+median edge length separates the groups as well as the final measure does (1-D / 2-D / 10-D clusters at
+60 % of the epochs: 71 % / 66 % / 2 % of the points with no far edge). The implementation runs every
+point at the crowded exponent, measures that share at 3/4 of the epochs, and switches the points with
+no far edge and at least two neighbours to L2 for the rest of the run, with no restart of the schedule
+(`g2_adaptive.py`, `g3_mindeg.py`; 2-3 seeds, 15-NN kept for data, edge preservation for graphs):
+
+| data | constant 0.5 | constant 0.6 | constant 1.0 | oracle | local (dimprint) | adaptive, base 0.5 | adaptive, base 0.6 |
+|---|---|---|---|---|---|---|---|
+| 1-D + 2-D + 10-D clusters, 6k | 0.493 | 0.498 | 0.474 | 0.540 | **0.545** | 0.526 | 0.524 |
+| 5 x 2-D + 5 x 10-D clusters, 20k | 0.421 | 0.417 | 0.392 | 0.441 | **0.459** | 0.442 | 0.433 |
+| COIL-20 | 0.694 | 0.717 | **0.772** | | 0.701 | 0.720 | 0.729 |
+| MNIST 20k | 0.292 | 0.282 | 0.200 | | 0.294 | 0.291 | 0.280 |
+| Paul15, 20 PCs | 0.324 | 0.324 | 0.275 | | 0.321 | 0.325 | 0.326 |
+| Cora graph | 0.442 | 0.507 | 0.470 | | | 0.501 | **0.522** |
+| US airports graph | 0.333 | 0.344 | 0.297 | | | 0.344 | 0.339 |
+| SBM + chains | 0.449 | 0.484 | 0.532 | 0.571 | | **0.573** | 0.568 |
+
+The adaptive mode is never worse than its base exponent (within 0.002) and better where the data is
+heterogeneous; the local-dimension mode is the better of the two when the low-dimensional regions are
+flat enough for the estimator (the synthetic mixtures, where it beats the 1.0 / 0.5 oracle) and useless
+when they are not (COIL-20) or when there is no data matrix (graphs). The minimum degree matters on
+graphs: chains (degree 2) gain 0.25 of edge preservation under L2, leaves (degree 1) lose it. What
+remains between the adaptive mode and the oracle on the mixtures (0.526 against 0.540, 0.442 against
+0.441) is the share of uncrowded points the mid-run measure misses (60-70 %); COIL-20 shows the other
+limit, a data set where every point would rather be at L2 and the mode only moves a third of them.
 
 ## 5. Open
 
 * Why text settles at 0.6-0.7: the bimodal contamination (hubs) is consistent with section 2 but not
-  derived from it, and MNIST 5k (0.6, flat) is not explained at all.
+  derived from it, and MNIST 5k (0.6, flat) is not explained at all. A direct test: damp the hubs
+  (degree cap, mutual kNN) on 20 newsgroups and see whether the optimum moves to 0.5.
 * The repulsion law is a loss-per-octave argument for a smooth cloud; what fixes the optimum in a
   clustered embedding with three far-field octaves is not derived, and the measured optimum is at or a
   little above m/2 in every dimension tested, never below.
-* A per-point *repulsion* exponent (the local dimension of the embedding cloud rather than of the data)
-  follows from section 3 and was not tested.
-* A calibrated local-dimension estimator (the MLE reads 30 % high at k = 15) would release more of the
-  7-12 % oracle gain; so would the in-run embedding-side estimator above.
+* The adaptive switch is a step at 3/4 of the run; a second measurement later, or a graded exponent
+  between 1/2 and 1 by the crowding share, could take more of the oracle gain. COIL-20 says the
+  crowding share should also be allowed to push a whole data set to L2.
+* A per-point *repulsion* exponent does not follow: the layout is m-dimensional everywhere.
 
 ## Scripts (`benchmarks/theory/`)
 
@@ -172,5 +208,8 @@ done). The clean version updates the per-point exponent between epoch chunks ins
 (pure power law on smooth clouds; `e1b.log`), `e2_contamination.py` (edge-distance distribution per
 data set), `e3_huber.py` (needs the research build with the Huber kernel; the C++ and Python patch is
 described in the script's docstring), `e4_oracle_local.py`, `e5_law.py`, `e6_estimator.py`,
-`e7_embedding_estimator.py`; the `.log` files are the runs quoted here (20k points, 4 threads, seeds 0
-and 1). The e3 / e4 / e6 / e7 scripts take the package directory and the repository as arguments.
+`e7_embedding_estimator.py` (two-phase version, superseded), `g1_gate.py` (crowding distribution on
+real data), `g2_adaptive.py`, `g3_mindeg.py`; the `.log` files are the runs quoted here (4 threads, 2-3
+seeds). The e3 / e4 / e6 / e7 scripts take the package directory and the repository as arguments; g1 and
+g2 take the repository and a data directory holding `coil20/coil-20-proc/*.png` (Columbia CAVE) and
+`paul15/paul15.h5` (falexwolf.de/data); Cora and the airport graphs are read from local copies.

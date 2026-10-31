@@ -334,3 +334,27 @@ def test_local_exponent():
     assert np.isfinite(Y_arr).all() and not np.array_equal(Y_arr, Y_coupled)
     with pytest.raises(ValueError):
         MAGNET(kernel_b=arr[:-1], random_state=0).fit(X)
+
+
+def test_adaptive_exponent():
+    """kernel_b='adaptive': points whose edges all stay short at 3/4 of the run switch to L2; on a 2-D + 10-D
+    mixture that is a good share of the 2-D points and none of the 10-D points; graph inputs work too."""
+    rng = np.random.default_rng(1)
+    n, d, qs = 4000, 30, [2, 2, 10, 10]
+    y = rng.integers(0, 4, n)
+    centers = rng.normal(0, 8, (4, d)).astype(np.float32)
+    X = np.empty((n, d), np.float32)
+    for c, q in enumerate(qs):
+        idx = np.where(y == c)[0]
+        basis = np.linalg.qr(rng.normal(size=(d, q)))[0].T.astype(np.float32)
+        X[idx] = centers[c] + rng.normal(size=(len(idx), q)).astype(np.float32) @ basis
+    M = MAGNET(kernel_b="adaptive", random_state=0, n_threads=1).fit(X)
+    q = np.array(qs)[y]
+    assert M.crowding_.shape == (n,) and np.isfinite(M.embedding_).all()
+    assert (M.node_b_[q == 2] == 1.0).mean() > 0.3 and (M.node_b_[q == 10] == 1.0).mean() < 0.1
+    import networkx as nx
+    G = nx.stochastic_block_model([100, 100], [[0.1, 0.005], [0.005, 0.1]], seed=0)
+    nx.add_path(G, range(200, 300)); G.add_edge(0, 200)
+    A = sp.csr_matrix(nx.to_scipy_sparse_array(G, nodelist=range(300))).astype(np.float32)
+    Mg = MAGNET(kernel_b="adaptive", random_state=0, n_threads=1).fit(A)
+    assert (Mg.node_b_[200:] == 1.0).mean() > 0.8 and (Mg.node_b_[:200] == 1.0).mean() < 0.3

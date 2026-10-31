@@ -91,21 +91,38 @@ def local_intrinsic_dimension(X, k=15, random_state=0):
         return (k - 1) / np.maximum(logs.sum(1), 1e-12)
 
 
-def local_kernel_exponent(X, k=15, random_state=0, m=2, law=None, low=0.3, high=1.0, smooth=True):
+def local_kernel_exponent(X, k=15, random_state=0, m=2, law=None, low=0.3, high=1.0, smooth=True, graph=None):
     """Per-point attraction exponent from the local intrinsic dimension q_i (docs/kernel_exponents.md).
     The attraction optimum is a step at q = m: 1 (L2, the efficient estimator) when the point's
     neighbourhood fits in the target dimension, 1/2 (L1, the geometric median) when it is crowded.
-    The Levina-Bickel estimate on k neighbours is noisy and reads high (2.6 for q = 2, 3.8 for q = 3,
-    10 for q = 10 at k = 15), so it is averaged in log scale over the neighbourhood and the step is
-    placed at m + 0.5: conservative, because a crowded point filed as L2 loses more than an uncrowded
-    point filed as L1 gains. `law` overrides the step (a callable q -> b)."""
-    from .knn import knn_nndescent
-    ind, dist = knn_nndescent(X, k + 1, random_state=random_state)
-    d = np.maximum(dist[:, 1:], 1e-12)
-    q = (k - 1) / np.maximum(np.log(d[:, -1:] / d[:, :-1]).sum(1), 1e-12)
+    q_i comes from dimprint's calibrated estimator when it is importable (2.1 / 3.2 / 5.6 / 11 for
+    Gaussian clusters of dimension 2 / 3 / 5 / 10), otherwise from the raw Levina-Bickel MLE (which
+    reads 30% high); it is then averaged in log scale over the neighbourhood (`graph`, or a fresh
+    kNN) and the step is placed at m + 0.5: conservative, because a crowded point filed as L2 loses
+    more than an uncrowded point filed as L1 gains. `law` overrides the step (a callable q -> b)."""
+    ind = None
+    try:
+        from dimprint import LocalIntrinsicDimension
+        q = np.asarray(LocalIntrinsicDimension(k=k).fit(X).dimension_pw_, dtype=np.float64)
+    except Exception:
+        from .knn import knn_nndescent
+        ind, dist = knn_nndescent(X, k + 1, random_state=random_state)
+        d = np.maximum(dist[:, 1:], 1e-12)
+        q = (k - 1) / np.maximum(np.log(d[:, -1:] / d[:, :-1]).sum(1), 1e-12)
+        ind = ind[:, 1:]
+    q = np.maximum(q, 1e-3)
     if smooth:
         lq = np.log(q)
-        q = np.exp((lq + lq[ind[:, 1:]].sum(1)) / (k + 1))
+        if graph is not None:
+            G = graph.tocsr()
+            deg = np.diff(G.indptr)
+            s = np.bincount(np.repeat(np.arange(G.shape[0]), deg), weights=lq[G.indices], minlength=G.shape[0])
+            q = np.exp((lq + s) / (1 + deg))
+        else:
+            if ind is None:
+                from .knn import knn_nndescent
+                ind = knn_nndescent(X, k + 1, random_state=random_state)[0][:, 1:]
+            q = np.exp((lq + lq[ind].sum(1)) / (k + 1))
     if law is None:
         law = lambda q: np.where(q <= m + 0.5, 1.0, 0.5)
     return np.clip(law(np.asarray(q, dtype=np.float64)), low, high).astype(np.float32)

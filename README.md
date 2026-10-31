@@ -116,10 +116,19 @@ never beat a constant): on five 2-D plus five 10-D clusters in 2-D, 15-NN preser
 true dimension against 0.42 for the best constant (+9%; +12% on 3-D plus 10-D clusters in 3-D), the
 uncrowded points getting the L2 result and the crowded ones the L1 result. `kernel_b="local"` now
 applies that law (1 where the neighbourhood-smoothed local dimension fits in `n_components`, 1/2
-elsewhere; conservative, it captures a quarter to a third of the oracle gain and never loses), and
-an array of exponents is the oracle path when the structure is known. A Huber attraction (L2 below
-a scale c, L1 above) has no universal c (MNIST wants the smallest, 2-D manifolds want 0.2-0.5), as
-Huber's theorem says, and was not kept. `kernel_b="auto"` (subsample sweep) drifts with the sample
+elsewhere, with dimprint's calibrated estimator when it is installed: on the synthetic mixtures it
+matches or beats the oracle, 0.545 against 0.540 and 0.459 against 0.441), `kernel_b="adaptive"` reads
+the same split off the layout itself (the points whose edges all stay short at 3/4 of the run finish
+at L2; it works on graph inputs, where the local dimension is not available), and an array of
+exponents is the oracle path when the structure is known. On real data the heterogeneity exists where
+the theory says: COIL-20 (20 objects photographed on a turntable, 1-D circles) has a third of its
+points uncrowded and wants b = 1 outright (15-NN kept 0.77 against 0.69 at 0.5; the adaptive mode gets
+0.72, the local dimension misses the circles), 58% of Cora's nodes and 27% of the US airports' are
+uncrowded (adaptive +0.06 and +0.01 edge preservation over the same constant, 0.57 against 0.45 on
+stochastic blocks with chains attached), while MNIST, Fashion-MNIST, 20 newsgroups and the Paul15
+single-cell data are crowded everywhere and the adaptive mode stays neutral there (MNIST 0.293 against
+0.292). A Huber attraction (L2 below a scale c, L1 above) has no universal c (MNIST wants the
+smallest, 2-D manifolds want 0.2-0.5), as Huber's theorem says, and was not kept. `kernel_b="auto"` (subsample sweep) drifts with the sample
 size. Kernels with
 exponential or lighter tails confirm the crowding theory the hard way: on MNIST 20k, 15-NN
 preservation 0.285 (power) against 0.16 (sech), 0.11 (Gaussian) and 0.10 (1 - tanh(d^2)). Reshaping
@@ -250,7 +259,8 @@ Any networkx graph or sparse adjacency matrix is laid out directly, in linear ti
 | `init` | `"auto"` | PCA for `loss="tsne"` on data, spectral otherwise; or `"spectral"`, `"pca"`, `"random"`, an array |
 | `knn` | `"nndescent"` | or `"hnsw"` (needs hnswlib) |
 | `pca` | None | project wide data to this many components before the neighbour search |
-| `kernel_b` | 0.6 | attraction exponent (0.5 for images, 0.7 for text, any dimension); None = UMAP's fit; `"auto_dim"` = the former coupled defaults; `"local"` = 1 where the local dimension fits in `n_components`, 1/2 elsewhere (mixed-dimension data); an array = one exponent per point |
+| `kernel_b` | 0.6 | attraction exponent (0.5 for images, 0.7 for text, any dimension); None = UMAP's fit; `"auto_dim"` = the former coupled defaults; `"local"` = 1 where the local dimension fits in `n_components`, 1/2 elsewhere (mixed-dimension data); `"adaptive"` = the same split read off the layout at 3/4 of the run (graphs too); an array = one exponent per point |
+| `adaptive` | `(0.5, 1.0, 0.75, 0.0, 2.0, 2)` | for `kernel_b="adaptive"`: base and high exponents, switch epoch fraction, crowding threshold, far-edge reference (times the median edge length), minimum degree |
 | `repulsion_b` | 1.0 | repulsion exponent (Cauchy tail); None couples it to `kernel_b` (UMAP's compact look, 20% slower) |
 | `kernel` | `"power"` | or `"gaussian"`, `"sech"` (exponential tails, for comparison) |
 | `tsne_dof` | 1.0 | Student-t degrees of freedom of `loss="tsne"` (< 1 = heavier tail, Kobak et al. 2019) |

@@ -80,8 +80,16 @@ class MAGNET:
         and 15-NN preservation peaks at 0.5 (images) to 0.7 (text) in every target dimension; default 0.6.
         None = UMAP's fit (~0.8 to 0.9); an array = one exponent per point (the repulsion stays at repulsion_b);
         "local" = 1 where the neighbourhood-smoothed local intrinsic dimension fits in n_components, 1/2 elsewhere
-        (data mixing manifolds of different dimensions; docs/kernel_exponents.md); "auto" = subsample sweep;
-        "auto_dim" = the former coupled defaults (0.6 in 2-D, 0.8 beyond).
+        (data mixing manifolds of different dimensions; dimprint when installed; docs/kernel_exponents.md);
+        "adaptive" = the same split read off the layout itself (see `adaptive`; works on graph inputs too);
+        "auto" = subsample sweep; "auto_dim" = the former coupled defaults (0.6 in 2-D, 0.8 beyond).
+    adaptive : (base, high, at, threshold, reference, min_degree) for kernel_b="adaptive", default
+        (0.5, 1.0, 0.75, 0.0, 2.0, 2): every point runs at `base` until `at` of the epochs; the points whose
+        share of graph edges longer than `reference` times the median edge length is at most `threshold`,
+        and whose degree is at least `min_degree`, finish at `high` (L2, the uncrowded regime), the others at
+        `base` (L1, the crowded regime). Neutral on homogeneous data (MNIST: 0.293 against 0.292 15-NN kept),
+        +0.02 to +0.03 on data mixing 1-D / 2-D and 10-D manifolds, +0.01 to +0.06 on citation and airport
+        graphs, 0.57 against 0.45 edge preservation on blocks with chains attached. Results in `crowding_`.
     repulsion_b : exponent of the repulsion kernel (default 1, the Cauchy tail of t-SNE; None: same as kernel_b).
         It sets the tail felt by far points: heavier (0.5) gives UMAP's compact blobs, lighter (1 to m/2 in m
         dimensions) gives a little more neighbourhood preservation and global structure, and b = 1 removes the pow()
@@ -162,8 +170,10 @@ class MAGNET:
                  init="auto", pca=None, knn="nndescent", ef_construction=80, M=16, ef=None,
                  set_op_mix_ratio=1.0, neighbor_power=1.0, neighbor_rank_exponent=0.0,
                  samples_per_node=5.0, graph_norm="sym", input="auto",
+                 adaptive=(0.5, 1.0, 0.75, 0.0, 2.0, 2),
                  transform_epochs=None, n_threads=-1, random_state=None, verbose=False):
         self.n_components = n_components
+        self.adaptive = adaptive
         self.n_neighbors = n_neighbors
         self.metric = metric
         self.min_dist = min_dist
@@ -332,8 +342,13 @@ class MAGNET:
             if not isinstance(X, np.ndarray):
                 raise ValueError("kernel_b='local' needs a dense data matrix (local intrinsic dimension)")
             from .roles import local_kernel_exponent
-            self.node_b_ = local_kernel_exponent(X, self.n_neighbors, random_state=self.random_state or 0, m=self.n_components)
+            self.node_b_ = local_kernel_exponent(X, self.n_neighbors, random_state=self.random_state or 0, m=self.n_components, graph=P)
             kb = float(np.median(self.node_b_))
+        if isinstance(kb, str) and kb == "adaptive":
+            # per-point exponent read off the layout itself: every point starts at the crowded value and the
+            # points whose edges all fit inside the kernel scale after `adaptive[2]` of the epochs switch to L2
+            self.node_b_ = np.full(n, float(self.adaptive[0]), dtype=np.float32)
+            kb = float(self.adaptive[0])
         elif kb is not None and not np.isscalar(kb):
             self.node_b_ = np.asarray(kb, dtype=np.float32)
             if self.node_b_.shape != (n,):
@@ -429,6 +444,18 @@ class MAGNET:
         tail = C.col[keep].astype(np.int32)
         return head, tail, (1.0 / freq[keep]).astype(np.float32)
 
+    def _crowding(self, Y, P, ref=None):
+        """Share of each point's graph edges whose embedded length exceeds a reference length: the kernel
+        scale a^(-1/2b) when `ref` is None (a converged layout), or `ref` times the median edge length (a
+        layout still contracting, mid-run). This is the contamination of the attraction
+        (docs/kernel_exponents.md, section 2)."""
+        P = P.tocsr()
+        deg = np.diff(P.indptr)
+        i = np.repeat(np.arange(P.shape[0]), deg)
+        d = np.sqrt(((Y[i] - Y[P.indices]) ** 2).sum(1))
+        far_len = float(self.a_) ** (-1.0 / (2.0 * float(self.b_))) if ref is None else float(ref) * float(np.median(d))
+        return np.bincount(i, weights=(d > far_len).astype(np.float64), minlength=P.shape[0]) / np.maximum(deg, 1)
+
     def _optimize(self, Y, head, tail, epochs_per_sample, P, n_epochs, n_fixed, seed, mid_weight):
         """Runs the native SGD on Y (in place) with the requested schedule. Sets self.n_epochs_."""
         from _magnet import optimize_layout
@@ -481,13 +508,22 @@ class MAGNET:
             mid = (lambda e: mid_weight * max(0.0, 1.0 - e / mid_len)) if use_mid else (lambda e: 0.0)
             late_start = total - int(round(self.late_phase * total)) if self.late_exaggeration != 1.0 else total
             chunk = max(1, total // 20) if self.verbose else total
-            bounds = sorted(set([0, total, late_start] + list(range(0, total, chunk))))
+            adapt_at = total + 1
+            if isinstance(self.kernel_b, str) and self.kernel_b == "adaptive" and P is not None and n_fixed == 0:
+                adapt_at = int(round(float(self.adaptive[2]) * total))
+            bounds = sorted(set([0, total, late_start, min(adapt_at, total)] + list(range(0, total, chunk))))
             segments = [(a, b) for a, b in zip(bounds[:-1], bounds[1:]) if b > a]
             iterator = segments
             if self.verbose:
                 import tqdm
                 iterator = tqdm.tqdm(segments, desc="Layout")
             for e0, e1 in iterator:
+                if e0 == adapt_at:
+                    self.crowding_ = self._crowding(Y, P, ref=float(self.adaptive[4]) if len(self.adaptive) > 4 else 2.0)
+                    min_deg = int(self.adaptive[5]) if len(self.adaptive) > 5 else 5
+                    uncrowded = (self.crowding_ <= float(self.adaptive[3])) & (np.diff(P.tocsr().indptr) >= min_deg)
+                    node_b[:] = np.where(uncrowded, float(self.adaptive[1]), float(self.adaptive[0]))
+                    self.node_b_ = node_b
                 exag = self.exaggeration * self.late_exaggeration if e0 >= late_start else None
                 run(e0, e1, alpha(e0), alpha(e1), mid(e0), mid(e1), exag)
             self.n_epochs_ = total
