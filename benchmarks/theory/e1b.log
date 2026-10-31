@@ -1,0 +1,28 @@
+== Gaussian cloud 2-D m=2 octaves available 9.1
+b=0.5  net slope +0.27 (A: m-2b=+1.0)   magnitude slope -0.16 (B: m-1-2b=+0.0)   octaves used 6
+b=0.75 net slope -0.24 (A: m-2b=+0.5)   magnitude slope -0.65 (B: m-1-2b=-0.5)   octaves used 6
+b=1.0  net slope -0.76 (A: m-2b=+0.0)   magnitude slope -1.15 (B: m-1-2b=-1.0)   octaves used 6
+b=1.25 net slope -1.27 (A: m-2b=-0.5)   magnitude slope -1.64 (B: m-1-2b=-1.5)   octaves used 6
+b=1.5  net slope -1.79 (A: m-2b=-1.0)   magnitude slope -2.14 (B: m-1-2b=-2.0)   octaves used 6
+b=2.0  net slope -2.82 (A: m-2b=-2.0)   magnitude slope -3.13 (B: m-1-2b=-3.0)   octaves used 6
+== uniform cube 2-D m=2 octaves available 8.2
+b=0.5  net slope +0.07 (A: m-2b=+1.0)   magnitude slope -0.10 (B: m-1-2b=+0.0)   octaves used 5
+b=0.75 net slope -0.45 (A: m-2b=+0.5)   magnitude slope -0.59 (B: m-1-2b=-0.5)   octaves used 5
+b=1.0  net slope -0.97 (A: m-2b=+0.0)   magnitude slope -1.09 (B: m-1-2b=-1.0)   octaves used 5
+b=1.25 net slope -1.49 (A: m-2b=-0.5)   magnitude slope -1.59 (B: m-1-2b=-1.5)   octaves used 5
+b=1.5  net slope -2.01 (A: m-2b=-1.0)   magnitude slope -2.09 (B: m-1-2b=-2.0)   octaves used 5
+b=2.0  net slope -3.06 (A: m-2b=-2.0)   magnitude slope -3.08 (B: m-1-2b=-3.0)   octaves used 5
+== Gaussian cloud 3-D m=3 octaves available 6.4
+b=0.5  net slope +1.46 (A: m-2b=+2.0)   magnitude slope +0.64 (B: m-1-2b=+1.0)   octaves used 3
+b=0.75 net slope +0.97 (A: m-2b=+1.5)   magnitude slope +0.16 (B: m-1-2b=+0.5)   octaves used 3
+b=1.0  net slope +0.48 (A: m-2b=+1.0)   magnitude slope -0.33 (B: m-1-2b=+0.0)   octaves used 3
+b=1.25 net slope -0.01 (A: m-2b=+0.5)   magnitude slope -0.82 (B: m-1-2b=-0.5)   octaves used 3
+b=1.5  net slope -0.51 (A: m-2b=+0.0)   magnitude slope -1.31 (B: m-1-2b=-1.0)   octaves used 3
+b=2.0  net slope -1.50 (A: m-2b=-1.0)   magnitude slope -2.28 (B: m-1-2b=-2.0)   octaves used 3
+== uniform cube 3-D m=3 octaves available 5.7
+b=0.5  net slope +1.27 (A: m-2b=+2.0)   magnitude slope +0.76 (B: m-1-2b=+1.0)   octaves used 2
+b=0.75 net slope +0.76 (A: m-2b=+1.5)   magnitude slope +0.27 (B: m-1-2b=+0.5)   octaves used 2
+b=1.0  net slope +0.25 (A: m-2b=+1.0)   magnitude slope -0.23 (B: m-1-2b=+0.0)   octaves used 2
+b=1.25 net slope -0.27 (A: m-2b=+0.5)   magnitude slope -0.72 (B: m-1-2b=-0.5)   octaves used 2
+b=1.5  net slope -0.79 (A: m-2b=+0.0)   magnitude slope -1.22 (B: m-1-2b=-1.0)   octaves used 2
+b=2.0  net slope -1.84 (A: m-2b=-1.0)   magnitude slope -2.21 (B: m-1-2b=-2.0)   octaves used 2

@@ -91,13 +91,24 @@ def local_intrinsic_dimension(X, k=15, random_state=0):
         return (k - 1) / np.maximum(logs.sum(1), 1e-12)
 
 
-def local_kernel_exponent(X, k=15, random_state=0, law=None, low=0.3, high=1.0):
-    """Per-point kernel exponent from the local intrinsic dimension m_i. `law` maps m -> b; the default
-    is the fit of the benchmark study (see benchmarks/intrinsic_dim_study.py)."""
-    m = local_intrinsic_dimension(X, k, random_state)
+def local_kernel_exponent(X, k=15, random_state=0, m=2, law=None, low=0.3, high=1.0, smooth=True):
+    """Per-point attraction exponent from the local intrinsic dimension q_i (docs/kernel_exponents.md).
+    The attraction optimum is a step at q = m: 1 (L2, the efficient estimator) when the point's
+    neighbourhood fits in the target dimension, 1/2 (L1, the geometric median) when it is crowded.
+    The Levina-Bickel estimate on k neighbours is noisy and reads high (2.6 for q = 2, 3.8 for q = 3,
+    10 for q = 10 at k = 15), so it is averaged in log scale over the neighbourhood and the step is
+    placed at m + 0.5: conservative, because a crowded point filed as L2 loses more than an uncrowded
+    point filed as L1 gains. `law` overrides the step (a callable q -> b)."""
+    from .knn import knn_nndescent
+    ind, dist = knn_nndescent(X, k + 1, random_state=random_state)
+    d = np.maximum(dist[:, 1:], 1e-12)
+    q = (k - 1) / np.maximum(np.log(d[:, -1:] / d[:, :-1]).sum(1), 1e-12)
+    if smooth:
+        lq = np.log(q)
+        q = np.exp((lq + lq[ind[:, 1:]].sum(1)) / (k + 1))
     if law is None:
-        law = lambda m: 0.6 * np.ones_like(m)   # placeholder until the study fixes the law
-    return np.clip(law(np.asarray(m, dtype=np.float64)), low, high).astype(np.float32)
+        law = lambda q: np.where(q <= m + 0.5, 1.0, 0.5)
+    return np.clip(law(np.asarray(q, dtype=np.float64)), low, high).astype(np.float32)
 
 
 def select_kernel_exponent(X, candidates=(0.4, 0.5, 0.6, 0.7), n_sub=4000, n_epochs=150, metric="euclidean",

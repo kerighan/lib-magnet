@@ -309,3 +309,28 @@ def test_repulsion_exponent():
     assert np.isfinite(light).all() and not np.array_equal(light, coupled)
     with pytest.raises(Exception):
         MAGNET(repulsion_b=-1.0, random_state=0).fit_transform(X)
+
+
+def test_local_exponent():
+    """Per-point attraction exponent: 'local' files uncrowded points (2-D clusters in 2-D) at 1 and crowded
+    ones (10-D clusters) at 1/2, the repulsion stays decoupled, and an explicit array is accepted."""
+    rng = np.random.default_rng(0)
+    n, d, qs = 3000, 30, [2, 2, 10, 10]
+    y = rng.integers(0, 4, n)
+    centers = rng.normal(0, 8, (4, d)).astype(np.float32)
+    X = np.empty((n, d), np.float32)
+    for c, q in enumerate(qs):
+        idx = np.where(y == c)[0]
+        basis = np.linalg.qr(rng.normal(size=(d, q)))[0].T.astype(np.float32)
+        X[idx] = centers[c] + rng.normal(size=(len(idx), q)).astype(np.float32) @ basis
+    M = MAGNET(kernel_b="local", random_state=0, n_threads=1).fit(X)
+    assert M.node_b_.shape == (n,) and np.isfinite(M.embedding_).all()
+    q = np.array(qs)[y]
+    assert (M.node_b_[q == 2] == 1.0).mean() > 0.3 and (M.node_b_[q == 10] == 1.0).mean() < 0.05
+    assert M.rep_b_ == 1.0
+    arr = np.where(q == 2, 1.0, 0.5).astype(np.float32)
+    Y_arr = MAGNET(kernel_b=arr, random_state=0, n_threads=1).fit_transform(X)
+    Y_coupled = MAGNET(kernel_b=arr, repulsion_b=None, random_state=0, n_threads=1).fit_transform(X)
+    assert np.isfinite(Y_arr).all() and not np.array_equal(Y_arr, Y_coupled)
+    with pytest.raises(ValueError):
+        MAGNET(kernel_b=arr[:-1], random_state=0).fit(X)

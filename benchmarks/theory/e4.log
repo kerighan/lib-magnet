@@ -1,0 +1,16 @@
+local idim estimate: q=2 points median 2.0, q=10 points median 11.3
+estimator picks b=1 for 0.98 of q=2 points and 0.00 of q=10 points
+global 0.5         s=0 T= 1.7s knn15 all=0.4220 q2=0.6435 q10=0.2012
+global 0.5         s=1 T= 1.7s knn15 all=0.4226 q2=0.6461 q10=0.1999
+global 0.6         s=0 T= 1.6s knn15 all=0.4157 q2=0.6637 q10=0.1685
+global 0.6         s=1 T= 1.6s knn15 all=0.4175 q2=0.6715 q10=0.1644
+global 0.8         s=0 T= 1.6s knn15 all=0.3938 q2=0.6862 q10=0.1025
+global 0.8         s=1 T= 1.6s knn15 all=0.3937 q2=0.6863 q10=0.1022
+global 1.0         s=0 T= 1.4s knn15 all=0.3932 q2=0.7178 q10=0.0697
+global 1.0         s=1 T= 1.5s knn15 all=0.3935 q2=0.7155 q10=0.0725
+oracle 1.0/0.5     s=0 T= 1.6s knn15 all=0.4526 q2=0.7062 q10=0.1998
+oracle 1.0/0.5     s=1 T= 1.6s knn15 all=0.4622 q2=0.7255 q10=0.1997
+oracle 1.0/0.4     s=0 T= 1.6s knn15 all=0.4534 q2=0.6915 q10=0.2160
+oracle 1.0/0.4     s=1 T= 1.6s knn15 all=0.4665 q2=0.7187 q10=0.2152
+estimated 1.0/0.5  s=0 T= 1.6s knn15 all=0.4522 q2=0.7026 q10=0.2026
+estimated 1.0/0.5  s=1 T= 1.7s knn15 all=0.4472 q2=0.6976 q10=0.1976

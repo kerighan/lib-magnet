@@ -1,0 +1,25 @@
+m=2 q= 3 b=0.4  T= 3.9s knn15=0.4859 trust=0.9940 spear=0.7818
+m=2 q= 3 b=0.5  T= 3.6s knn15=0.5151 trust=0.9936 spear=0.7822
+m=2 q= 3 b=0.6  T= 3.0s knn15=0.5114 trust=0.9922 spear=0.7863
+m=2 q= 3 b=0.8  T= 1.5s knn15=0.4285 trust=0.9876 spear=0.7845
+m=2 q= 3 b=1.0  T= 1.4s knn15=0.3531 trust=0.9856 spear=0.7847
+m=2 q= 5 b=0.4  T= 1.5s knn15=0.3549 trust=0.9879 spear=0.7932
+m=2 q= 5 b=0.5  T= 1.4s knn15=0.3612 trust=0.9874 spear=0.7949
+m=2 q= 5 b=0.6  T= 1.5s knn15=0.3305 trust=0.9858 spear=0.7995
+m=2 q= 5 b=0.8  T= 1.8s knn15=0.2252 trust=0.9799 spear=0.8075
+m=2 q= 5 b=1.0  T= 1.3s knn15=0.1589 trust=0.9765 spear=0.8053
+m=3 q= 3 b=0.4  T= 2.1s knn15=0.5040 trust=0.9958 spear=0.8042
+m=3 q= 3 b=0.5  T= 2.1s knn15=0.5479 trust=0.9960 spear=0.8101
+m=3 q= 3 b=0.6  T= 2.1s knn15=0.5743 trust=0.9964 spear=0.8116
+m=3 q= 3 b=0.8  T= 2.0s knn15=0.6233 trust=0.9972 spear=0.8102
+m=3 q= 3 b=1.0  T= 1.8s knn15=0.6572 trust=0.9975 spear=0.8041
+m=3 q= 5 b=0.4  T= 1.7s knn15=0.3823 trust=0.9900 spear=0.8163
+m=3 q= 5 b=0.5  T= 1.7s knn15=0.4046 trust=0.9900 spear=0.8240
+m=3 q= 5 b=0.6  T= 1.7s knn15=0.4022 trust=0.9896 spear=0.8260
+m=3 q= 5 b=0.8  T= 1.7s knn15=0.3574 trust=0.9868 spear=0.8224
+m=3 q= 5 b=1.0  T= 1.6s knn15=0.3136 trust=0.9850 spear=0.8212
+m=3 q=10 b=0.4  T= 1.8s knn15=0.2596 trust=0.9800 spear=0.8265
+m=3 q=10 b=0.5  T= 1.7s knn15=0.2505 trust=0.9789 spear=0.8301
+m=3 q=10 b=0.6  T= 1.7s knn15=0.2287 trust=0.9782 spear=0.8348
+m=3 q=10 b=0.8  T= 1.7s knn15=0.1719 trust=0.9757 spear=0.8398
+m=3 q=10 b=1.0  T= 1.6s knn15=0.1318 trust=0.9744 spear=0.8420

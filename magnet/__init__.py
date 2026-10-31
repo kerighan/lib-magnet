@@ -78,17 +78,14 @@ class MAGNET:
     kernel_b : exponent b of the attraction kernel 1 / (1 + a d^(2b)); a is fitted to the (min_dist, spread) curve.
         The attraction exponent sets local fidelity: the force on a neighbour is ~ d^(2b-1), constant at b = 1/2,
         and 15-NN preservation peaks at 0.5 (images) to 0.7 (text) in every target dimension; default 0.6.
-        None = UMAP's fit (~0.8 to 0.9); an array = one exponent per point; "local" = from the local intrinsic
-        dimension; "auto" = subsample sweep; "auto_dim" = the former coupled defaults (0.6 in 2-D, 0.8 beyond).
+        None = UMAP's fit (~0.8 to 0.9); an array = one exponent per point (the repulsion stays at repulsion_b);
+        "local" = 1 where the neighbourhood-smoothed local intrinsic dimension fits in n_components, 1/2 elsewhere
+        (data mixing manifolds of different dimensions; docs/kernel_exponents.md); "auto" = subsample sweep;
+        "auto_dim" = the former coupled defaults (0.6 in 2-D, 0.8 beyond).
     repulsion_b : exponent of the repulsion kernel (default 1, the Cauchy tail of t-SNE; None: same as kernel_b).
         It sets the tail felt by far points: heavier (0.5) gives UMAP's compact blobs, lighter (1 to m/2 in m
         dimensions) gives a little more neighbourhood preservation and global structure, and b = 1 removes the pow()
         from the repulsion loop (15-20% faster). Only the sampled (`loss="umap"`) optimiser uses it.
-        kernel_b=1 (Cauchy) removes the pow() from the inner loop (faster, but the worst local quality).
-        "auto" picks it among {0.4, 0.5, 0.6, 0.7} by 15-NN preservation on a 4k subsample (a few
-        seconds; the optimum drifts with the sample size, so the fixed default is usually as good);
-        an array gives one exponent per point; "local" derives it from the local intrinsic dimension
-        (dimprint if installed, Levina-Bickel MLE on the kNN distances otherwise).
     n_epochs : int -> that many epochs with a linear learning-rate decay (default None: 500 for
         n <= 10k, 300 for n <= 100k, else 200); (constant, anneal) tuple -> constant learning rate for
         the first count then linear decay over the second; "auto" -> constant learning rate until the
@@ -335,7 +332,7 @@ class MAGNET:
             if not isinstance(X, np.ndarray):
                 raise ValueError("kernel_b='local' needs a dense data matrix (local intrinsic dimension)")
             from .roles import local_kernel_exponent
-            self.node_b_ = local_kernel_exponent(X, self.n_neighbors, random_state=self.random_state or 0)
+            self.node_b_ = local_kernel_exponent(X, self.n_neighbors, random_state=self.random_state or 0, m=self.n_components)
             kb = float(np.median(self.node_b_))
         elif kb is not None and not np.isscalar(kb):
             self.node_b_ = np.asarray(kb, dtype=np.float32)

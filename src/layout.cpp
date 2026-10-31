@@ -38,6 +38,7 @@ struct Ctx {
     float rep_a, rep_b;   // repulsion-side kernel (defaults to a, b)
     bool b_is_one, rep_b_is_one; int m_neg, walk_len, loss, clip_mode, kernel; int64_t n_fixed;
     const float* node_b;  // optional per-node kernel exponent (power kernel)
+    bool rep_coupled;     // the per-node exponent also drives the repulsion only when the two exponents are coupled
     Adam ad; uint64_t seed; int nt;
 };
 
@@ -120,7 +121,7 @@ void epoch_worker(const Ctx& c, int epoch, float alpha, float mid_w, int tid) {
                 if (dd > 0.0f) {
                     float coeff;
                     if (c.kernel == 0) {
-                        if (c.node_b) { const float pw = powf(dd, b_u); coeff = 2.0f * b_u * c.repulsion_strength / ((0.001f + dd) * (c.a * pw + 1.0f)); }
+                        if (c.node_b && c.rep_coupled) { const float pw = powf(dd, b_u); coeff = 2.0f * b_u * c.repulsion_strength / ((0.001f + dd) * (c.a * pw + 1.0f)); }
                         else { const float pw = c.rep_b_is_one ? dd : powf(dd, c.rep_b); coeff = c.two_b / ((0.001f + dd) * (c.rep_a * pw + 1.0f)); }
                     }
                     else if (c.kernel == 1) { const float q = expf(-c.a * dd); coeff = c.repulsion_strength * 2.0f * c.a * q / std::max(1.0f - q, 1e-3f); }
@@ -294,6 +295,7 @@ void optimize_layout(
         c.walk_lens = walk_lens_.data();
     }
     c.nt = (int)std::min<int64_t>(resolve_threads(n_threads), std::max<int64_t>(1, n_edges / 4096));
+    c.rep_coupled = rep_b <= 0.0f;
     if (rep_b <= 0.0f) { rep_a = a; rep_b = b; }
     require(rep_a > 0.0f, "repulsion kernel a must be positive");
     c.a = a; c.b = b; c.rep_a = rep_a; c.rep_b = rep_b; c.two_ab = 2.0f * a * b; c.two_b = 2.0f * rep_b * repulsion_strength;

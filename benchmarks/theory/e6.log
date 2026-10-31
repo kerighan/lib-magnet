@@ -1,0 +1,36 @@
+m=2 qs=[2, 10] smooth=False: q2: est median 2.7 frac b=1 0.41 q10: est median 12.3 frac b=1 0.00
+m=2 qs=[2, 10] smooth=True: q2: est median 2.6 frac b=1 0.39 q10: est median 10.2 frac b=1 0.00
+  global 0.5 s=0 T= 1.6s knn15 all=0.4197 q2=0.6380 q10=0.2021
+  global 0.5 s=1 T= 1.6s knn15 all=0.4217 q2=0.6429 q10=0.2013
+  global 0.6 s=0 T= 1.6s knn15 all=0.4141 q2=0.6643 q10=0.1647
+  global 0.6 s=1 T= 1.6s knn15 all=0.4163 q2=0.6686 q10=0.1648
+  global 1.0 s=0 T= 1.5s knn15 all=0.3725 q2=0.6738 q10=0.0723
+  global 1.0 s=1 T= 1.5s knn15 all=0.3878 q2=0.7058 q10=0.0709
+  oracle     s=0 T= 1.6s knn15 all=0.4492 q2=0.6944 q10=0.2048
+  oracle     s=1 T= 1.6s knn15 all=0.4637 q2=0.7312 q10=0.1971
+  estimated  s=0 T= 1.6s knn15 all=0.4304 q2=0.6585 q10=0.2031
+  estimated  s=1 T= 1.7s knn15 all=0.4325 q2=0.6683 q10=0.1975
+m=3 qs=[3, 10] smooth=False: q3: est median 4.1 frac b=1 0.29 q10: est median 12.3 frac b=1 0.00
+m=3 qs=[3, 10] smooth=True: q3: est median 3.8 frac b=1 0.21 q10: est median 10.2 frac b=1 0.00
+  global 0.5 s=0 T= 1.8s knn15 all=0.4015 q3=0.5454 q10=0.2582
+  global 0.5 s=1 T= 1.8s knn15 all=0.3980 q3=0.5458 q10=0.2507
+  global 0.6 s=0 T= 1.8s knn15 all=0.4026 q3=0.5719 q10=0.2339
+  global 0.6 s=1 T= 1.8s knn15 all=0.4012 q3=0.5703 q10=0.2326
+  global 1.0 s=0 T= 1.7s knn15 all=0.3959 q3=0.6537 q10=0.1389
+  global 1.0 s=1 T= 1.7s knn15 all=0.3967 q3=0.6554 q10=0.1390
+  oracle     s=0 T= 1.8s knn15 all=0.4522 q3=0.6536 q10=0.2515
+  oracle     s=1 T= 1.8s knn15 all=0.4536 q3=0.6548 q10=0.2530
+  estimated  s=0 T= 1.8s knn15 all=0.4077 q3=0.5618 q10=0.2542
+  estimated  s=1 T= 1.8s knn15 all=0.4074 q3=0.5624 q10=0.2530
+m=2 qs=[2, 3, 5, 10] smooth=False: q2: est median 2.7 frac b=1 0.39 q3: est median 4.1 frac b=1 0.03 q5: est median 6.7 frac b=1 0.00 q10: est median 12.2 frac b=1 0.00
+m=2 qs=[2, 3, 5, 10] smooth=True: q2: est median 2.6 frac b=1 0.37 q3: est median 3.8 frac b=1 0.00 q5: est median 5.9 frac b=1 0.00 q10: est median 10.2 frac b=1 0.00
+  global 0.5 s=0 T= 1.5s knn15 all=0.4620 q2=0.6483 q3=0.5072 q5=0.3654 q10=0.2105
+  global 0.5 s=1 T= 1.6s knn15 all=0.4571 q2=0.6431 q3=0.5083 q5=0.3488 q10=0.2082
+  global 0.6 s=0 T= 1.5s knn15 all=0.4507 q2=0.6551 q3=0.5091 q5=0.3262 q10=0.1796
+  global 0.6 s=1 T= 1.6s knn15 all=0.4548 q2=0.6718 q3=0.5028 q5=0.3375 q10=0.1734
+  global 1.0 s=0 T= 1.3s knn15 all=0.3752 q2=0.7446 q3=0.3490 q5=0.1579 q10=0.0739
+  global 1.0 s=1 T= 1.5s knn15 all=0.3741 q2=0.7411 q3=0.3495 q5=0.1555 q10=0.0753
+  oracle     s=0 T= 1.5s knn15 all=0.4718 q2=0.6782 q3=0.5132 q5=0.3595 q10=0.2109
+  oracle     s=1 T= 1.6s knn15 all=0.4893 q2=0.7451 q3=0.5077 q5=0.3609 q10=0.2046
+  estimated  s=0 T= 1.5s knn15 all=0.4643 q2=0.6602 q3=0.5080 q5=0.3661 q10=0.2023
+  estimated  s=1 T= 1.6s knn15 all=0.4630 q2=0.6523 q3=0.5052 q5=0.3686 q10=0.2094

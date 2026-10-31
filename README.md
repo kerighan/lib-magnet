@@ -103,11 +103,24 @@ MNIST 20k), trustworthiness and global structure stay flat, label accuracy peaks
 the run is 5% faster at 10; the exponents do not interact with it. Graph inputs are unaffected (SBM:
 label accuracy 1.00 either way), `transform()` keeps 0.96 of 10-NN accuracy on MNIST test points.
 
-What does *not* predict the attraction exponent: the intrinsic dimension of the data beyond the
-crowded / not crowded distinction (Gaussian manifolds of dimension 10 and 20 both want 0.4-0.5, MNIST /
-Fashion-MNIST / 20 newsgroups want 0.5 / 0.6 / 0.7 for TwoNN dimensions 14 / 16 / 20), so a per-point
-exponent driven by the local intrinsic dimension (`kernel_b="local"`, dimprint estimates) does not beat
-the best constant, and `kernel_b="auto"` (subsample sweep) drifts with the sample size. Kernels with
+The derivation behind the two numbers, and its tests, are in [docs/kernel_exponents.md](docs/kernel_exponents.md):
+the attraction is a near-field robust location problem (bounded influence needs 2b <= 1, convexity
+2b >= 1, hence the L1 point under crowding and L2 without), the repulsion is a far-field question of
+which scale carries the loss (`d^(m - 2b)` per octave, scale-free at m/2). Two consequences were
+tested. The attraction optimum is a step at q = m, not a slope in q (synthetic clusters of dimension
+2 / 3 / 5 / 10 / 20 in 2-D want 1.0 / 0.5 / 0.5 / 0.4 / 0.4; 3 / 5 / 10 in 3-D want 1.0 / 0.5 / 0.4),
+so homogeneous real data (MNIST, Fashion-MNIST, 20 newsgroups: under 1% of the points have a local
+dimension below 6) gain nothing from a per-point exponent, but data mixing manifolds of different
+dimensions do, provided the repulsion stays at Cauchy (the former per-point mode coupled the two and
+never beat a constant): on five 2-D plus five 10-D clusters in 2-D, 15-NN preservation 0.46 with the
+true dimension against 0.42 for the best constant (+9%; +12% on 3-D plus 10-D clusters in 3-D), the
+uncrowded points getting the L2 result and the crowded ones the L1 result. `kernel_b="local"` now
+applies that law (1 where the neighbourhood-smoothed local dimension fits in `n_components`, 1/2
+elsewhere; conservative, it captures a quarter to a third of the oracle gain and never loses), and
+an array of exponents is the oracle path when the structure is known. A Huber attraction (L2 below
+a scale c, L1 above) has no universal c (MNIST wants the smallest, 2-D manifolds want 0.2-0.5), as
+Huber's theorem says, and was not kept. `kernel_b="auto"` (subsample sweep) drifts with the sample
+size. Kernels with
 exponential or lighter tails confirm the crowding theory the hard way: on MNIST 20k, 15-NN
 preservation 0.285 (power) against 0.16 (sech), 0.11 (Gaussian) and 0.10 (1 - tanh(d^2)). Reshaping
 the neighbour-distance profile on the input side (`neighbor_power`, `neighbor_rank_exponent`) changes
@@ -237,7 +250,7 @@ Any networkx graph or sparse adjacency matrix is laid out directly, in linear ti
 | `init` | `"auto"` | PCA for `loss="tsne"` on data, spectral otherwise; or `"spectral"`, `"pca"`, `"random"`, an array |
 | `knn` | `"nndescent"` | or `"hnsw"` (needs hnswlib) |
 | `pca` | None | project wide data to this many components before the neighbour search |
-| `kernel_b` | 0.6 | attraction exponent (0.5 for images, 0.7 for text, any dimension); None = UMAP's fit; `"auto_dim"` = the former coupled defaults |
+| `kernel_b` | 0.6 | attraction exponent (0.5 for images, 0.7 for text, any dimension); None = UMAP's fit; `"auto_dim"` = the former coupled defaults; `"local"` = 1 where the local dimension fits in `n_components`, 1/2 elsewhere (mixed-dimension data); an array = one exponent per point |
 | `repulsion_b` | 1.0 | repulsion exponent (Cauchy tail); None couples it to `kernel_b` (UMAP's compact look, 20% slower) |
 | `kernel` | `"power"` | or `"gaussian"`, `"sech"` (exponential tails, for comparison) |
 | `tsne_dof` | 1.0 | Student-t degrees of freedom of `loss="tsne"` (< 1 = heavier tail, Kobak et al. 2019) |
