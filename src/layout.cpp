@@ -35,7 +35,8 @@ struct Ctx {
     const int32_t* mid_pairs; int n_mid;
     const int32_t* jump_indptr; const int32_t* jump_indices; float mid_jump;  // two-layer walks
     float a, b, two_ab, two_b, negative_sample_rate, exaggeration, repulsion_strength, mid_rate;
-    bool b_is_one; int m_neg, walk_len, loss, clip_mode, kernel; int64_t n_fixed;
+    float rep_a, rep_b;   // repulsion-side kernel (defaults to a, b)
+    bool b_is_one, rep_b_is_one; int m_neg, walk_len, loss, clip_mode, kernel; int64_t n_fixed;
     const float* node_b;  // optional per-node kernel exponent (power kernel)
     Adam ad; uint64_t seed; int nt;
 };
@@ -118,7 +119,10 @@ void epoch_worker(const Ctx& c, int epoch, float alpha, float mid_w, int tid) {
                 for (int d = 0; d < dim; ++d) { diff[d] = yu[d] - yk[d]; dd += diff[d] * diff[d]; }
                 if (dd > 0.0f) {
                     float coeff;
-                    if (c.kernel == 0) { const float pw = (c.b_is_one && !c.node_b) ? dd : powf(dd, b_u); coeff = 2.0f * b_u * c.repulsion_strength / ((0.001f + dd) * (c.a * pw + 1.0f)); }
+                    if (c.kernel == 0) {
+                        if (c.node_b) { const float pw = powf(dd, b_u); coeff = 2.0f * b_u * c.repulsion_strength / ((0.001f + dd) * (c.a * pw + 1.0f)); }
+                        else { const float pw = c.rep_b_is_one ? dd : powf(dd, c.rep_b); coeff = c.two_b / ((0.001f + dd) * (c.rep_a * pw + 1.0f)); }
+                    }
                     else if (c.kernel == 1) { const float q = expf(-c.a * dd); coeff = c.repulsion_strength * 2.0f * c.a * q / std::max(1.0f - q, 1e-3f); }
                     else if (c.kernel == 2) { const float r = sqrtf(dd); const float q = 1.0f / coshf(c.a * r); coeff = c.repulsion_strength * c.a * q * tanhf(c.a * r) / (r * std::max(1.0f - q, 1e-3f)); }
                     else { const float th = std::max(tanhf(c.a * dd), 1e-3f); coeff = c.repulsion_strength * 2.0f * c.a * (1.0f - th * th) / th; }
@@ -222,7 +226,7 @@ void optimize_layout(
     arr<float> epoch_of_next_negative_sample_,
     arr<int32_t> indptr_, arr<int32_t> indices_,
     int epoch_start, int epoch_end, float alpha0, float alpha1, float mid_w0, float mid_w1,
-    float a, float b, float negative_sample_rate, int loss, float exaggeration,
+    float a, float b, float rep_a, float rep_b, float negative_sample_rate, int loss, float exaggeration,
     float repulsion_strength, int walk_len, float mid_rate,
     int optimizer, int clip_mode, int64_t n_fixed,
     arr<float> adam_m_, arr<float> adam_v_, arr<int32_t> adam_t_, float beta1, float beta2,
@@ -290,10 +294,13 @@ void optimize_layout(
         c.walk_lens = walk_lens_.data();
     }
     c.nt = (int)std::min<int64_t>(resolve_threads(n_threads), std::max<int64_t>(1, n_edges / 4096));
-    c.a = a; c.b = b; c.two_ab = 2.0f * a * b; c.two_b = 2.0f * b * repulsion_strength;
+    if (rep_b <= 0.0f) { rep_a = a; rep_b = b; }
+    require(rep_a > 0.0f, "repulsion kernel a must be positive");
+    c.a = a; c.b = b; c.rep_a = rep_a; c.rep_b = rep_b; c.two_ab = 2.0f * a * b; c.two_b = 2.0f * rep_b * repulsion_strength;
     c.negative_sample_rate = negative_sample_rate; c.exaggeration = exaggeration;
     c.repulsion_strength = repulsion_strength; c.mid_rate = mid_rate;
     c.b_is_one = std::fabs(b - 1.0f) < 1e-6f;
+    c.rep_b_is_one = std::fabs(rep_b - 1.0f) < 1e-6f;
     c.m_neg = std::min(64, std::max(1, (int)std::lround(negative_sample_rate)));
     c.walk_len = walk_len; c.loss = loss; c.clip_mode = clip_mode; c.kernel = kernel; c.n_fixed = n_fixed; c.seed = seed;
     c.node_b = nullptr;

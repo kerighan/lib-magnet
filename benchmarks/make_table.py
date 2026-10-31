@@ -19,11 +19,14 @@ def name_of(r):
 
 
 def main():
-    runs = collections.defaultdict(list)
+    latest = {}   # one run per (dataset, method, tag=seed): the most recent one wins, so rows can be refreshed
     for line in open(os.path.join(HERE, "results.jsonl")):
         r = json.loads(line)
         if str(r.get("tag", "")).startswith("full_"):
-            runs[(r["dataset"], name_of(r))].append(r)
+            latest[(r["dataset"], name_of(r), r["tag"])] = r
+    runs = collections.defaultdict(list)
+    for (d, nm, _), r in latest.items():
+        runs[(d, nm)].append(r)
     out = ["# Benchmark", "",
            "Mean over seeds, defaults for every method, best value per column in bold. 20-core i9-9900X, 54 GB RAM.",
            "Local structure: 15-NN preservation (fraction of each point's 15 nearest neighbours in the data that are "

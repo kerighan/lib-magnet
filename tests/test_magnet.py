@@ -5,6 +5,7 @@ import numpy as np
 import scipy.sparse as sp
 import networkx as nx
 import pytest
+from sklearn.datasets import make_blobs
 from magnet import MAGNET, find_ab_params
 from magnet.knn import knn_hnsw, knn_nndescent, smooth_knn, fuzzy_graph
 from magnet.spectral import spectral_init
@@ -296,3 +297,15 @@ def test_umap_exact_mode_runs_and_repulsion_weight_matters():
         nn = NearestNeighbors(n_neighbors=11).fit(Y).kneighbors(Y, return_distance=False)[:, 1:]
         purity[w] = (y[nn] == y[:, None]).mean()
     assert purity[0.01] > 0.9 and purity[0.01] > purity[1.0]   # the written UMAP loss is far too repulsive
+
+
+def test_repulsion_exponent():
+    X, _ = make_blobs(n_samples=600, centers=4, n_features=20, random_state=0)
+    X = X.astype(np.float32)
+    same = MAGNET(kernel_b=0.6, repulsion_b=0.6, random_state=0, n_threads=1).fit_transform(X)
+    coupled = MAGNET(kernel_b=0.6, repulsion_b=None, random_state=0, n_threads=1).fit_transform(X)
+    assert np.array_equal(same, coupled)
+    light = MAGNET(kernel_b=0.6, repulsion_b=1.0, random_state=0, n_threads=1).fit_transform(X)
+    assert np.isfinite(light).all() and not np.array_equal(light, coupled)
+    with pytest.raises(Exception):
+        MAGNET(repulsion_b=-1.0, random_state=0).fit_transform(X)

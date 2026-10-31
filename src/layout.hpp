@@ -41,7 +41,7 @@ void optimize_layout(
     arr<float> epoch_of_next_negative_sample,
     arr<int32_t> indptr, arr<int32_t> indices,
     int epoch_start, int epoch_end, float alpha0, float alpha1, float mid_w0, float mid_w1,
-    float a, float b, float negative_sample_rate, int loss, float exaggeration,
+    float a, float b, float rep_a, float rep_b, float negative_sample_rate, int loss, float exaggeration,
     float repulsion_strength, int walk_len, float mid_rate,
     int optimizer, int clip_mode, int64_t n_fixed,
     arr<float> adam_m, arr<float> adam_v, arr<int32_t> adam_t, float beta1, float beta2,

@@ -8,7 +8,7 @@ Local structure: 15-NN preservation (fraction of each point's 15 nearest neighbo
 
 | method | time (s) | 15-NN pres. | trust. | dist. Spearman | triplet acc. | 10-NN acc. | compactness* |
 |---|---|---|---|---|---|---|---|
-| MAGNET (SGD, default) | **4.2** | 0.191 | 0.957 | **0.402** | **0.640** | 0.966 | 0.507 |
+| MAGNET (SGD, default) | **4.4** | 0.193 | 0.957 | **0.413** | **0.644** | 0.967 | 0.397 |
 | MAGNET (loss="tsne") | 9.2 | 0.349 | 0.966 | 0.348 | 0.627 | 0.966 | 0.347 |
 | UMAP 0.5.11 | 18.2 | 0.116 | 0.951 | 0.300 | 0.607 | 0.967 | 0.520 |
 | openTSNE 1.0.4 | 102.5 | 0.347 | 0.968 | 0.330 | 0.619 | 0.965 | 0.347 |
@@ -20,7 +20,7 @@ Local structure: 15-NN preservation (fraction of each point's 15 nearest neighbo
 
 | method | time (s) | 15-NN pres. | trust. | dist. Spearman | triplet acc. | 10-NN acc. | compactness* |
 |---|---|---|---|---|---|---|---|
-| MAGNET (SGD, default) | **4.6** | 0.203 | 0.980 | **0.727** | **0.784** | 0.802 | 0.159 |
+| MAGNET (SGD, default) | **4.4** | 0.202 | 0.980 | **0.730** | **0.787** | 0.800 | 0.141 |
 | MAGNET (loss="tsne") | 9.1 | 0.324 | 0.981 | 0.700 | 0.775 | 0.815 | 0.101 |
 | UMAP 0.5.11 | 15.0 | 0.131 | 0.972 | 0.581 | 0.730 | 0.772 | 0.195 |
 | openTSNE 1.0.4 | 98.2 | 0.323 | **0.983** | 0.617 | 0.732 | 0.817 | 0.120 |
@@ -32,7 +32,7 @@ Local structure: 15-NN preservation (fraction of each point's 15 nearest neighbo
 
 | method | time (s) | 15-NN pres. | trust. | dist. Spearman | triplet acc. | 10-NN acc. | compactness* |
 |---|---|---|---|---|---|---|---|
-| MAGNET (SGD, default) | **1.6** | 0.135 | 0.765 | 0.037 | 0.523 | 0.512 | -0.093 |
+| MAGNET (SGD, default) | **1.3** | 0.134 | 0.760 | 0.059 | 0.529 | 0.508 | -0.111 |
 | MAGNET (loss="tsne") | 4.4 | 0.184 | **0.776** | 0.110 | 0.541 | 0.526 | -0.090 |
 | UMAP 0.5.11 | 5.9 | 0.111 | 0.739 | 0.001 | 0.521 | 0.512 | -0.096 |
 | openTSNE 1.0.4 | 38.8 | 0.187 | 0.772 | 0.106 | 0.542 | **0.535** | **-0.086** |
@@ -44,7 +44,7 @@ Local structure: 15-NN preservation (fraction of each point's 15 nearest neighbo
 
 | method | time (s) | 15-NN pres. | trust. | dist. Spearman | triplet acc. | 10-NN acc. | compactness* |
 |---|---|---|---|---|---|---|---|
-| MAGNET (SGD, default) | **1.4** | 0.053 | 0.971 | **0.695** | **0.730** |  |  |
+| MAGNET (SGD, default) | **1.1** | 0.067 | 0.972 | **0.690** | **0.732** |  |  |
 | MAGNET (loss="tsne") | 2.5 | **0.126** | 0.974 | 0.505 | 0.678 |  |  |
 | UMAP 0.5.11 | 2.3 | 0.045 | 0.971 | 0.229 | 0.578 |  |  |
 | openTSNE 1.0.4 | 19.4 | 0.109 | 0.975 | 0.382 | 0.646 |  |  |

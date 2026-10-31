@@ -12,7 +12,7 @@ METRICS = [("knn15_preservation", "15-NN preservation (local)"), ("dist_spearman
 
 
 def load():
-    runs = collections.defaultdict(list)
+    latest = {}   # latest run per (dataset, method, tag=seed), so refreshed rows replace the old ones
     for line in open(os.path.join(HERE, "results.jsonl")):
         r = json.loads(line)
         if not str(r.get("tag", "")).startswith("full_"):
@@ -20,7 +20,10 @@ def load():
         name = LABELS.get(r["method"], r["method"])
         if r["method"] == "magnet" and r["params"].get("loss") == "tsne":
             name = 'MAGNET loss="tsne"'
-        runs[(r["dataset"], name)].append(r)
+        latest[(r["dataset"], name, r["tag"])] = r
+    runs = collections.defaultdict(list)
+    for (d, name, _), r in latest.items():
+        runs[(d, name)].append(r)
     return runs
 
 

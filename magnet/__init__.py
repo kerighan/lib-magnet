@@ -75,11 +75,15 @@ class MAGNET:
     kernel : low-dimensional similarity family of the SGD mode: "power" (1 / (1 + a d^2b), heavy tail),
         "gaussian" (exp(-a d^2)), "sech" (1 / cosh(a d)) or "tanh" (1 - tanh(a d^2)); the last three
         have exponential or lighter tails (kept for comparison).
-    kernel_b : exponent b of the kernel 1 / (1 + a d^(2b)); a is fitted to the (min_dist, spread) curve.
-        None reproduces UMAP's fit (b ~ 0.8). Heavier tails preserve neighbourhoods much better in 2-D:
-        on MNIST 70k, 15-NN preservation 0.13 (b 0.8) -> 0.19 (0.6) -> 0.21 (0.5) at equal global
-        structure and label accuracy; text data peaks at 0.6-0.7, images at 0.5. In 3-D the crowding
-        is milder and 0.8 is best. Default "auto_dim": 0.6 for 2 components, 0.8 beyond.
+    kernel_b : exponent b of the attraction kernel 1 / (1 + a d^(2b)); a is fitted to the (min_dist, spread) curve.
+        The attraction exponent sets local fidelity: the force on a neighbour is ~ d^(2b-1), constant at b = 1/2,
+        and 15-NN preservation peaks at 0.5 (images) to 0.7 (text) in every target dimension; default 0.6.
+        None = UMAP's fit (~0.8 to 0.9); an array = one exponent per point; "local" = from the local intrinsic
+        dimension; "auto" = subsample sweep; "auto_dim" = the former coupled defaults (0.6 in 2-D, 0.8 beyond).
+    repulsion_b : exponent of the repulsion kernel (default 1, the Cauchy tail of t-SNE; None: same as kernel_b).
+        It sets the tail felt by far points: heavier (0.5) gives UMAP's compact blobs, lighter (1 to m/2 in m
+        dimensions) gives a little more neighbourhood preservation and global structure, and b = 1 removes the pow()
+        from the repulsion loop (15-20% faster). Only the sampled (`loss="umap"`) optimiser uses it.
         kernel_b=1 (Cauchy) removes the pow() from the inner loop (faster, but the worst local quality).
         "auto" picks it among {0.4, 0.5, 0.6, 0.7} by 15-NN preservation on a 4k subsample (a few
         seconds; the optimum drifts with the sample size, so the fixed default is usually as good);
@@ -153,7 +157,7 @@ class MAGNET:
 
     def __init__(self, n_components=2, n_neighbors=15, metric="euclidean", min_dist=0.05, spread=1.0,
                  n_epochs=None, learning_rate=1.0, negative_sample_rate=5, repulsion_strength=2.0,
-                 kernel="power", kernel_b="auto_dim", fft_interp=3, fft_box=1.0, tsne_early=None, loss="umap", exaggeration=1.0,
+                 kernel="power", kernel_b=0.6, repulsion_b=1.0, fft_interp=3, fft_box=1.0, tsne_early=None, loss="umap", exaggeration=1.0,
                  late_exaggeration=1.0, late_phase=0.2, tsne_dof=1.0, optimizer="sgd", clip="coord", beta1=0.9, beta2=0.999,
                  walk_len=4, mid_weight=0.1, mid_rate=0.25, mid_phase=0.5, mid_scale="fixed", mid_source="auto",
                  n_mid_pairs=5, mid_jump=0.5,
@@ -173,6 +177,7 @@ class MAGNET:
         self.repulsion_strength = repulsion_strength
         self.kernel = kernel
         self.kernel_b = kernel_b
+        self.repulsion_b = repulsion_b
         self.fft_interp = fft_interp
         self.fft_box = fft_box
         self.tsne_early = tsne_early
@@ -339,6 +344,9 @@ class MAGNET:
             kb = float(np.median(self.node_b_))
         a, b = find_ab_params(self.spread, self.min_dist, kb, self.kernel)
         self.a_, self.b_ = a, b
+        if self.repulsion_b is not None and not (0.0 < float(self.repulsion_b) <= 8.0):
+            raise ValueError("repulsion_b must be in (0, 8] or None")
+        self.rep_a_, self.rep_b_ = find_ab_params(self.spread, self.min_dist, float(self.repulsion_b), self.kernel) if self.repulsion_b is not None else (a, b)
 
         data_matrix = X if isinstance(X, np.ndarray) and X.ndim == 2 else None
         Y = self._initial_embedding(P, data_matrix, rng)
@@ -462,7 +470,7 @@ class MAGNET:
         def run(e0, e1, a0, a1, m0, m1, exag=None):
             optimize_layout(Y, head, tail, epochs_per_sample, eons, eonns, indptr, indices,
                             int(e0), int(e1), float(a0), float(a1), float(m0), float(m1),
-                            float(self.a_), float(self.b_), float(self.negative_sample_rate), loss,
+                            float(self.a_), float(self.b_), float(self.rep_a_), float(self.rep_b_), float(self.negative_sample_rate), loss,
                             float(self.exaggeration if exag is None else exag), float(self.repulsion_strength), int(self.walk_len),
                             float(self.mid_rate), optimizer, clip, int(n_fixed),
                             adam_m, adam_v, adam_t, float(self.beta1), float(self.beta2), walk_lens, mid_pairs, jump_indptr, jump_indices,

@@ -7,7 +7,7 @@ and t-SNE do: a neighbour graph pulls close points together, everything else pus
 rebuilds that pipeline from scratch in C++ and makes the one choice that matters explicit: how the
 repulsion is estimated.
 
-* `loss="umap"` (default): negative sampling, lock-free multithreaded SGD. **MNIST 70k in 4.2 s**
+* `loss="umap"` (default): negative sampling, lock-free multithreaded SGD. **MNIST 70k in 4.4 s**
   against 18 s for UMAP, 15-NN preservation 0.19 against 0.12 and a distance correlation of 0.41
   against 0.30: the best global structure of the seven methods benchmarked.
 * `loss="tsne"`: exact repulsion over all pairs through FFT interpolation. **MNIST 70k in 9 s**
@@ -58,45 +58,67 @@ Hamprecht 2021). MAGNET exposes this directly:
 
 `repulsion_strength` (default 2) and `exaggeration` move along the spectrum within each mode.
 
-The tail of the low-dimensional kernel is the other lever. UMAP fits `1 / (1 + a d^2b)` to a
-`min_dist` curve and lands near b = 0.8; a heavier tail preserves neighbourhoods far better at equal
-global structure and label accuracy (MNIST 70k, 15-NN preservation): b = 0.8: 0.13, b = 0.7: 0.16,
-b = 0.6: 0.19, **b = 0.5: 0.21**, b = 0.4: 0.19. Text data peaks at 0.6-0.7, images at 0.5, so the
-default is `kernel_b=0.6`. The exponent cannot be learned by gradient on the same loss (it sharpens
-the kernel into a step and trades off against the global scale); it is a per-dataset choice, and the
-benchmark harness is the way to make it. In 3-D the crowding is milder and the optimum moves back to
-b = 0.8 (MNIST 20k, `n_components=3`: 15-NN 0.327 at 0.8 against 0.326 at 0.6 and 0.316 at 0.5, with
-better trustworthiness and global structure), hence the dimension-dependent default. `n_neighbors`
-stays at 15 for robustness, knowing that fewer neighbours give more local detail on dense data: from
-50 down to 5, 15-NN preservation rises monotonically on MNIST, Fashion-MNIST and 20 newsgroups
-(0.228 / 0.248 / 0.285 / 0.297 / 0.304 at 50 / 30 / 15 / 10 / 8 on MNIST 20k), trustworthiness and
-global structure stay flat, label accuracy peaks between 8 and 15, and the run is 5% faster at 10.
-The kernel exponent does not interact with it (b = 0.5 at k = 30 or b = 0.7 at k = 10 change nothing
-systematic).
-Graph inputs are unaffected by the new kernel (SBM: label accuracy 1.00 either way), `transform()`
-keeps 0.958 of 10-NN accuracy on MNIST test points, and the 1M synthetic point runs in 54 s.
-(`kernel_b="auto"` sweeps 0.4-0.7 on a 4k subsample by
-15-NN preservation in a few seconds, but the optimum depends on the sample size: it picked 0.7 on a
-MNIST subsample where the full 20k wants 0.5. The flat region 0.5-0.7 makes the fixed default the
-safer choice.) What does *not* predict it: the intrinsic dimension of the data. On Gaussian
-manifolds of dimension 4 to 32 the optimum saturates at b = 0.4, on MNIST / Fashion-MNIST / 20
-newsgroups it moves the other way (0.5 / 0.6 / 0.7 for TwoNN dimensions 14 / 16 / 20), and the only
-case that wants the Cauchy kernel (b = 1) is a genuinely 2-dimensional manifold, where there is no
-crowding to compensate. Kernels with exponential or lighter tails confirm the crowding theory the hard
-way: on MNIST 20k, 15-NN preservation 0.285 (power, b 0.6) against 0.16 (sech), 0.11 (Gaussian) and
-0.10 (1 - tanh(d^2)). Reshaping the neighbour-distance profile on the input side (a power transform or
-a rank-dependent factor, `neighbor_power` / `neighbor_rank_exponent`) changes nothing: the smooth-kNN
-calibration absorbs monotone transforms of the distances. A per-point exponent driven by the local
-intrinsic dimension (`kernel_b="local"`, dimprint estimates: median 17.6 on MNIST, 10 to 34 across
-points) does not beat the best constant either: heavier tails where the local dimension is higher
-buy 0.01-0.03 of distance correlation for 0.5-1.5 points of 15-NN preservation, and the inverse law
-is worse on both, so the direction is right but the effect is small. The exact-repulsion mode behaves the other way round: a
-heavier Student-t tail (`tsne_dof` < 1) raises trustworthiness and compactness but lowers 15-NN
-preservation (0.405 at dof 1, 0.354 at dof 0.5 on MNIST 20k), as Kobak et al. found; its default
-stays the Cauchy kernel.
+### Two exponents, not one
+
+The low-dimensional kernel `1 / (1 + a d^2b)` does two jobs. On an edge of the neighbour graph its
+gradient pulls with a force proportional to `d^(2b-1)`; on a random far point it pushes with a force
+proportional to `d^-(2b+1)`. UMAP uses one exponent for both (fitted to `min_dist`, about 0.8 to
+0.9). Sweeping the two separately (`kernel_b` for attraction, `repulsion_b` for repulsion; MNIST and
+Fashion-MNIST 20k, 1-D to 8-D, 20 newsgroups, synthetic manifolds of known dimension; the scripts are
+`benchmarks/tail_law.py`, `tail_split*.py`, `tail_force_octaves.py`) separates two clean effects:
+
+* **The attraction exponent sets local fidelity, and its optimum is 1/2 in every target dimension.**
+  15-NN preservation peaks at `kernel_b` = 0.5 on images and 0.6-0.7 on text in 1-D, 2-D, 3-D alike,
+  whatever the repulsion exponent (MNIST 20k, 2-D, repulsion fixed at 1: 0.280 / **0.295** / 0.288 /
+  0.243 for attraction 0.4 / 0.5 / 0.6 / 0.8; the same ranking in 3-D and on Fashion-MNIST). At
+  b = 1/2 the attractive force no longer depends on the distance: the loss is linear in d near zero, an
+  L1 spring. Below it the force diverges as d goes to 0 and neighbours jitter at the clipping scale;
+  above it the force vanishes near zero and negatives displace the neighbours. This is a crowding
+  effect: on a synthetic 2-D manifold embedded in 2-D the optimum moves to the L2 end (attraction 1.0,
+  15-NN 0.724 against 0.648 at 0.5), on a 10-D manifold in 2-D it is at 0.4-0.5 (0.213 against 0.068
+  at 1.0). Real data (TwoNN dimension 14 to 20) is always in the crowded regime, and more points at
+  fixed `n_neighbors` means more crowding (coupled optimum 0.6 on MNIST 5k, 0.5 at 20k and 70k).
+* **The repulsion exponent sets the tail felt by far points: compactness, speed and a little of
+  everything else.** At fixed attraction, the Cauchy tail (`repulsion_b=1`, the kernel of t-SNE)
+  matches or beats heavier tails on every fidelity metric: MNIST 20k 15-NN 0.290 to 0.296 in 2-D and
+  0.315 to 0.330 in 3-D, Fashion-MNIST 0.283 to 0.299 in 3-D, distance correlation +0.01 to +0.02,
+  label accuracy unchanged. It costs the compact look (silhouette 0.48 to 0.32 on MNIST 20k) and
+  removes the `pow` from the inner loop: MNIST 70k 5.3 s to 4.3 s, 3 seeds. Lighter tails keep helping
+  the local metric in higher dimensions (the optimum sits near m/2: 2-4 in 4-D, 3-4 in 6-D), by
+  margins too small to be worth a dimension-dependent default.
+
+The old "optimal b" was the compromise between the two: coupled, it climbs with the target dimension
+(0.52 / 0.59 / 0.76 / 1.2 / 1.6 / 1.9 / 2.3 for 1 to 8 components, mean of three data sets, roughly
+0.3 m) because the repulsion side tolerates lighter tails as the volume grows while the attraction
+side does not move. Decoupled, the defaults are `kernel_b=0.6` (0.5 for images, 0.7 for text) and
+`repulsion_b=1` in every dimension; `repulsion_b=None` gives back the coupled kernel and UMAP's
+compact blobs. A tail scale-free in the volume sense (b = m/2, van der Maaten's Student-t with m - 1
+degrees of freedom) is what the repulsion side prefers; the attraction side obeys a different
+principle (the L1 point), which is why a single exponent could never satisfy both. The exponent
+cannot be learned by gradient on the same loss (it sharpens the kernel into a step); it is a
+per-dataset choice. `n_neighbors` stays at 15 for robustness, knowing that fewer neighbours give more
+local detail on dense data: from 50 down to 5, 15-NN preservation rises monotonically on MNIST,
+Fashion-MNIST and 20 newsgroups (0.228 / 0.248 / 0.285 / 0.297 / 0.304 at 50 / 30 / 15 / 10 / 8 on
+MNIST 20k), trustworthiness and global structure stay flat, label accuracy peaks between 8 and 15, and
+the run is 5% faster at 10; the exponents do not interact with it. Graph inputs are unaffected (SBM:
+label accuracy 1.00 either way), `transform()` keeps 0.96 of 10-NN accuracy on MNIST test points.
+
+What does *not* predict the attraction exponent: the intrinsic dimension of the data beyond the
+crowded / not crowded distinction (Gaussian manifolds of dimension 10 and 20 both want 0.4-0.5, MNIST /
+Fashion-MNIST / 20 newsgroups want 0.5 / 0.6 / 0.7 for TwoNN dimensions 14 / 16 / 20), so a per-point
+exponent driven by the local intrinsic dimension (`kernel_b="local"`, dimprint estimates) does not beat
+the best constant, and `kernel_b="auto"` (subsample sweep) drifts with the sample size. Kernels with
+exponential or lighter tails confirm the crowding theory the hard way: on MNIST 20k, 15-NN
+preservation 0.285 (power) against 0.16 (sech), 0.11 (Gaussian) and 0.10 (1 - tanh(d^2)). Reshaping
+the neighbour-distance profile on the input side (`neighbor_power`, `neighbor_rank_exponent`) changes
+nothing: the smooth-kNN calibration absorbs monotone transforms. The exact-repulsion mode behaves the
+other way round: a heavier Student-t tail (`tsne_dof` < 1) raises trustworthiness and compactness but
+lowers 15-NN preservation (0.405 at dof 1, 0.354 at dof 0.5 on MNIST 20k), as Kobak et al. found; its
+default stays the Cauchy kernel.
 Cluster compactness is a look, not a fidelity measure (it can always be bought with neighbourhood
-quality); if you want UMAP's tight blobs, `late_exaggeration=1.5` gives a silhouette of 0.61 on MNIST
-against 0.52 for UMAP while staying ahead of it on every other metric (15-NN 0.170 against 0.116).
+quality); if you want UMAP's tight blobs, `repulsion_b=None` (the coupled kernel) or
+`late_exaggeration=1.5` each give a silhouette of 0.51 on MNIST 70k against 0.52 for UMAP and 0.40
+for the default, while staying ahead of UMAP on every other metric (15-NN 0.19 / 0.18 against 0.12).
 
 ### The written UMAP loss, optimised exactly (`loss="umap_exact"`)
 
@@ -148,9 +170,10 @@ UMAP, openTSNE, PaCMAP, TriMap and scikit-learn's t-SNE is in [benchmarks/BENCHM
 
 | | time | 15-NN pres. | trustworthiness | dist. Spearman | triplet acc. | 10-NN acc. |
 |---|---|---|---|---|---|---|
-| **MAGNET** | **4.2 s** | 0.191 | 0.957 | **0.402** | **0.640** | 0.966 |
-| MAGNET, `kernel_b=0.5` | 4.1 s | 0.206 | 0.959 | 0.406 | 0.641 | 0.967 |
-| MAGNET, `late_exaggeration=1.5` (compact preset, silhouette 0.61 against 0.52 for UMAP) | 4.2 s | 0.170 | 0.955 | 0.371 | 0.632 | 0.967 |
+| **MAGNET** | **4.4 s** | 0.193 | 0.957 | **0.413** | **0.644** | 0.967 |
+| MAGNET, `kernel_b=0.5` (images) | 4.6 s | 0.215 | 0.958 | 0.424 | 0.648 | 0.964 |
+| MAGNET, `repulsion_b=None` (coupled kernel, UMAP's compact look: silhouette 0.51 against 0.52 for UMAP and 0.40 for the default) | 5.5 s | 0.190 | 0.958 | 0.405 | 0.641 | 0.966 |
+| MAGNET, `late_exaggeration=1.5` (compact preset, silhouette 0.51) | 4.7 s | 0.181 | 0.956 | 0.386 | 0.637 | 0.967 |
 | **MAGNET `loss="tsne"`** | 9.2 s | 0.349 | 0.966 | 0.348 | 0.627 | 0.966 |
 | UMAP 0.5.11 | 18.2 s | 0.116 | 0.951 | 0.300 | 0.607 | 0.967 |
 | openTSNE 1.0.4 | 102.5 s | 0.347 | **0.968** | 0.330 | 0.619 | 0.965 |
@@ -162,10 +185,10 @@ UMAP, openTSNE, PaCMAP, TriMap and scikit-learn's t-SNE is in [benchmarks/BENCHM
 
 | dataset | time | 15-NN pres. | trust. | dist. Spearman |
 |---|---|---|---|---|
-| Fashion-MNIST 70k | **4.6 s** / 15.0 s UMAP | 0.203 / 0.327 sklearn t-SNE | 0.980 / 0.983 openTSNE | **0.727** / 0.672 TriMap |
-| 20 newsgroups SVD-300, cosine | **1.6 s** / 5.9 s UMAP | 0.135 / 0.192 sklearn t-SNE | 0.765 / 0.772 openTSNE | 0.037 / 0.232 sklearn t-SNE |
+| Fashion-MNIST 70k | **4.4 s** / 15.0 s UMAP | 0.202 / 0.327 sklearn t-SNE | 0.980 / 0.983 openTSNE | **0.730** / 0.672 TriMap |
+| 20 newsgroups SVD-300, cosine | **1.3 s** / 5.9 s UMAP | 0.134 / 0.192 sklearn t-SNE | 0.760 / 0.772 openTSNE | 0.059 / 0.232 sklearn t-SNE |
 | 20 newsgroups TF-IDF, sparse 18.8k x 24k | **5.7 s** / 22.2 s UMAP | 0.145 / 0.140 UMAP | 0.730 / 0.716 UMAP | 0.144 / 0.145 UMAP |
-| 15 Gaussian blobs 10k x 200 | **1.4 s** / 2.3 s UMAP | 0.053 / 0.114 sklearn t-SNE | 0.971 / 0.975 sklearn t-SNE | **0.695** / 0.666 PaCMAP |
+| 15 Gaussian blobs 10k x 200 | **1.1 s** / 2.3 s UMAP | 0.067 / 0.114 sklearn t-SNE | 0.972 / 0.975 sklearn t-SNE | **0.690** / 0.666 PaCMAP |
 | SBM graph, 30k nodes, 782k edges | **4.9 s** / 36 s UMAP | | | 10-NN acc. 1.00 / 0.26 |
 
 **Scaling** (50 anisotropic clusters in 50 dimensions)
@@ -214,7 +237,8 @@ Any networkx graph or sparse adjacency matrix is laid out directly, in linear ti
 | `init` | `"auto"` | PCA for `loss="tsne"` on data, spectral otherwise; or `"spectral"`, `"pca"`, `"random"`, an array |
 | `knn` | `"nndescent"` | or `"hnsw"` (needs hnswlib) |
 | `pca` | None | project wide data to this many components before the neighbour search |
-| `kernel_b` | `"auto_dim"` | tail exponent of the kernel: 0.6 in 2-D (0.5 for images, 0.7 for text), 0.8 in 3-D; None = UMAP's fit; 1 = Cauchy |
+| `kernel_b` | 0.6 | attraction exponent (0.5 for images, 0.7 for text, any dimension); None = UMAP's fit; `"auto_dim"` = the former coupled defaults |
+| `repulsion_b` | 1.0 | repulsion exponent (Cauchy tail); None couples it to `kernel_b` (UMAP's compact look, 20% slower) |
 | `kernel` | `"power"` | or `"gaussian"`, `"sech"` (exponential tails, for comparison) |
 | `tsne_dof` | 1.0 | Student-t degrees of freedom of `loss="tsne"` (< 1 = heavier tail, Kobak et al. 2019) |
 | `fft_interp`, `fft_box` | 3, 1.0 | grid of the exact repulsion (`fft_box=1.5` is the fast preset) |
@@ -250,7 +274,9 @@ and for graphs the placement of disconnected components by RoleWalk signature
 ## History
 
 MAGNET started in 2019 as a random-walk embedding with a full-batch optimiser; v3 (2026) is a
-complete rewrite around per-edge SGD, a native neighbour search and the exact-repulsion mode.
+complete rewrite around per-edge SGD, a native neighbour search and the exact-repulsion mode, and
+the split of the kernel exponent into an attraction exponent (the L1 point, 1/2) and a repulsion
+exponent (the Cauchy tail).
 RoleWalk, the author's structural-role embedding, is the natural companion for graph inputs.
 
 ## Cite

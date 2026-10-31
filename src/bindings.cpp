@@ -11,7 +11,7 @@ PYBIND11_MODULE(_magnet, m) {
           py::arg("indptr"), py::arg("indices"),
           py::arg("epoch_start"), py::arg("epoch_end"), py::arg("alpha0"), py::arg("alpha1"),
           py::arg("mid_w0"), py::arg("mid_w1"),
-          py::arg("a"), py::arg("b"), py::arg("negative_sample_rate"), py::arg("loss"),
+          py::arg("a"), py::arg("b"), py::arg("rep_a"), py::arg("rep_b"), py::arg("negative_sample_rate"), py::arg("loss"),
           py::arg("exaggeration"), py::arg("repulsion_strength"), py::arg("walk_len"), py::arg("mid_rate"),
           py::arg("optimizer"), py::arg("clip_mode"), py::arg("n_fixed"),
           py::arg("adam_m"), py::arg("adam_v"), py::arg("adam_t"), py::arg("beta1"), py::arg("beta2"),

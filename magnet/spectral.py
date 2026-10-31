@@ -72,7 +72,8 @@ def _place_components(X, comp, n_comp, rng, data=None):
         centroids -= np.average(centroids, axis=0, weights=sizes)
         if d.shape[1] > k:
             U, S, Vt = np.linalg.svd(centroids, full_matrices=False)
-            centers = (U[:, :k] * S[:k]).astype(np.float32)
+            r = min(k, U.shape[1])      # fewer components than dimensions: the remaining axes stay at 0
+            centers[:, :r] = (U[:, :r] * S[:r]).astype(np.float32)
         else:
             centers[:, : d.shape[1]] = centroids
         # scale so that the large components do not overlap (nearest-neighbour criterion)
