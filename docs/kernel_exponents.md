@@ -213,6 +213,49 @@ limit, a data set where every point would rather be at L2 and the mode only move
   crowding share should also be allowed to push a whole data set to L2.
 * A per-point *repulsion* exponent does not follow: the layout is m-dimensional everywhere.
 
+## 6. Two regimes in one layout (`loss="hybrid"`)
+
+The sampled optimiser gives the best global structure in the benchmark (MNIST 70k distance Spearman
+0.41) and the exact one the best local structure (15-NN kept 0.35); each is mediocre on the other
+axis (0.19 and 0.34). Can one loss fade from one regime to the other? What was tried (`k1`-`k7`, MNIST
+70k unless said otherwise):
+
+* Where the global structure comes from. In the SGD mode it is entirely the mid-range term: without it
+  the distance Spearman is 0.285, below t-SNE's 0.342; 0.1 / 0.3 / 1.0 give 0.413 / 0.427 / 0.478 at
+  15-NN 0.193 / 0.187 / 0.168. That weight is already a continuous local-global fade inside the SGD mode.
+* The same term does nothing for the exact mode: stronger (0.3, 1.0, 3.0) or kept on through the late
+  phase, it lowers 15-NN preservation (to 0.13, 0.08, 0.01) before the Spearman moves; as a
+  bounded-influence spring per partner (force w d / (1 + d^2 / c^2), the PaCMAP form) the picture is the
+  same (`k5`). The exact mode's late phase does not tolerate an extra force: its local structure is the
+  balance of the normalised repulsion and the attraction, and the layout scale (31 against 4) turns
+  any linear spring into a strong contraction.
+* A constant-strength far-field repulsion added to the exact mode (`tsne_far`, the Cauchy tail beyond
+  0.1 x RMS radius, gated out of the early phase, vanishing as r^8 below) is a dead end: in 2-D the
+  t-SNE and UMAP repulsions share the Cauchy tail and differ only by the 1/Z normalisation, so the sum
+  is a t-SNE with a different attraction-repulsion ratio; the measured window is 3e-8 (nothing) to
+  1e-7 (+0.02 Spearman, -0.02 trustworthiness) to 1e-6 (layout destroyed).
+* The exaggeration knob of the exact mode (1.5 / 2 / 4) trades local structure for compactness
+  (15-NN 0.278 / 0.195 / 0.121, silhouette 0.44 / 0.52 / 0.57) and leaves the Spearman at 0.335.
+* Sequence, the wrong way: the exact layout finished by 60-150 SGD epochs reaches Spearman 0.436 but
+  the local structure falls back to the SGD level (0.13-0.17). The SGD forces rewrite the layout at
+  their own noise floor.
+* Sequence, the right way: the SGD layout refined by the exact mode. Three details decide it. Started
+  from t-SNE's tiny init the layout re-expands and loses the arrangement (Spearman 0.29-0.39);
+  started at its own scale (std 4) the normalised repulsion collapses it; started at the exact mode's
+  scale (std 31 at 70k, 31 sqrt(n / 70000) in general) with no early exaggeration it keeps the
+  arrangement. The mid-range spring must be off in that pass (with it, `k2`: collapse to std 3.5,
+  15-NN 0.06). The learning rate n/12 and 300 iterations give 15-NN kept 0.355-0.356 and Spearman
+  0.411-0.416 (two seeds); lr 1000 gives 0.340 / 0.419, 150 iterations 0.281 / 0.414, 600 iterations
+  0.352 / 0.412.
+
+Benchmark rows (`run_hybrid_rows.py`, the seeds of BENCHMARK.md): MNIST 0.355 / 0.414 in 15 s
+(SGD 0.193 / 0.413 in 4.4 s, exact 0.349 / 0.348 in 9 s, scikit-learn t-SNE 0.350 / 0.338 in 196 s);
+Fashion-MNIST 0.326 / 0.712; 20 newsgroups 0.183 / 0.092 (the exact mode's 0.108 and Barnes-Hut's
+0.232 stay ahead on the global axis there); blobs 0.124 / 0.682 (the exact mode alone: 0.125 / 0.340).
+The fade the question asked for exists, then, but across scales of the optimiser rather than inside
+the loss: the sampled pass owns the far field, the exact pass owns the near field, and the hand-over
+is the init at the right scale.
+
 ## Scripts (`benchmarks/theory/`)
 
 `e1_force_spectrum.py` (per-octave repulsive force on MAGNET's own embeddings), `e1b_powerlaw.py`
@@ -220,7 +263,7 @@ limit, a data set where every point would rather be at L2 and the mode only move
 data set), `e3_huber.py` (needs the research build with the Huber kernel; the C++ and Python patch is
 described in the script's docstring), `e4_oracle_local.py`, `e5_law.py`, `e6_estimator.py`,
 `e7_embedding_estimator.py` (two-phase version, superseded), `g1_gate.py` (crowding distribution on
-real data), `g2_adaptive.py`, `g3_mindeg.py`, `h1_hubs.py`, `h2_degree.py` (the text question); the `.log` files are the runs quoted here (4 threads, 2-3
+real data), `g2_adaptive.py`, `g3_mindeg.py`, `h1_hubs.py`, `h2_degree.py` (the text question), `k1_hybrid.py` to `k7_hybrid_general.py` and `run_hybrid_rows.py` (section 6); the `.log` files are the runs quoted here (4 threads, 2-3
 seeds). The e3 / e4 / e6 / e7 scripts take the package directory and the repository as arguments; g1 and
 g2 take the repository and a data directory holding `coil20/coil-20-proc/*.png` (Columbia CAVE) and
 `paul15/paul15.h5` (falexwolf.de/data); Cora and the airport graphs are read from local copies.

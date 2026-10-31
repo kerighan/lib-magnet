@@ -21,6 +21,8 @@ def load():
         name = LABELS.get(r["method"], r["method"])
         if r["method"] == "magnet" and r["params"].get("loss") == "tsne":
             name = 'MAGNET loss="tsne"'
+        if r["method"] == "magnet" and r["params"].get("loss") == "hybrid":
+            name = 'MAGNET loss="hybrid"'
         latest[(r["dataset"], name, r["tag"])] = r
     runs = collections.defaultdict(list)
     for (d, name, _), r in latest.items():
@@ -31,7 +33,7 @@ def load():
 def main():
     runs = load()
     fig, axes = plt.subplots(len(METRICS), len(DATASETS), figsize=(5 * len(DATASETS), 4.6 * len(METRICS)), squeeze=False)
-    colors = {"MAGNET": "#d62728", 'MAGNET loss="tsne"': "#ff7f0e", "UMAP": "#1f77b4", "openTSNE": "#2ca02c", "PaCMAP": "#9467bd", "TriMap": "#8c564b", "sklearn t-SNE": "#7f7f7f"}
+    colors = {"MAGNET": "#d62728", 'MAGNET loss="tsne"': "#ff7f0e", 'MAGNET loss="hybrid"': "#e377c2", "UMAP": "#1f77b4", "openTSNE": "#2ca02c", "PaCMAP": "#9467bd", "TriMap": "#8c564b", "sklearn t-SNE": "#7f7f7f"}
     for j, (dkey, dlabel) in enumerate(DATASETS):
         for i, (mkey, mlabel) in enumerate(METRICS):
             ax = axes[i][j]

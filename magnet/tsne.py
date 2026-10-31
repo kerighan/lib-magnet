@@ -102,11 +102,18 @@ class FFTRepulsion2D:
 
 def optimize_tsne(P, Y, n_iter=750, early_iter=250, early_exaggeration=12.0, exaggeration=1.0,
                   learning_rate=None, momentum=(0.5, 0.8), n_interp=3, box_width=1.0, n_threads=-1,
-                  mid_pairs=None, mid_weight=0.0, mid_phase=0.5, dof=1.0, verbose=False, callback=None):
+                  mid_pairs=None, mid_weight=0.0, mid_phase=0.5, dof=1.0, verbose=False, callback=None,
+                  far_weight=0.0, far_r0=0.1, far_a=1.74, mid_form="mean", mid_c=0.3):
     """Full-batch t-SNE gradient descent. P: symmetric CSR affinities (will be normalised to sum 1),
     Y: (n, 2) float32 initial layout (modified in place and returned).
     mid_pairs: optional (n, m) partners (PaCMAP-style mid-near pairs); a spring of stiffness
-    mid_weight / n towards their mean position is added, annealed to zero over mid_phase * n_iter."""
+    mid_weight / n towards their mean position is added, annealed to zero over mid_phase * n_iter.
+    far_weight: research, a second repulsion of constant strength (not normalised by Z) that acts only in the
+    far field: kernel 2 r^8 / ((1 + far_a r^2)^5 (r0^2 + r^2)), the Cauchy tail 2 / (far_a^5 r^4) beyond
+    max(1, r0), r0 = far_r0 x the layout's RMS radius, vanishing as r^8 below, and off during the
+    early-exaggeration phase (with n points even a tiny near-field residual summed over all pairs
+    overwhelms the normalised gradient). The near field keeps t-SNE's normalised
+    repulsion, the far field gets the constant-strength one of the sampled optimiser."""
     from _magnet import tsne_attraction, tsne_update, mid_spring
 
     n = P.shape[0]
@@ -121,6 +128,11 @@ def optimize_tsne(P, Y, n_iter=750, early_iter=250, early_exaggeration=12.0, exa
     update = np.zeros_like(Y)
     gains = np.ones_like(Y)
     rep = FFTRepulsion2D(n_interp=n_interp, box_width=box_width, n_threads=n_threads, dof=dof)
+    rep_far, r0_cur = None, None
+    def make_far(r0):
+        r02 = float(r0) ** 2
+        return FFTRepulsion2D(n_interp=n_interp, box_width=box_width, n_threads=n_threads,
+                              kernels=lambda r2: (np.zeros_like(r2), 2.0 * r2 ** 4 / ((1.0 + far_a * r2) ** 5 * (r02 + r2))))
     t0 = time.time()
     timers = {"attraction": 0.0, "repulsion": 0.0, "update": 0.0}
     for it in range(n_iter):
@@ -134,11 +146,23 @@ def optimize_tsne(P, Y, n_iter=750, early_iter=250, early_exaggeration=12.0, exa
         t3 = time.time()
         grad = rho * attr
         grad -= F * (1.0 / max(sumQ, 1e-12))
+        if far_weight > 0 and not early:   # the early-exaggeration layout is far below the kernel scale
+            if it % 25 == 0 or rep_far is None:
+                r0_new = far_r0 * float(np.sqrt(((Y - Y.mean(0)) ** 2).sum(1).mean()))
+                if r0_cur is None or abs(r0_new - r0_cur) > 0.2 * r0_cur:
+                    rep_far, r0_cur = make_far(r0_new), r0_new
+            _, F_far = rep_far(Y)
+            grad -= far_weight * F_far
         if mid_pairs is not None and mid_weight > 0:
             w_mid = mid_weight * max(0.0, 1.0 - it / max(1.0, mid_phase * n_iter)) / n
-            if w_mid > 0:
+            if w_mid > 0 and mid_form == "mean":
                 grad = np.ascontiguousarray(grad, dtype=np.float32)
                 mid_spring(Y, mid_pairs, grad, float(w_mid), n_threads)
+            elif w_mid > 0:   # research: one bounded-influence spring per partner, force w d / (1 + d^2 / c^2),
+                c2 = (mid_c * float(np.sqrt(((Y - Y.mean(0)) ** 2).sum(1).mean()))) ** 2   # c = mid_c x RMS radius
+                for k in range(mid_pairs.shape[1]):
+                    diff = Y - Y[mid_pairs[:, k]]
+                    grad += (w_mid / mid_pairs.shape[1]) * diff / (1.0 + (diff ** 2).sum(1, keepdims=True) / c2)
         tsne_update(Y, update, gains, np.ascontiguousarray(grad, dtype=np.float32), float(learning_rate), float(mom), n_threads)
         t4 = time.time()
         timers["attraction"] += t2 - t1; timers["repulsion"] += t3 - t2; timers["update"] += t4 - t3

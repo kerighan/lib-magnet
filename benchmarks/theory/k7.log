@@ -1,0 +1,29 @@
+== mnist70k n=70000 scale rule 31.0
+  SGD default s=0                                  T=  4.0s knn15 0.193 trust 0.957 spear 0.414 trip 0.645 acc 0.966 sil 0.393  std 3.8
+  tsne default s=0                                 T=  9.8s knn15 0.348 trust 0.966 spear 0.342 trip 0.626 acc 0.967 sil 0.349  std 31.2
+  (a) SGD -> tsne scale 31, lr 1000, 300 it s=0    T= 11.7s knn15 0.340 trust 0.962 spear 0.419 trip 0.646 acc 0.966 sil 0.339  std 32.2
+  (a) SGD -> tsne scale 31, lr n/12, 300 it s=0    T= 12.2s knn15 0.356 trust 0.963 spear 0.411 trip 0.643 acc 0.966 sil 0.335  std 37.0
+  (b) SGD -> tsne tiny init, 300 it s=0            T=  8.8s knn15 0.334 trust 0.965 spear 0.390 trip 0.638 acc 0.967 sil 0.353  std 28.1
+  SGD default s=1                                  T=  4.2s knn15 0.192 trust 0.957 spear 0.416 trip 0.645 acc 0.966 sil 0.408  std 3.9
+  tsne default s=1                                 T=  8.5s knn15 0.347 trust 0.967 spear 0.352 trip 0.627 acc 0.966 sil 0.345  std 31.2
+  (a) SGD -> tsne scale 31, lr 1000, 300 it s=1    T= 11.7s knn15 0.339 trust 0.961 spear 0.421 trip 0.646 acc 0.966 sil 0.350  std 32.3
+  (a) SGD -> tsne scale 31, lr n/12, 300 it s=1    T= 12.7s knn15 0.355 trust 0.962 spear 0.416 trip 0.644 acc 0.966 sil 0.344  std 37.1
+  (b) SGD -> tsne tiny init, 300 it s=1            T=  9.0s knn15 0.334 trust 0.965 spear 0.389 trip 0.637 acc 0.967 sil 0.347  std 28.1
+== fmnist70k n=70000 scale rule 31.0
+  SGD default s=0                                  T=  4.0s knn15 0.203 trust 0.980 spear 0.728 trip 0.786 acc 0.798 sil 0.138  std 4.2
+  tsne default s=0                                 T=  9.9s knn15 0.323 trust 0.981 spear 0.700 trip 0.775 acc 0.813 sil 0.102  std 32.3
+  (a) SGD -> tsne scale 31, lr 1000, 300 it s=0    T= 11.0s knn15 0.316 trust 0.980 spear 0.725 trip 0.784 acc 0.814 sil 0.120  std 32.3
+  (a) SGD -> tsne scale 31, lr n/12, 300 it s=0    T= 11.5s knn15 0.327 trust 0.980 spear 0.713 trip 0.778 acc 0.815 sil 0.118  std 37.4
+  (b) SGD -> tsne tiny init, 300 it s=0            T=  8.8s knn15 0.314 trust 0.981 spear 0.669 trip 0.755 acc 0.817 sil 0.120  std 28.0
+== news20 n=18846 scale rule 16.1
+  SGD default s=0                                  T=  1.0s knn15 0.135 trust 0.758 spear 0.060 trip 0.529 acc 0.507 sil -0.096  std 3.3
+  tsne default s=0                                 T=  4.6s knn15 0.183 trust 0.775 spear 0.108 trip 0.540 acc 0.524 sil -0.097  std 26.9
+  (a) SGD -> tsne scale 16, lr 1000, 300 it s=0    T=  4.6s knn15 0.181 trust 0.773 spear 0.088 trip 0.534 acc 0.522 sil -0.105  std 22.7
+  (a) SGD -> tsne scale 16, lr n/12, 300 it s=0    T=  4.7s knn15 0.181 trust 0.773 spear 0.096 trip 0.536 acc 0.521 sil -0.105  std 24.5
+  (b) SGD -> tsne tiny init, 300 it s=0            T=  3.6s knn15 0.182 trust 0.772 spear 0.112 trip 0.542 acc 0.520 sil -0.099  std 22.2
+== blobs10k n=10000 scale rule 11.7
+  SGD default s=0                                  T=  1.0s knn15 0.066 trust 0.972 spear 0.706 trip 0.737 acc nan sil   -    std 4.3
+  tsne default s=0                                 T=  2.6s knn15 0.125 trust 0.974 spear 0.340 trip 0.639 acc nan sil   -    std 15.6
+  (a) SGD -> tsne scale 12, lr 1000, 300 it s=0    T=  2.5s knn15 0.125 trust 0.974 spear 0.699 trip 0.736 acc nan sil   -    std 16.6
+  (a) SGD -> tsne scale 12, lr n/12, 300 it s=0    T=  2.5s knn15 0.122 trust 0.974 spear 0.700 trip 0.735 acc nan sil   -    std 16.0
+  (b) SGD -> tsne tiny init, 300 it s=0            T=  2.2s knn15 0.119 trust 0.974 spear 0.692 trip 0.735 acc nan sil   -    std 14.2

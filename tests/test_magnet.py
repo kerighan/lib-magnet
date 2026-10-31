@@ -358,3 +358,17 @@ def test_adaptive_exponent():
     A = sp.csr_matrix(nx.to_scipy_sparse_array(G, nodelist=range(300))).astype(np.float32)
     Mg = MAGNET(kernel_b="adaptive", random_state=0, n_threads=1).fit(A)
     assert (Mg.node_b_[200:] == 1.0).mean() > 0.8 and (Mg.node_b_[:200] == 1.0).mean() < 0.3
+
+
+def test_hybrid_loss():
+    X, y = make_blobs(n_samples=3000, centers=6, n_features=20, random_state=0)
+    X = X.astype(np.float32)
+    M = MAGNET(loss="hybrid", hybrid_iter=60, random_state=0, n_threads=1).fit(X)
+    Y = M.embedding_
+    assert Y.shape == (3000, 2) and np.isfinite(Y).all()
+    Y_sgd = MAGNET(random_state=0, n_threads=1).fit_transform(X)
+    assert not np.allclose(Y, Y_sgd)
+    rule = 31.0 * np.sqrt(3000 / 70000.0)             # the exact pass works at the exact mode's scale
+    assert 0.5 * rule < Y[:, 0].std() < 2.0 * rule
+    with pytest.raises(ValueError):
+        MAGNET(loss="hybrid", n_components=3, random_state=0).fit(X)

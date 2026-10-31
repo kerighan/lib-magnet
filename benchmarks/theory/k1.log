@@ -1,0 +1,22 @@
+== mnist70k
+  A  SGD default                               T=  4.1s knn15 0.195 trust 0.956 spear 0.413 trip 0.645 acc 0.966 sil 0.403
+  B  tsne default (600 it, early 200)          T=  8.6s knn15 0.348 trust 0.966 spear 0.342 trip 0.626 acc 0.967 sil 0.349
+  C  SGD init -> tsne 150 it, early 0          T=  6.8s knn15 0.193 trust 0.960 spear 0.335 trip 0.624 acc 0.963 sil 0.254
+  C  SGD init -> tsne 300 it, early 0          T=  8.3s knn15 0.303 trust 0.965 spear 0.287 trip 0.609 acc 0.965 sil 0.283
+  C  SGD init -> tsne 300 it, early 50         T=  8.3s knn15 0.296 trust 0.965 spear 0.319 trip 0.620 acc 0.965 sil 0.279
+  D  tsne, final exaggeration 1.5              T=  9.3s knn15 0.278 trust 0.970 spear 0.336 trip 0.623 acc 0.967 sil 0.438
+  D  tsne, final exaggeration 2.0              T=  7.0s knn15 0.195 trust 0.966 spear 0.337 trip 0.623 acc 0.967 sil 0.520
+  D  tsne, final exaggeration 4.0              T=  6.7s knn15 0.121 trust 0.954 spear 0.334 trip 0.618 acc 0.968 sil 0.571
+  F  SGD init -> tsne 300 it, exaggeration 1.5 T=  8.2s knn15 0.236 trust 0.969 spear 0.316 trip 0.618 acc 0.966 sil 0.410
+  F  SGD init -> tsne 300 it, exaggeration 2.0 T=  8.1s knn15 0.176 trust 0.964 spear 0.324 trip 0.619 acc 0.966 sil 0.480
+== fmnist70k
+  A  SGD default                               T=  4.0s knn15 0.202 trust 0.980 spear 0.730 trip 0.787 acc 0.799 sil 0.140
+  B  tsne default (600 it, early 200)          T=  9.9s knn15 0.323 trust 0.981 spear 0.700 trip 0.775 acc 0.813 sil 0.102
+  C  SGD init -> tsne 150 it, early 0          T=  6.6s knn15 0.212 trust 0.978 spear 0.726 trip 0.788 acc 0.800 sil 0.088
+  C  SGD init -> tsne 300 it, early 0          T=  8.1s knn15 0.288 trust 0.981 spear 0.686 trip 0.769 acc 0.815 sil 0.115
+  C  SGD init -> tsne 300 it, early 50         T=  8.2s knn15 0.287 trust 0.981 spear 0.710 trip 0.781 acc 0.817 sil 0.098
+  D  tsne, final exaggeration 1.5              T=  8.7s knn15 0.276 trust 0.983 spear 0.643 trip 0.749 acc 0.815 sil 0.145
+  D  tsne, final exaggeration 2.0              T=  7.0s knn15 0.227 trust 0.983 spear 0.614 trip 0.738 acc 0.812 sil 0.166
+  D  tsne, final exaggeration 4.0              T=  8.0s knn15 0.142 trust 0.976 spear 0.570 trip 0.719 acc 0.784 sil 0.199
+  F  SGD init -> tsne 300 it, exaggeration 1.5 T=  8.1s knn15 0.246 trust 0.983 spear 0.626 trip 0.744 acc 0.816 sil 0.148
+  F  SGD init -> tsne 300 it, exaggeration 2.0 T=  7.9s knn15 0.207 trust 0.983 spear 0.608 trip 0.737 acc 0.810 sil 0.166

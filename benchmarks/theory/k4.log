@@ -1,0 +1,13 @@
+  tsne, mid_weight 0.1, mid_phase 0.5            T= 10.8s knn15 0.348 trust 0.966 spear 0.342 trip 0.626 acc 0.967 sil 0.349
+  tsne, mid_weight 0.1, mid_phase 1.0            T=  8.1s knn15 0.133 trust 0.952 spear 0.303 trip 0.616 acc 0.962 sil 0.256
+  tsne, mid_weight 0.3, mid_phase 0.5            T=  8.9s knn15 0.346 trust 0.965 spear 0.320 trip 0.619 acc 0.961 sil 0.273
+  tsne, mid_weight 0.3, mid_phase 1.0            T=  6.4s knn15 0.109 trust 0.939 spear 0.344 trip 0.629 acc 0.951 sil 0.258
+  tsne, mid_weight 1.0, mid_phase 1.0            T=  9.1s knn15 0.077 trust 0.894 spear 0.367 trip 0.638 acc 0.839 sil 0.179
+  tsne, mid_weight 3.0, mid_phase 1.0            T=  8.7s knn15 0.012 trust 0.740 spear 0.313 trip 0.609 acc 0.557 sil -0.061
+  tsne, mid_weight 0.0, mid_phase 0.5            T= 10.7s knn15 0.354 trust 0.966 spear 0.336 trip 0.621 acc 0.967 sil 0.355
+  SGD, mid_weight 0.0                            T=  3.7s knn15 0.206 trust 0.959 spear 0.285 trip 0.606 acc 0.969 sil 0.553
+  SGD, mid_weight 0.3                            T=  4.0s knn15 0.187 trust 0.956 spear 0.427 trip 0.648 acc 0.964 sil 0.309
+  SGD, mid_weight 1.0                            T=  4.0s knn15 0.168 trust 0.928 spear 0.478 trip 0.663 acc 0.908 sil 0.112
+  tsne + far field w=3e-08                       T= 15.0s knn15 0.349 trust 0.964 spear 0.345 trip 0.627 acc 0.963 sil 0.332
+  tsne + far field w=2e-07                       T= 16.7s knn15 0.326 trust 0.913 spear 0.345 trip 0.625 acc 0.898 sil 0.146
+  tsne + far field w=4e-07                       T= 19.2s knn15 0.274 trust 0.817 spear 0.290 trip 0.601 acc 0.759 sil -0.020

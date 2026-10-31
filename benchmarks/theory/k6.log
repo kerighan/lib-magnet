@@ -1,0 +1,9 @@
+  A  SGD default                                       T=  4.1s knn15 0.193 trust 0.956 spear 0.413 trip 0.645 acc 0.966 sil 0.391  std 3.8
+  C' SGD -> tsne, scale 31.0, lr 200, 150 it, no mid   T=  8.3s knn15 0.281 trust 0.960 spear 0.414 trip 0.645 acc 0.966 sil 0.383  std 31.1
+  C' SGD -> tsne, scale 31.0, lr 200, 300 it, no mid   T= 11.3s knn15 0.318 trust 0.961 spear 0.416 trip 0.645 acc 0.966 sil 0.367  std 31.3
+  C' SGD -> tsne, scale 31.0, lr 1000, 300 it, no mid  T= 11.6s knn15 0.340 trust 0.961 spear 0.418 trip 0.646 acc 0.966 sil 0.337  std 32.2
+  C' SGD -> tsne, scale 31.0, lr 5800, 300 it, no mid  T= 13.0s knn15 0.355 trust 0.963 spear 0.409 trip 0.643 acc 0.965 sil 0.333  std 36.9
+  C' SGD -> tsne, scale 15.0, lr 1000, 300 it, no mid  T=  8.8s knn15 0.274 trust 0.965 spear 0.408 trip 0.643 acc 0.966 sil 0.325  std 18.5
+  C' SGD -> tsne, scale 31.0, lr 1000, 600 it, no mid  T= 19.9s knn15 0.352 trust 0.962 spear 0.412 trip 0.644 acc 0.965 sil 0.329  std 35.5
+  SGD, mid_weight 0.3                                  T=  3.9s knn15 0.184 trust 0.950 spear 0.438 trip 0.652 acc 0.962 sil 0.299  std 3.3
+  SGD, mid_weight 0.5                                  T=  3.9s knn15 0.181 trust 0.951 spear 0.454 trip 0.658 acc 0.950 sil 0.125  std 2.8

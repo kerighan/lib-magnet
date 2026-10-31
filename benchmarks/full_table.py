@@ -11,6 +11,7 @@ QUICK = "--quick" in sys.argv
 METHODS = [
     ("MAGNET (SGD, default)", "magnet", {}),
     ('MAGNET (loss="tsne")', "magnet", {"loss": "tsne"}),
+    ('MAGNET (loss="hybrid")', "magnet", {"loss": "hybrid"}),
     ("UMAP 0.5.11", "umap", {}),
     ("openTSNE 1.0.4", "opentsne", {}),
     ("PaCMAP", "pacmap", {}),

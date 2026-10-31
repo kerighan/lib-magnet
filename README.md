@@ -34,6 +34,7 @@ from magnet import MAGNET
 
 Y = MAGNET().fit_transform(X)                        # X: (n, d) array; row i of Y is X[i]
 Y = MAGNET(loss="tsne").fit_transform(X)             # exact repulsion, t-SNE-grade local structure
+Y = MAGNET(loss="hybrid").fit_transform(X)           # SGD layout refined by the exact repulsion: both at once (2-D)
 Y = MAGNET(metric="cosine").fit_transform(T)         # sparse CSR matrix (TF-IDF), no densification
 Y = MAGNET().fit_transform(G)                        # networkx graph, rows follow list(G.nodes)
 Y = MAGNET().fit_transform(A)                        # scipy sparse adjacency (weights = similarities)
@@ -54,9 +55,18 @@ Hamprecht 2021). MAGNET exposes this directly:
 |---|---|---|---|
 | `loss="umap"` | sampled (5 random points per positive sample) | UMAP-like, with the global structure of PaCMAP | speed, 3-D, graphs, millions of points |
 | `loss="tsne"` | exact, all pairs, FFT-accelerated (2-D) | t-SNE-like, finest local structure | best neighbourhood preservation |
+| `loss="hybrid"` | sampled, then exact for 300 iterations at the exact mode's scale | the global structure of the first with the local structure of the second | the best 2-D layout MAGNET makes (MNIST 70k: 15-NN kept 0.355, distance Spearman 0.414, 15 s) |
 | `loss="tsne", exaggeration=4` | exact | UMAP-like again | the two regimes really are one spectrum |
 
-`repulsion_strength` (default 2) and `exaggeration` move along the spectrum within each mode.
+`repulsion_strength` (default 2) and `exaggeration` move along the spectrum within each mode, and
+`mid_weight` trades local for global structure within the SGD mode (MNIST 70k, 0 / 0.1 / 0.3 / 1.0:
+15-NN kept 0.206 / 0.193 / 0.187 / 0.168, distance Spearman 0.285 / 0.413 / 0.427 / 0.478). The two
+modes' strengths do not blend inside one loss (a constant far-field repulsion, a bounded mid-range
+term or a longer schedule in the exact mode each cost local structure before buying any global, and
+the exaggeration knob trades local for compactness, not for global; `docs/kernel_exponents.md`,
+section 6), but they compose in sequence: the global arrangement is set by the SGD pass and carried
+through the init, the exact pass only sharpens the neighbourhoods, provided it starts at its own
+scale and without the mid-range spring.
 
 ### Two exponents, not one
 
@@ -204,6 +214,7 @@ sits below the CPU t-SNEs on neighbourhood preservation.
 | MAGNET, `repulsion_b=None` (coupled kernel, UMAP's compact look: silhouette 0.51 against 0.52 for UMAP and 0.40 for the default) | 5.5 s | 0.190 | 0.958 | 0.405 | 0.641 | 0.966 |
 | MAGNET, `late_exaggeration=1.5` (compact preset, silhouette 0.51) | 4.7 s | 0.181 | 0.956 | 0.386 | 0.637 | 0.967 |
 | **MAGNET `loss="tsne"`** | 9.2 s | 0.349 | 0.966 | 0.348 | 0.627 | 0.966 |
+| **MAGNET `loss="hybrid"`** | 15.3 s | **0.355** | 0.962 | **0.414** | **0.645** | 0.965 |
 | UMAP 0.5.11 | 18.2 s | 0.116 | 0.951 | 0.300 | 0.607 | 0.967 |
 | densMAP (umap-learn 0.5.11) | 43.2 s | 0.070 | 0.923 | 0.357 | 0.621 | 0.956 |
 | openTSNE 1.0.4 | 102.5 s | 0.347 | **0.968** | 0.330 | 0.619 | 0.965 |
@@ -214,6 +225,11 @@ sits below the CPU t-SNEs on neighbourhood preservation.
 | sklearn t-SNE (Barnes-Hut) | 195.7 s | **0.350** | **0.968** | 0.338 | 0.622 | 0.967 |
 | t-SNE-CUDA 3.0.1 (GPU) | 13.8 s | 0.169 | 0.967 | 0.169 | 0.567 | 0.957 |
 
+`loss="hybrid"` is the first row of this table to lead both the local and the global columns at once:
+15-NN kept equal to the best t-SNE (0.355 against 0.350), distance correlation equal to the SGD mode
+(0.414 against 0.413), 13 times faster than scikit-learn's t-SNE. Fashion-MNIST: 0.326 / 0.712
+(t-SNE 0.327 / 0.634, SGD 0.202 / 0.730); 20 newsgroups 0.183 / 0.092 (t-SNE 0.192 / 0.232, which
+keeps the global lead there); blobs 0.124 / 0.682 (t-SNE 0.114 / 0.381, SGD 0.067 / 0.690).
 h-NNE is the one fast method that beats the default MAGNET on neighbourhood preservation (0.233
 against 0.193 on MNIST, 0.154 against 0.134 on 20 newsgroups, the other way round on Fashion-MNIST,
 0.173 against 0.202); it pays for it on every other column (trustworthiness 0.940, distance

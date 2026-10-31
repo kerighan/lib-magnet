@@ -1,0 +1,11 @@
+  A  SGD default                                     T=  4.2s knn15 0.194 trust 0.956 spear 0.413 trip 0.645 acc 0.967 sil 0.399  std 3.9
+  B  tsne default                                    T= 10.3s knn15 0.348 trust 0.966 spear 0.342 trip 0.626 acc 0.967 sil 0.349  std 31.2
+  exact-mode layout std 31.2, SGD layout std 3.9
+  C  SGD -> tsne at 1.0x scale, lr 200, 150 it       T=  8.0s knn15 0.019 trust 0.734 spear 0.407 trip 0.637 acc 0.636 sil 0.111  std 13.7
+  C  SGD -> tsne at 1.0x scale, lr 200, 300 it       T=  8.8s knn15 0.057 trust 0.782 spear 0.420 trip 0.648 acc 0.662 sil 0.049  std 3.5
+  C  SGD -> tsne at 1.0x scale, lr 1000, 300 it      T=  8.4s knn15 0.162 trust 0.955 spear 0.381 trip 0.637 acc 0.963 sil 0.325  std 9.1
+  C  SGD -> tsne at 0.5x scale, lr 200, 300 it       T=  8.2s knn15 0.092 trust 0.900 spear 0.411 trip 0.649 acc 0.889 sil 0.228  std 4.0
+  C  SGD -> tsne at 2.0x scale, lr 200, 300 it       T= 11.7s knn15 0.029 trust 0.617 spear 0.254 trip 0.582 acc 0.341 sil -0.110  std 5.2
+  C  SGD -> tsne at 1.0x scale, lr 50, 300 it        T= 10.3s knn15 0.027 trust 0.767 spear 0.418 trip 0.642 acc 0.713 sil 0.163  std 14.8
+  R  tsne -> SGD 60 epochs                           T= 12.2s knn15 0.130 trust 0.943 spear 0.436 trip 0.651 acc 0.950 sil 0.334  std 3.4
+  R  tsne -> SGD 150 epochs                          T= 12.8s knn15 0.172 trust 0.953 spear 0.432 trip 0.650 acc 0.956 sil 0.350  std 3.6

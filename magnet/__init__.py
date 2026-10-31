@@ -102,10 +102,16 @@ class MAGNET:
     loss : "umap" (negative-sampling cross entropy, as UMAP), "infonce" (contrastive softmax over the
         positive and its negatives), "umap_exact" (research mode: the UMAP cross entropy with its
         repulsion computed exactly over all pairs by FFT, scaled by repulsion_strength; 2-D only) or
+        "hybrid" (the SGD layout, then `hybrid_iter` iterations of the exact repulsion refining it at the
+        exact mode's scale, without early exaggeration or mid-range term: the local structure of "tsne" with the
+        global structure of the SGD mode, 2-D only; MNIST 70k: 15-NN kept 0.355, distance Spearman 0.41, 12 s),
         "tsne" (exact repulsion over all pairs through FFT interpolation,
         full-batch gradient descent as FIt-SNE / openTSNE; 2-D only; `exaggeration` is then the
         attraction multiplier of the final phase: 1 = t-SNE, ~4 looks like UMAP).
     exaggeration : multiplier on the attractive gradient (UMAP ~ t-SNE with exaggeration 4).
+    hybrid_iter : iterations of the exact pass of loss="hybrid" (default 300; 150 keeps most of the gain).
+    tsne_init_scale, tsne_learning_rate, tsne_far, tsne_mid : research knobs of the exact mode (warm start
+        scale and learning rate, constant far-field repulsion, bounded mid-range springs; docs/kernel_exponents.md).
     tsne_dof : degrees of freedom of the Student-t kernel of loss="tsne" (1 = Cauchy, the t-SNE kernel;
         smaller values give heavier tails, as in Kobak et al. 2019).
     late_exaggeration, late_phase : attraction multiplier applied during the last late_phase fraction
@@ -170,10 +176,15 @@ class MAGNET:
                  init="auto", pca=None, knn="nndescent", ef_construction=80, M=16, ef=None,
                  set_op_mix_ratio=1.0, neighbor_power=1.0, neighbor_rank_exponent=0.0,
                  samples_per_node=5.0, graph_norm="sym", input="auto",
-                 adaptive=(0.5, 1.0, 0.75, 0.0, 2.0, 2),
+                 adaptive=(0.5, 1.0, 0.75, 0.0, 2.0, 2), tsne_init_scale=None, tsne_learning_rate=None, tsne_far=(0.0, 0.1), tsne_mid=("mean", 0.3), hybrid_iter=300,
                  transform_epochs=None, n_threads=-1, random_state=None, verbose=False):
         self.n_components = n_components
         self.adaptive = adaptive
+        self.tsne_init_scale = tsne_init_scale
+        self.tsne_learning_rate = tsne_learning_rate
+        self.tsne_far = tsne_far
+        self.tsne_mid = tsne_mid
+        self.hybrid_iter = hybrid_iter
         self.n_neighbors = n_neighbors
         self.metric = metric
         self.min_dist = min_dist
@@ -383,7 +394,10 @@ class MAGNET:
                 raise ValueError("loss='tsne' (FFT repulsion) is implemented for n_components=2 only")
             from .tsne import optimize_tsne
             n_iter = self.n_epochs if isinstance(self.n_epochs, (int, np.integer)) else 600
-            Y = Y / max(float(Y[:, 0].std()), 1e-12) * 1e-4   # t-SNE convention: tiny initial spread
+            if self.tsne_init_scale is None:
+                Y = Y / max(float(Y[:, 0].std()), 1e-12) * 1e-4   # t-SNE convention: tiny initial spread
+            else:   # warm start: keep the given layout, rescaled to the requested standard deviation
+                Y = Y / max(float(Y[:, 0].std()), 1e-12) * float(self.tsne_init_scale)
             early = self.tsne_early if self.tsne_early is not None else min(250, int(n_iter) // 3)
             pairs = None
             if self.mid_source in ("data", "auto") and hasattr(self, "_prepared_") and self.mid_weight > 0:
@@ -391,10 +405,12 @@ class MAGNET:
                 pairs = mid_near_pairs(self._prepared_, self.n_mid_pairs, random_state=self.random_state or 0,
                                        n_threads=self.n_threads)
             Y = optimize_tsne(P, Y, n_iter=int(n_iter), early_iter=int(early),
-                              exaggeration=float(self.exaggeration), learning_rate=None,
+                              exaggeration=float(self.exaggeration), learning_rate=self.tsne_learning_rate,
                               n_interp=int(self.fft_interp), box_width=float(self.fft_box),
                               n_threads=self.n_threads, mid_pairs=pairs, mid_weight=3.0 * float(self.mid_weight),
-                              mid_phase=float(self.mid_phase), dof=float(self.tsne_dof), verbose=self.verbose)
+                              mid_phase=float(self.mid_phase), dof=float(self.tsne_dof), verbose=self.verbose,
+                              far_weight=float(self.tsne_far[0]), far_r0=float(self.tsne_far[1]),
+                              mid_form=str(self.tsne_mid[0]), mid_c=float(self.tsne_mid[1]))
             self.n_epochs_ = int(n_iter)
             head = np.zeros(0, dtype=np.int32)
         else:
@@ -420,6 +436,24 @@ class MAGNET:
                     self._jump_graph_ = J
             self._optimize(Y, head, tail, epochs_per_sample, P, n_epochs, n_fixed=0, seed=seed,
                            mid_weight=self.mid_weight)
+            if self.loss == "hybrid":
+                # second pass: the exact (FFT) repulsion refines the local structure of the SGD layout. The layout
+                # is first brought to the exact mode's own scale (31 x sqrt(n / 70000)): started from its natural
+                # scale the normalised repulsion collapses it, started from t-SNE's tiny init it re-expands and
+                # loses the arrangement. No early exaggeration and no mid-range spring (it would contract the
+                # layout at this scale): the global arrangement is the SGD pass's job, kept through the init.
+                if self.n_components != 2:
+                    raise ValueError("loss='hybrid' (FFT repulsion) is implemented for n_components=2 only")
+                from .tsne import optimize_tsne
+                t_h = time.time()
+                Y -= Y.mean(0)
+                Y *= 31.0 * np.sqrt(n / 70000.0) / max(float(Y[:, 0].std()), 1e-12)
+                Y = optimize_tsne(P, Y, n_iter=int(self.hybrid_iter), early_iter=0, exaggeration=float(self.exaggeration),
+                                  learning_rate=self.tsne_learning_rate, n_interp=int(self.fft_interp),
+                                  box_width=float(self.fft_box), n_threads=self.n_threads, dof=float(self.tsne_dof),
+                                  verbose=self.verbose)
+                if self.verbose:
+                    print(f"Hybrid: exact pass ({self.hybrid_iter} iterations) - T={time.time() - t_h:.2f}s")
         if self.verbose:
             print(f"Layout ({self.n_epochs_} epochs, {len(head)} edges) - T={time.time() - t:.2f}s"
                   f" | total {time.time() - t0:.2f}s")
@@ -462,7 +496,7 @@ class MAGNET:
 
         n = Y.shape[0]
         lr = float(self.learning_rate)
-        loss = {"umap": 0, "infonce": 1}[self.loss]
+        loss = {"umap": 0, "infonce": 1, "hybrid": 0}[self.loss]
         kernel = {"power": 0, "gaussian": 1, "sech": 2, "tanh": 3}[self.kernel]
         node_b = getattr(self, "node_b_", None)
         node_b = np.zeros(0, dtype=np.float32) if node_b is None else np.ascontiguousarray(node_b, dtype=np.float32)
