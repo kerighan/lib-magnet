@@ -253,7 +253,7 @@ correlation 0.261, label accuracy 0.949). `kernel_b=0.5` closes a third of that 
 | 20 newsgroups SVD-300, cosine | **1.3 s** / 2.7 s UMAP | 0.134 / 0.192 sklearn t-SNE | 0.760 / 0.772 openTSNE | 0.059 / 0.232 sklearn t-SNE |
 | 20 newsgroups TF-IDF, sparse 18.8k x 24k | **1.6 s** / 4.5 s UMAP | **0.240** / 0.145 UMAP | **0.736** / 0.712 UMAP | 0.121 / 0.143 UMAP |
 | 15 Gaussian blobs 10k x 200 | **1.1 s** / 2.4 s UMAP | 0.067 / 0.114 sklearn t-SNE | 0.972 / 0.975 sklearn t-SNE | **0.690** / 0.666 PaCMAP |
-| SBM graph, 30k nodes, 782k edges | **4.9 s** / 10.2 s UMAP | | | 10-NN acc. 1.00 / 0.26 |
+| SBM graph, 30k nodes, 782k edges | **5.0 s** / 11.7 s UMAP | | | 10-NN acc. 1.00 / 1.00 |
 
 **Scaling** (50 anisotropic clusters in 50 dimensions)
 
@@ -284,6 +284,15 @@ of the true neighbours (61 % at best among 60 candidates): text neighbourhoods h
 rare terms that any projection flattens. Buying recall with more internal neighbours (45: 0.89,
 60: 0.89) changes nothing on the layout (15-NN kept 0.240 in every case), so the default stays at 30
 (`benchmarks/theory/k12_sparse_knn.py`).
+
+**Graph inputs and UMAP.** The SBM line gives UMAP the graph as a sparse precomputed distance matrix
+(`metric="precomputed"`, 1 on every edge); an earlier version of this table fed it the adjacency rows as a
+feature matrix under the euclidean metric, which is not a graph layout and scored 0.26-0.38 of 10-NN
+accuracy. Under the right protocol UMAP reaches 1.00 like MAGNET (`benchmarks/sbm_umap_fair.py`: rows as
+features 9.1 s / 0.38; precomputed sparse 11.7 s / 1.00, silhouette 0.85; UMAP's own
+`simplicial_set_embedding` on the adjacency 15.6 s / 1.00, silhouette 0.86; MAGNET 5.0 s / 1.00,
+silhouette 0.81, edge recall@15 0.019 against 0.014-0.015). The difference on this graph is the time,
+not the separation of the blocks.
 
 **Linear reference.** PCA (or truncated SVD) to 2-D, scored with the same metrics and subsamples
 (`benchmarks/baselines_linear.py`): distance Spearman 0.488 on MNIST, 0.873 on Fashion-MNIST, 0.319 on

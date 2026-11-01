@@ -330,7 +330,10 @@ SBM + chains & 0.449 & 0.484 & 0.532 & 0.571 & & \textbf{0.573} \\
 \section{Graphs}
 \begin{itemize}
 \item Same optimiser on an adjacency matrix (weights = similarities); mid-range partners from random
-  walks; SBM 30k nodes / 782k edges in 4.9~s vs 10~s UMAP, 10-NN accuracy 1.00 vs 0.26.
+  walks; SBM 30k nodes / 782k edges in 5.0~s vs 11.7~s for UMAP on the same graph as a sparse
+  precomputed distance matrix (15.6~s through its \texttt{simplicial\_set\_embedding}), 10-NN accuracy
+  1.00 for both; an earlier protocol that fed UMAP the adjacency rows as features scored 0.26--0.38 and is
+  withdrawn (\texttt{sbm\_umap\_fair.py}).
 \item \todo{Figure graph\_demo.png; table Cora / airports / SBM with edge preservation.}
 \end{itemize}
 

@@ -33,6 +33,8 @@ def run(method, dataset, n=70000, tag="", plot=True, **kw):
             # and the same random_state setting (with one, UMAP's layout is single-threaded: a different compiled variant)
             umap.UMAP(n_neighbors=kw.get("n_neighbors", 15), n_epochs=20, metric=kw.get("metric", "euclidean"), random_state=kw.get("random_state")).fit_transform(np.random.rand(6000, 10).astype(data.dtype))
         t = time.time()
+        if is_graph:
+            kw = dict(kw, metric="precomputed")   # the graph as a sparse distance matrix (1 per edge); rows-as-features was not a graph layout
         Y = umap.UMAP(**kw).fit_transform(data if not is_graph else _graph_to_dist(data))
     elif method == "magnet":
         from magnet import MAGNET
