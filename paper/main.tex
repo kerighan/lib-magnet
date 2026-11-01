@@ -1,0 +1,299 @@
+% MAGNET -- arXiv outline. Compile: latexmk -pdf main.tex (figures: python paper/make_fig_layouts.py mnist ;
+% python paper/make_fig_ablations.py ; tables: python paper/make_tables.py, from benchmarks/BENCHMARK.md).
+% Status: OUTLINE. Section bodies are bullet lists of the claims to write up, with the numbers that back them.
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,booktabs,graphicx,xcolor,hyperref,natbib,enumitem,microtype}
+\usepackage[font=small]{caption}
+\graphicspath{{figures/}}
+\newcommand{\todo}[1]{\textcolor{red}{[#1]}}
+\newcommand{\magnet}{\textsc{magnet}}
+\setlist{nosep}
+
+\title{\magnet: two exponents, two regimes, one layout\\
+\large Fast dimensionality reduction and graph layout from the split of the attraction--repulsion kernel}
+\author{Maixent Chenebaux\thanks{\texttt{github.com/kerighan/lib-magnet}, package \texttt{magnet-learn}.}}
+\date{Draft, \today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\todo{Write last.} Claims, in order:
+(1) The kernel $w(d) = 1/(1 + a d^{2b})$ shared by UMAP, LargeVis and $t$-SNE fixes two unrelated things
+with one exponent: the near field of the attraction and the far field of the repulsion.
+(2) Each regime has its own optimum: the attraction is a robust location problem whose answer is the
+$L_1$ point ($b = 1/2$) under crowding and the $L_2$ point ($b = 1$) without, with a step at intrinsic
+dimension $q = m$; the repulsion is scale-free at $b_r = m/2$ (Cauchy in 2-D).
+(3) Splitting the exponent, a native neighbour search and a lock-free SGD give a layout of MNIST 70k in
+4.4~s with the best global structure of eleven methods; an FFT-exact repulsion gives $t$-SNE's local
+structure in 9~s; their sequence (\texttt{loss="hybrid"}) leads both axes at once: 15-NN preservation
+0.353 (scikit-learn $t$-SNE 0.350, 196~s) with distance Spearman 0.444 (SGD 0.413) in 12.5~s.
+(4) The fade between local and global structure exists across the optimiser's scales, not inside one loss.
+\end{abstract}
+
+\section{Introduction}
+\begin{itemize}
+\item Neighbour-embedding methods = attraction on a kNN graph + repulsion on everything else; the
+  attraction--repulsion balance is the one axis that separates $t$-SNE, UMAP, LargeVis
+  \citep{boehm2022attraction}; negative sampling is biased towards weak repulsion \citep{damrich2021umap}.
+\item What this paper adds: (i) the exponent of the kernel is two parameters wearing one name
+  (Sec.~\ref{sec:theory}); (ii) the optimum of each is derived and matches measurement; (iii) an
+  implementation that is the fastest CPU method on the panel and the first row of the benchmark to lead
+  local and global columns at once (Sec.~\ref{sec:exp}); (iv) negative results on blending the two
+  regimes inside one loss, with the reason (Sec.~\ref{sec:hybrid}).
+\item Figure~\ref{fig:layouts}: the six layouts of MNIST 70k. Figure~\ref{fig:tradeoff}: quality against time.
+\end{itemize}
+
+\begin{figure}[t]
+\centering\includegraphics[width=\textwidth]{layouts_mnist.png}
+\caption{MNIST 70k under six methods, same seed. Top: UMAP, openTSNE (FIt-SNE), PaCMAP. Bottom:
+\magnet{} sampled (SGD), exact (FFT repulsion), hybrid (SGD layout refined by the exact pass). Time,
+15-NN preservation and distance Spearman in the panel titles (single cold runs: UMAP's 75~s includes its
+JIT compilation, the benchmark table has 18~s). \todo{Fashion-MNIST version in the appendix.}}
+\label{fig:layouts}
+\end{figure}
+
+\section{Background and notation}
+\begin{itemize}
+\item kNN graph with fuzzy-union weights (UMAP's), symmetric; embedding $Y \in \mathbb{R}^{n\times m}$.
+\item Kernel $w(d) = 1 / (1 + a d^{2b})$; attraction $-\log w$, repulsion $-\log(1 - w)$;
+  $t$-SNE's Cauchy is $b = 1$; kernel scale $d_k = a^{-1/2b} \approx 0.62$ at UMAP's defaults.
+\item Forces: $F_{\mathrm{att}}(d) = 2ab\,d^{2b-1}/(1 + a d^{2b})$, $F_{\mathrm{rep}}(d) = 2b/(d(1 + a d^{2b}))$.
+\item Estimators of the repulsion: negative sampling (UMAP, LargeVis), Barnes--Hut, FFT interpolation
+  \citep{linderman2019fitsne}; the optimiser's choice fixes the regime (compact / faithful).
+\end{itemize}
+
+\section{Two exponents, two regimes}\label{sec:theory}
+\subsection{One exponent fixes two unrelated things}
+\begin{itemize}
+\item Near field $d \ll d_k$: attraction $2ab\,d^{2b-1}$ (shape set by $b$), repulsion $2b/d$ (same for every $b$).
+\item Far field $d \gg d_k$: attraction $2b/d$ (redescending, same for every $b$), repulsion $2b/(a d^{2b+1})$ (tail set by $b$).
+\item Hence attraction exponent $b$ and repulsion exponent $b_r$ are decoupled in \magnet{}
+  (\texttt{kernel\_b}, \texttt{repulsion\_b}); the coupled optimum ($\approx 0.3m$: 0.52 / 0.59 / 0.76 / 1.2
+  for $m = 1..4$) is the compromise between the two.
+\end{itemize}
+\subsection{Attraction: a robust location problem}
+\begin{itemize}
+\item Every satisfiable neighbour sits on a shell at $d_{\mathrm{eq}} = (b_r g / ab)^{1/2b}$, stiffness
+  $4 b b_r g / d_{\mathrm{eq}}^2 > 0$ for every $b$: the exponent does not act through stability.
+\item Crowding: when $q > m$ a share of the $k$ neighbours cannot sit on the shell and ends in the far
+  field, where every kernel pulls with $2b/d$. Near-field loss $\rho(d) = a d^{2b}$ is a location problem
+  in the family $|d|^p$, $p = 2b$: bounded influence iff $p \le 1$, convex iff $p \ge 1$. $p = 1$ (the
+  geometric median) is the only exponent with both. Huber's minimax loss says the same: the quadratic
+  threshold shrinks to zero as the contamination grows.
+\item Prediction: optimum $1/2$ under crowding, $1$ without, a step at $q = m$. Measured
+  (Fig.~\ref{fig:exponents}a): $1.0/0.5/0.5/0.4/0.4$ for $q = 2/3/5/10/20$ in 2-D, $1.0/0.5/0.4$ for
+  $q = 3/5/10$ in 3-D; MNIST and Fashion-MNIST at 0.5 (contamination 0.24).
+\item Huber kernel as a check: no universal transition scale (best $c$ 0.02 on MNIST, 0.2--0.5 on 2-D
+  clusters), as the theorem says; the per-point exponent is the right form of the idea.
+\item Open: text (20 newsgroups) at 0.6--0.7; hubs and in-degree ruled out (Fig.~\ref{fig:exponents}c).
+\end{itemize}
+\subsection{Repulsion: which scale carries the loss}
+\begin{itemize}
+\item Far-field loss per octave $L[d, 2d] \propto d^{\,m - 2b_r}$: scale-free at $b_r = m/2$, Cauchy in 2-D,
+  van der Maaten's $\nu = m-1$ heuristic recovered. Below $m/2$ the budget inflates the cloud (compact
+  clusters, squeezed local structure); above, the arrangement is free ($t$-SNE regime).
+\item Force per octave measured on smooth clouds: slopes $+0.07/-0.97/-2.01/-3.06$ for
+  $b_r = 0.5/1/1.5/2$ against $0/-1/-2/-3$ predicted (Fig.~\ref{fig:exponents}b).
+\item Measured fidelity optima: 1.0 in 2-D, 1.0--1.5 in 3-D, 2--4 in 4-D, 3--4 in 6-D.
+\end{itemize}
+\subsection{Per-point exponent}
+\begin{itemize}
+\item Oracle (true $q$ per point, Cauchy repulsion): $+7$--$12\%$ 15-NN on mixed-dimension data.
+\item Shipped: \texttt{kernel\_b="local"} (local intrinsic dimension, dimprint, graph-smoothed, step at
+  $m + 0.5$) and \texttt{kernel\_b="adaptive"} (crowding read off the layout at 3/4 of the run: share of
+  a point's edges longer than $2\times$ the median; switch to $L_2$ when none and degree $\ge 2$).
+  Never worse than the base exponent, $+0.01$ to $+0.06$ on heterogeneous data (COIL-20, Cora, airports,
+  SBM + chains), neutral on MNIST / Fashion / news20 / Paul15. \todo{Table~\ref{tab:adaptive} from
+  docs/kernel\_exponents.md section 4.}
+\end{itemize}
+
+\begin{figure}[t]
+\centering\includegraphics[width=\textwidth]{exponents.png}
+\caption{The two exponents. (a) Best attraction exponent against the intrinsic dimension of synthetic
+clusters: a step at $q = m$, not a slope. (b) Per-octave repulsive force on a uniform 2-D cloud: the
+measured slope follows $m - 1 - 2b_r$. (c) Measured attraction optimum against the share of kNN edges
+beyond the kernel scale; image data sit at $1/2$, text is the open case. \todo{Preliminary: drawn from
+the logs of benchmarks/theory; re-run with error bars.}}
+\label{fig:exponents}
+\end{figure}
+
+\section{The algorithm}
+\begin{itemize}
+\item Pipeline: NN-descent in C++ (1.2~s for 70k $\times$ 784) or HNSW; fuzzy-union graph; spectral init
+  by Chebyshev-filtered subspace iteration; per-edge SGD with negative sampling, lock-free, multithreaded;
+  edge schedule as in UMAP; \texttt{transform()} for new points; sparse and graph inputs.
+\item Mid-range term: with probability \texttt{mid\_rate} a positive sample is followed by a partner
+  (PaCMAP-style mid-near pairs from the data, or short random walks on graphs) pulled with a spring
+  \texttt{mid\_weight} annealed to zero over the first half. This term is \emph{all} of the SGD mode's
+  global structure: Spearman 0.285 without it, 0.413 / 0.427 / 0.478 at 0.1 / 0.3 / 1.0
+  (Fig.~\ref{fig:hybrid}a).
+\item Exact mode (\texttt{loss="tsne"}): the same graph, full-batch gradient, FFT-interpolated
+  repulsion in 2-D, early exaggeration; 9~s on MNIST 70k against 102~s for openTSNE.
+\item Hybrid (\texttt{loss="hybrid"}): SGD layout, rescaled to the exact mode's scale
+  ($\sigma = 31\sqrt{n/70000}$), then 300 exact iterations with no early exaggeration and no mid spring.
+\item Defaults: $b = 0.6$ (0.5 for images, 0.6--0.7 for text), $b_r = 1$, repulsion strength 2,
+  \texttt{mid\_weight} 0.1 (0.5 under hybrid), 5 negatives.
+\item Cost: 1M points in 55~s and 3.1~GB (Fig.~\ref{fig:scaling}).
+\end{itemize}
+
+\section{Experiments}\label{sec:exp}
+\subsection{Setup}
+\begin{itemize}
+\item Data: MNIST 70k, Fashion-MNIST 70k, 20 newsgroups (18.8k $\times$ 300 SVD, cosine), 15 Gaussian
+  blobs (10k $\times$ 200); graphs: SBM 30k nodes, Cora, US airports \todo{add graph table}.
+\item Methods (defaults): UMAP 0.5.11, densMAP, openTSNE 1.0.4, PaCMAP, TriMap, PHATE 2.0, h-NNE,
+  scikit-learn $t$-SNE (Barnes--Hut), $t$-SNE-CUDA 3.0.1 (GPU, RTX 2070); NCVis could not be built.
+\item Metrics: 15-NN preservation and trustworthiness (local); Spearman correlation of pairwise distances
+  and random-triplet accuracy on 2000 points (global); 10-NN label accuracy; silhouette reported as
+  \emph{compactness}, a look rather than a fidelity (it rises when neighbourhoods are squeezed).
+\item 20-core i9-9900X, 54~GB; 2 seeds (1 on Fashion-MNIST); seed noise on MNIST: 0.003 on both axes.
+\end{itemize}
+
+\subsection{Main results}
+\begin{table}[t]
+\centering\small
+\caption{MNIST 70k $\times$ 784, mean over 2 seeds, defaults for every method, best per column in bold.}
+\label{tab:mnist}
+\input{tables/mnist.tex}
+\end{table}
+\begin{table}[t]
+\centering\small
+\caption{Fashion-MNIST 70k (1 seed).}\label{tab:fmnist}
+\input{tables/fmnist.tex}
+\end{table}
+\begin{table}[t]
+\centering\small
+\caption{20 newsgroups (18.8k $\times$ 300, cosine, 2 seeds).}\label{tab:news20}
+\input{tables/news20.tex}
+\end{table}
+\begin{table}[t]
+\centering\small
+\caption{15 Gaussian blobs (10k $\times$ 200, 2 seeds).}\label{tab:blobs}
+\input{tables/blobs.tex}
+\end{table}
+\begin{itemize}
+\item SGD mode: fastest on every set (4.4~s MNIST; UMAP 18.2~s; h-NNE 9.1~s), best global structure of
+  the panel on MNIST, Fashion-MNIST, blobs; local structure above UMAP by 60--70\%; h-NNE is the one
+  fast method above it on 15-NN (0.233 vs 0.193) and pays on every other column.
+\item Exact mode: $t$-SNE's local structure (0.349 vs 0.350 / 0.347) in 9~s vs 196 / 102~s; $t$-SNE-CUDA
+  is the only faster exact method and loses on every column.
+\item Hybrid: first row leading local and global at once on MNIST (0.353 / 0.444) and Fashion-MNIST
+  (0.328 / 0.752); on 20 newsgroups Barnes--Hut $t$-SNE keeps the global lead (0.232), the hybrid's
+  global column there moves by 0.02 between seeds.
+\end{itemize}
+
+\begin{figure}[t]
+\centering\includegraphics[width=\textwidth]{tradeoff.png}
+\caption{Quality against wall-clock time, four data sets, log time; top-left is best. Top: local
+structure; bottom: global structure. \todo{Re-render with the paper palette, label only the leaders.}}
+\label{fig:tradeoff}
+\end{figure}
+
+\subsection{Local against global: the fade is across scales, not inside the loss}\label{sec:hybrid}
+\begin{itemize}
+\item Inside the exact loss nothing blends: a constant far-field repulsion is a $t$-SNE with another
+  normalisation (in 2-D UMAP's and $t$-SNE's repulsions share the Cauchy tail, differ by $1/Z$), its
+  useful window spans a factor 10 from "nothing" to "destroyed"; a linear or bounded (PaCMAP-style)
+  mid-range spring in the late phase costs local structure (0.13, 0.08) before buying any global;
+  exaggeration trades local for compactness, not for global; the late phase tolerates no extra force.
+\item The sequence works, with three conditions: start the exact pass at \emph{its} scale
+  ($t$-SNE's tiny init re-expands and loses the arrangement, 0.29--0.39; the SGD scale collapses under the
+  normalised repulsion), no early exaggeration, no mid spring (with it: collapse to $\sigma = 3.5$,
+  15-NN 0.06). Reverse order (exact then SGD): 0.436 global but 0.13--0.17 local.
+\item The SGD pass can then be tuned for global structure alone (Fig.~\ref{fig:hybrid}b): its local
+  cost at \texttt{mid\_weight} 0.5--2 is erased by the exact pass, its global gain ($+0.04$) kept. A
+  shorter SGD pass does not work (100 epochs: 0.276): the exact pass refines, it does not repair. The
+  knobs of the exact pass (scale, learning rate, iterations, dof, exaggeration) move the result within
+  seed noise.
+\end{itemize}
+
+\begin{figure}[t]
+\centering\includegraphics[width=\textwidth]{hybrid.png}
+\caption{(a) MNIST 70k, local against global: the mid-range spring is the SGD mode's local/global fade;
+the exact mode sits at the top of the local axis; the hybrid takes the top of both. (b) Hybrid
+parametrisation: scores of the SGD pass alone (dashed) and after the exact pass (solid) against the
+spring stiffness of the SGD pass.}
+\label{fig:hybrid}
+\end{figure}
+
+\subsection{Ablations}
+\begin{itemize}
+\item Exponent split vs coupled kernel: 4.3 vs 5.3~s, 0.192 vs 0.189 15-NN, \texttt{pow}-free loop.
+\item $b$ sweep per data family (images 0.5, text 0.6--0.7, synthetic step); $b_r$ sweep per target
+  dimension ($m = 2, 3, 4, 6$). \todo{figure from benchmarks/sweep.py logs.}
+\item Repulsion strength (2 vs UMAP's 1: $+8\%$ 15-NN), late exaggeration (compact preset, silhouette
+  0.51 vs UMAP 0.52 at 15-NN 0.181), mid-range source (data pairs vs walks vs spectral).
+\item Adaptive / local exponent on heterogeneous data (Table~\ref{tab:adaptive}).
+\item Scaling to 1M (Fig.~\ref{fig:scaling}); \texttt{transform()} 0.6~s vs 14.8~s UMAP at equal accuracy.
+\end{itemize}
+
+\begin{table}[t]
+\centering\small
+\caption{Per-point attraction exponent on heterogeneous data (15-NN kept for data, edge preservation for
+graphs; 2--3 seeds). \todo{Paste from docs/kernel\_exponents.md, section 4.}}
+\label{tab:adaptive}
+\begin{tabular}{lrrrrrr}
+\toprule
+data & $b=0.5$ & $b=0.6$ & $b=1$ & oracle & local & adaptive \\
+\midrule
+1-D + 2-D + 10-D clusters, 6k & 0.493 & 0.498 & 0.474 & 0.540 & \textbf{0.545} & 0.526 \\
+5 $\times$ 2-D + 5 $\times$ 10-D, 20k & 0.421 & 0.417 & 0.392 & 0.441 & \textbf{0.459} & 0.442 \\
+COIL-20 & 0.694 & 0.717 & \textbf{0.772} & & 0.701 & 0.720 \\
+MNIST 20k & 0.292 & 0.282 & 0.200 & & 0.294 & 0.291 \\
+Cora graph & 0.442 & 0.507 & 0.470 & & & \textbf{0.522} \\
+US airports graph & 0.333 & 0.344 & 0.297 & & & 0.344 \\
+SBM + chains & 0.449 & 0.484 & 0.532 & 0.571 & & \textbf{0.573} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering\includegraphics[width=0.5\textwidth]{scaling.png}
+\caption{Wall-clock time against the number of points (50 anisotropic clusters in 50-D, 20 cores).
+\todo{Add the 2M--10M points and the per-phase breakdown (kNN, init, SGD).}}
+\label{fig:scaling}
+\end{figure}
+
+\section{Graphs}
+\begin{itemize}
+\item Same optimiser on an adjacency matrix (weights = similarities); mid-range partners from random
+  walks; SBM 30k nodes / 782k edges in 4.9~s vs 36~s UMAP, 10-NN accuracy 1.00 vs 0.26.
+\item \todo{Figure graph\_demo.png; table Cora / airports / SBM with edge preservation.}
+\end{itemize}
+
+\section{Related work}
+\begin{itemize}
+\item $t$-SNE \citep{vandermaaten2008tsne}, Barnes--Hut, FIt-SNE \citep{linderman2019fitsne}, openTSNE;
+  LargeVis; UMAP \citep{mcinnes2018umap}; the attraction--repulsion spectrum \citep{boehm2022attraction};
+  negative sampling bias and the effective UMAP loss \citep{damrich2021umap}; PaCMAP's mid-near pairs
+  \citep{wang2021pacmap}; TriMap; PHATE; h-NNE; densMAP; $t$-SNE-CUDA; contrastive and parametric variants
+  (InfoNCE, \citep{damrich2023contrastive}).
+\item Heavy tails and degrees of freedom \citep{kobak2020heavy}; intrinsic dimension and crowding
+  (Levina--Bickel, TwoNN, dimprint); robust location (Huber).
+\end{itemize}
+
+\section{Limitations}
+\begin{itemize}
+\item Exact and hybrid modes are 2-D only (FFT interpolation). Lock-free SGD is not bit-reproducible.
+\item Text: the attraction optimum (0.6--0.7) is not explained by the crowding law; the hybrid does not
+  beat Barnes--Hut on global structure there.
+\item Local-dimension estimators miss 1-D manifolds (COIL-20); the adaptive mode moves a third of the points.
+\end{itemize}
+
+\section{Conclusion}
+\todo{Three sentences: the split, the two optima, the sequence.}
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{99}\small
+\bibitem[B\"ohm et al.(2022)]{boehm2022attraction} J. N. B\"ohm, P. Berens, D. Kobak. Attraction-repulsion spectrum in neighbor embeddings. JMLR 23, 2022.
+\bibitem[Damrich and Hamprecht(2021)]{damrich2021umap} S. Damrich, F. A. Hamprecht. On UMAP's true loss function. NeurIPS 2021.
+\bibitem[Damrich et al.(2023)]{damrich2023contrastive} S. Damrich, J. N. B\"ohm, F. A. Hamprecht, D. Kobak. From $t$-SNE to UMAP with contrastive learning. ICLR 2023.
+\bibitem[Kobak et al.(2020)]{kobak2020heavy} D. Kobak, G. Linderman, S. Steinerberger, Y. Kluger, P. Berens. Heavy-tailed kernels reveal a finer cluster structure in $t$-SNE visualisations. ECML-PKDD 2019.
+\bibitem[Linderman et al.(2019)]{linderman2019fitsne} G. C. Linderman, M. Rachh, J. G. Hoskins, S. Steinerberger, Y. Kluger. Fast interpolation-based $t$-SNE for improved visualization of single-cell RNA-seq data. Nature Methods 16, 2019.
+\bibitem[McInnes et al.(2018)]{mcinnes2018umap} L. McInnes, J. Healy, J. Melville. UMAP: uniform manifold approximation and projection for dimension reduction. arXiv:1802.03426.
+\bibitem[van der Maaten and Hinton(2008)]{vandermaaten2008tsne} L. van der Maaten, G. Hinton. Visualizing data using $t$-SNE. JMLR 9, 2008.
+\bibitem[Wang et al.(2021)]{wang2021pacmap} Y. Wang, H. Huang, C. Rudin, Y. Shaposhnik. Understanding how dimension reduction tools work: an empirical approach to deciphering $t$-SNE, UMAP, TriMap, and PaCMAP for data visualization. JMLR 22, 2021.
+\end{thebibliography}
+\end{document}
