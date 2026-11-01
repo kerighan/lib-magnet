@@ -256,6 +256,39 @@ The fade the question asked for exists, then, but across scales of the optimiser
 the loss: the sampled pass owns the far field, the exact pass owns the near field, and the hand-over
 is the init at the right scale.
 
+### 6.1 Parametrisation of the hybrid (`k8_mid_sweep.py`, `k9_mid_validate.py`)
+
+Since the exact pass rewrites the local structure, the SGD pass no longer has to protect it: it can
+be tuned for the global arrangement alone. MNIST 70k, seed 0, exact pass at scale 31, lr n/12,
+300 iterations (seed noise, measured on two seeds: 0.003 on both columns):
+
+| SGD pass | SGD alone, 15-NN / Spearman | after the exact pass, 15-NN / Spearman | time |
+|---|---|---|---|
+| `mid_weight=0.1` (SGD default) | 0.193 / 0.413 | 0.356 / 0.410 | 11.0 s |
+| `mid_weight=0.3` | 0.187 / 0.430 | 0.354 / 0.423 | 11.6 s |
+| `mid_weight=0.5` | 0.176 / 0.455 | 0.355 / 0.449 | 12.3 s |
+| `mid_weight=1.0` | 0.171 / 0.474 | 0.351 / 0.452 | 10.8 s |
+| `mid_weight=2.0` | 0.154 / 0.487 | 0.350 / 0.453 | 10.7 s |
+| `mid_weight=1.0`, 150 epochs | 0.127 / 0.464 | 0.336 / 0.445 | 11.9 s |
+| `mid_weight=1.0`, 100 epochs | 0.066 / 0.399 | 0.276 / 0.401 | 11.0 s |
+
+The local cost of the stiffer spring (15-NN 0.193 down to 0.154) is erased by the exact pass, its
+global gain (+0.04) is kept. Saturation at 0.5-1.0. A shorter SGD pass does not work: the exact pass
+refines a layout, it does not repair one (100 epochs: 15-NN 0.276, trustworthiness 0.71), so the time
+of the hybrid stays SGD plus exact. On the other data sets (`k9`, hybrid at `mid_weight` 0.1 / 0.5 /
+1.0): Fashion-MNIST 15-NN 0.328 / 0.328 / 0.331, Spearman 0.716 / 0.750 / 0.770; 20 newsgroups
+0.183 / 0.182 / 0.180, 0.073 / 0.094 / 0.095; blobs 0.123 / 0.124 / 0.124, 0.696 / 0.713 / 0.673.
+0.5 is never below 0.1 on any column of any data set, 1.0 loses 0.04 on the blobs: the hybrid's
+default is `mid_weight=0.5` (the SGD mode keeps 0.1; the constructor default is None, resolved per
+mode, the value used is in `mid_weight_`).
+
+The knobs of the exact pass move the result by at most the seed noise, or hurt (`mid_weight=1.0`
+SGD pass; 15-NN / Spearman / time): scale 22: 0.344 / 0.443 / 8.9 s; scale 40: 0.356 / 0.459 /
+16.2 s; lr n/24: 0.346 / 0.458; lr n/6: 0.356 / 0.446; 450 iterations: 0.357 / 0.443 / 17.0 s;
+dof 0.8: 0.343 / 0.447; exaggeration 1.2: 0.343 / 0.448. Scale 40 and 450 iterations buy 0.005 of
+15-NN for 5-6 s; dof below 1 and late exaggeration cost local structure, as in the exact mode alone.
+The hybrid has one knob worth turning, and it is in the SGD pass.
+
 ## Scripts (`benchmarks/theory/`)
 
 `e1_force_spectrum.py` (per-octave repulsive force on MAGNET's own embeddings), `e1b_powerlaw.py`
@@ -263,7 +296,7 @@ is the init at the right scale.
 data set), `e3_huber.py` (needs the research build with the Huber kernel; the C++ and Python patch is
 described in the script's docstring), `e4_oracle_local.py`, `e5_law.py`, `e6_estimator.py`,
 `e7_embedding_estimator.py` (two-phase version, superseded), `g1_gate.py` (crowding distribution on
-real data), `g2_adaptive.py`, `g3_mindeg.py`, `h1_hubs.py`, `h2_degree.py` (the text question), `k1_hybrid.py` to `k7_hybrid_general.py` and `run_hybrid_rows.py` (section 6); the `.log` files are the runs quoted here (4 threads, 2-3
+real data), `g2_adaptive.py`, `g3_mindeg.py`, `h1_hubs.py`, `h2_degree.py` (the text question), `k1_hybrid.py` to `k7_hybrid_general.py`, `k8_mid_sweep.py` (parametrisation of the hybrid on MNIST: mid_weight, SGD epochs, seed; exact-pass scale, lr, iterations, dof, exaggeration), `k9_mid_validate.py` (mid_weight of the hybrid on Fashion-MNIST, 20 newsgroups, blobs) and `run_hybrid_rows.py` (section 6); the `.log` files are the runs quoted here (4 threads, 2-3
 seeds). The e3 / e4 / e6 / e7 scripts take the package directory and the repository as arguments; g1 and
 g2 take the repository and a data directory holding `coil20/coil-20-proc/*.png` (Columbia CAVE) and
 `paul15/paul15.h5` (falexwolf.de/data); Cora and the airport graphs are read from local copies.

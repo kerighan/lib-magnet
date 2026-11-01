@@ -127,7 +127,10 @@ class MAGNET:
     walk_len, mid_weight, mid_rate, mid_phase : mid-range attraction. With probability mid_rate a
         positive sample (u, v) is followed by a random walk of walk_len steps from v, ending at w,
         and u is pulled towards w with a spring of stiffness mid_weight (annealed to zero over the
-        first mid_phase fraction of the epochs). Set mid_weight=0 to disable.
+        first mid_phase fraction of the epochs). Set mid_weight=0 to disable.  None (default) means 0.1,
+        or 0.5 under loss="hybrid": there the SGD pass only has to place the clusters, and the stiffer
+        spring buys +0.02 to +0.04 distance Spearman at unchanged 15-NN preservation. The value used
+        is stored in mid_weight_.
     mid_source : where the mid-range partners come from: "data" (PaCMAP-style mid-near pairs: the
         second closest of 6 random rows in the data space, n_mid_pairs per point; +30% distance
         correlation on MNIST for -3% 15-NN preservation), "walk" (short random walks on the graph)
@@ -170,7 +173,7 @@ class MAGNET:
                  n_epochs=None, learning_rate=1.0, negative_sample_rate=5, repulsion_strength=2.0,
                  kernel="power", kernel_b=0.6, repulsion_b=1.0, fft_interp=3, fft_box=1.0, tsne_early=None, loss="umap", exaggeration=1.0,
                  late_exaggeration=1.0, late_phase=0.2, tsne_dof=1.0, optimizer="sgd", clip="coord", beta1=0.9, beta2=0.999,
-                 walk_len=4, mid_weight=0.1, mid_rate=0.25, mid_phase=0.5, mid_scale="fixed", mid_source="auto",
+                 walk_len=4, mid_weight=None, mid_rate=0.25, mid_phase=0.5, mid_scale="fixed", mid_source="auto",
                  n_mid_pairs=5, mid_jump=0.5,
                  component_placement="centroid",
                  init="auto", pca=None, knn="nndescent", ef_construction=80, M=16, ef=None,
@@ -375,17 +378,22 @@ class MAGNET:
         Y = self._initial_embedding(P, data_matrix, rng)
 
         t = time.time()
+        # mid-range spring: 0.1 by default; 0.5 under loss="hybrid", whose SGD pass only has to place the
+        # clusters (the exact pass rewrites the local structure): +0.04 distance Spearman on MNIST, +0.03 on
+        # Fashion-MNIST, +0.02 on news20 and blobs at unchanged 15-NN preservation (benchmarks/theory/k8_mid_sweep.py)
+        mid_w = float(self.mid_weight) if self.mid_weight is not None else (0.5 if self.loss == "hybrid" else 0.1)
+        self.mid_weight_ = mid_w
         if self.loss == "umap_exact":
             if self.n_components != 2:
                 raise ValueError("loss='umap_exact' (FFT repulsion) is implemented for n_components=2 only")
             from .tsne import optimize_umap_exact
             n_iter = self.n_epochs if isinstance(self.n_epochs, (int, np.integer)) else 300
             pairs = getattr(self, "_mid_pairs_", None)
-            if self.mid_source in ("data", "auto") and hasattr(self, "_prepared_") and self.mid_weight > 0 and pairs is None:
+            if self.mid_source in ("data", "auto") and hasattr(self, "_prepared_") and mid_w > 0 and pairs is None:
                 from .roles import mid_near_pairs
                 pairs = mid_near_pairs(self._prepared_, self.n_mid_pairs, random_state=self.random_state or 0, n_threads=self.n_threads)
             Y = optimize_umap_exact(P, Y, self.a_, self.b_, n_iter=int(n_iter), rep_weight=float(self.repulsion_strength),
-                                    mid_pairs=pairs, mid_weight=float(self.mid_weight), mid_phase=float(self.mid_phase),
+                                    mid_pairs=pairs, mid_weight=float(mid_w), mid_phase=float(self.mid_phase),
                                     n_threads=self.n_threads, verbose=self.verbose)
             self.n_epochs_ = int(n_iter)
             head = np.zeros(0, dtype=np.int32)
@@ -400,14 +408,14 @@ class MAGNET:
                 Y = Y / max(float(Y[:, 0].std()), 1e-12) * float(self.tsne_init_scale)
             early = self.tsne_early if self.tsne_early is not None else min(250, int(n_iter) // 3)
             pairs = None
-            if self.mid_source in ("data", "auto") and hasattr(self, "_prepared_") and self.mid_weight > 0:
+            if self.mid_source in ("data", "auto") and hasattr(self, "_prepared_") and mid_w > 0:
                 from .roles import mid_near_pairs
                 pairs = mid_near_pairs(self._prepared_, self.n_mid_pairs, random_state=self.random_state or 0,
                                        n_threads=self.n_threads)
             Y = optimize_tsne(P, Y, n_iter=int(n_iter), early_iter=int(early),
                               exaggeration=float(self.exaggeration), learning_rate=self.tsne_learning_rate,
                               n_interp=int(self.fft_interp), box_width=float(self.fft_box),
-                              n_threads=self.n_threads, mid_pairs=pairs, mid_weight=3.0 * float(self.mid_weight),
+                              n_threads=self.n_threads, mid_pairs=pairs, mid_weight=3.0 * float(mid_w),
                               mid_phase=float(self.mid_phase), dof=float(self.tsne_dof), verbose=self.verbose,
                               far_weight=float(self.tsne_far[0]), far_r0=float(self.tsne_far[1]),
                               mid_form=str(self.tsne_mid[0]), mid_c=float(self.tsne_mid[1]))
@@ -418,13 +426,13 @@ class MAGNET:
             head, tail, epochs_per_sample = self._edge_schedule(P, n_epochs)
             self._mid_pairs_ = None
             self._jump_graph_ = None
-            if self.mid_source == "spectral" and self.mid_weight > 0:
+            if self.mid_source == "spectral" and mid_w > 0:
                 # graphs: mid-near pairs measured in a spectral (diffusion) embedding of the graph
                 from .roles import mid_near_pairs
                 S = spectral_init(P, 8, self.random_state, n_threads=self.n_threads)
                 self._mid_pairs_ = mid_near_pairs(np.ascontiguousarray(S, dtype=np.float32), self.n_mid_pairs,
                                                   random_state=self.random_state or 0, n_threads=self.n_threads)
-            if self.mid_source in ("data", "auto", "hybrid") and hasattr(self, "_prepared_") and self.mid_weight > 0:
+            if self.mid_source in ("data", "auto", "hybrid") and hasattr(self, "_prepared_") and mid_w > 0:
                 from .roles import mid_near_pairs
                 self._mid_pairs_ = mid_near_pairs(self._prepared_, self.n_mid_pairs, random_state=self.random_state or 0,
                                                   n_threads=self.n_threads)
@@ -435,7 +443,7 @@ class MAGNET:
                     J.sort_indices()
                     self._jump_graph_ = J
             self._optimize(Y, head, tail, epochs_per_sample, P, n_epochs, n_fixed=0, seed=seed,
-                           mid_weight=self.mid_weight)
+                           mid_weight=mid_w)
             if self.loss == "hybrid":
                 # second pass: the exact (FFT) repulsion refines the local structure of the SGD layout. The layout
                 # is first brought to the exact mode's own scale (31 x sqrt(n / 70000)): started from its natural

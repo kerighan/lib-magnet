@@ -366,7 +366,10 @@ def test_hybrid_loss():
     M = MAGNET(loss="hybrid", hybrid_iter=60, random_state=0, n_threads=1).fit(X)
     Y = M.embedding_
     assert Y.shape == (3000, 2) and np.isfinite(Y).all()
-    Y_sgd = MAGNET(random_state=0, n_threads=1).fit_transform(X)
+    assert M.mid_weight_ == 0.5                       # the SGD pass of the hybrid is tuned for the global structure
+    M_sgd = MAGNET(random_state=0, n_threads=1).fit(X)
+    Y_sgd = M_sgd.embedding_
+    assert M_sgd.mid_weight_ == 0.1 and MAGNET(mid_weight=0.3).mid_weight == 0.3
     assert not np.allclose(Y, Y_sgd)
     rule = 31.0 * np.sqrt(3000 / 70000.0)             # the exact pass works at the exact mode's scale
     assert 0.5 * rule < Y[:, 0].std() < 2.0 * rule
