@@ -123,6 +123,11 @@ struct DenseData {
     struct Plane { std::vector<float> normal; float offset; };
     inline float dist(int32_t i, int32_t j) const { return sq(X + (int64_t)i * d, X + (int64_t)j * d, d); }
     inline float dist_to(const float* q, int32_t j) const { return sq(q, X + (int64_t)j * d, d); }
+    // pinned-row API shared with SparseData (a no-op here): pin(a) then dist_pinned(b) == dist(a, b)
+    struct Scratch { int32_t pinned = -1; };
+    Scratch make_scratch() const { return Scratch{}; }
+    inline void pin(Scratch& s, int32_t a) const { s.pinned = a; }
+    inline float dist_pinned(const Scratch& s, int32_t b) const { return dist(s.pinned, b); }
     Plane make_plane(int32_t a, int32_t b) const {
         Plane p; p.normal.resize(d);
         const float* xa = X + (int64_t)a * d; const float* xb = X + (int64_t)b * d;
@@ -163,6 +168,27 @@ struct SparseData {
                          indices + indptr[j], vals + indptr[j], indptr[j + 1] - indptr[j]);
     }
     inline float dist(int32_t i, int32_t j) const { return (float)std::max(0., sqnorm[i] + sqnorm[j] - 2. * row_dot(i, j)); }
+    // Pinned-row distances: the row that is reused against many partners (the pivot of a clique or of the local
+    // join) is scattered once into a dense per-thread buffer, and every partner's dot product is a gather over its
+    // own non-zeros: no merge, no branch (4x the merge on 20 newsgroups TF-IDF). The buffer is d floats per thread;
+    // above 2^22 columns the merge join is used instead.
+    struct Scratch { std::vector<float> buf; int32_t pinned = -1; double pin_sq = 0.; };
+    Scratch make_scratch() const { Scratch s; if (d <= (1 << 22)) s.buf.assign((size_t)d, 0.f); return s; }
+    inline void pin(Scratch& s, int32_t a) const {
+        if (s.pinned == a) return;
+        if (!s.buf.empty()) {
+            if (s.pinned >= 0) for (int32_t j = indptr[s.pinned]; j < indptr[s.pinned + 1]; ++j) s.buf[indices[j]] = 0.f;
+            for (int32_t j = indptr[a]; j < indptr[a + 1]; ++j) s.buf[indices[j]] = vals[j];
+        }
+        s.pinned = a; s.pin_sq = sqnorm[a];
+    }
+    inline float dist_pinned(const Scratch& s, int32_t b) const {
+        if (s.buf.empty()) return dist(s.pinned, b);
+        double dot = 0.;
+        const float* buf = s.buf.data();
+        for (int32_t j = indptr[b]; j < indptr[b + 1]; ++j) dot += (double)vals[j] * buf[indices[j]];
+        return (float)std::max(0., s.pin_sq + sqnorm[b] - 2. * dot);
+    }
     // query given as a sparse row (sorted) with its squared norm
     inline float dist_to(const int32_t* qi, const float* qv, int32_t qn, double qsq, int32_t j) const {
         return (float)std::max(0., qsq + sqnorm[j] - 2. * merge_dot(qi, qv, qn, indices + indptr[j], vals + indptr[j], indptr[j + 1] - indptr[j]));
@@ -398,15 +424,17 @@ std::tuple<arr<int32_t>, arr<float>> nn_descent_core(
             run_threads(nt, [&](int t) {
                 for (auto& b : buckets[t]) b.clear();
                 Rng rng(seed + 4099ULL * (uint64_t)(t + 1) + 7ULL * tr);
+                auto S = D.make_scratch();
                 for (int l = t; l < n_leaves; l += nt) {
                     const int32_t b = ptr[l], e = ptr[l + 1];
                     if (e - b <= 4 * leaf_size) {
                         for (int32_t a = b; a < e; ++a) {
                             const int32_t p = mem[a];
                             const float wp = H.worst(p);
+                            D.pin(S, p);
                             for (int32_t c = a + 1; c < e; ++c) {
                                 const int32_t q = mem[c];
-                                const float dd = dist(p, q);
+                                const float dd = D.dist_pinned(S, q);
                                 if (dd < wp) buckets[t][p % nt].push_back({p, q, dd});
                                 if (dd < H.worst(q)) buckets[t][q % nt].push_back({q, p, dd});
                             }
@@ -414,10 +442,11 @@ std::tuple<arr<int32_t>, arr<float>> nn_descent_core(
                     } else {  // oversized leaf (duplicates): sample instead of the full clique
                         for (int32_t a = b; a < e; ++a) {
                             const int32_t p = mem[a];
+                            D.pin(S, p);
                             for (int s2 = 0; s2 < leaf_size; ++s2) {
                                 const int32_t q = mem[b + rng.below((uint32_t)(e - b))];
                                 if (q == p) continue;
-                                const float dd = dist(p, q);
+                                const float dd = D.dist_pinned(S, q);
                                 if (dd < H.worst(p)) buckets[t][p % nt].push_back({p, q, dd});
                             }
                         }
@@ -434,24 +463,28 @@ std::tuple<arr<int32_t>, arr<float>> nn_descent_core(
     // ---- initialisation 2: random neighbours to fill the remaining slots
     run_threads(nt, [&](int t) {
         Rng rng(seed + 1000003ULL * (uint64_t)t);
+        auto S = D.make_scratch();
         for (int64_t i = t; i < n; i += nt) {
             int filled = 0, tries = 0;
             for (int c = 0; c < k; ++c) filled += H.idx[i * k + c] >= 0;
+            if (filled < k) D.pin(S, (int32_t)i);
             while (filled < k && tries < 10 * k) {
                 const int32_t j = (int32_t)rng.below((uint32_t)n);
                 ++tries;
                 if (j == i) continue;
-                filled += H.push(i, dist((int32_t)i, j), j, 1);
+                filled += H.push(i, D.dist_pinned(S, j), j, 1);
             }
         }
     });
     // ---- safety net: a row left incomplete (tiny n, many duplicates) is completed by brute force
     run_threads(nt, [&](int t) {
+        auto S = D.make_scratch();
         for (int64_t i = t; i < n; i += nt) {
             bool full = true;
             for (int c = 0; c < k; ++c) full &= H.idx[i * k + c] >= 0;
             if (full) continue;
-            for (int64_t j = 0; j < n; ++j) if (j != i) H.push(i, dist((int32_t)i, (int32_t)j), (int32_t)j, 1);
+            D.pin(S, (int32_t)i);
+            for (int64_t j = 0; j < n; ++j) if (j != i) H.push(i, D.dist_pinned(S, (int32_t)j), (int32_t)j, 1);
         }
     });
     lap("random-init");
@@ -494,6 +527,7 @@ std::tuple<arr<int32_t>, arr<float>> nn_descent_core(
         run_threads(nt, [&](int t) {
             for (auto& b : buckets[t]) b.clear();
             std::vector<int32_t> nw, od;
+            auto S = D.make_scratch();
             for (int64_t i = t; i < n; i += nt) {
                 nw.clear(); od.clear();
                 for (int c = 0; c < m; ++c) { if (newc.idx[i * m + c] >= 0) nw.push_back(newc.idx[i * m + c]); }
@@ -501,11 +535,12 @@ std::tuple<arr<int32_t>, arr<float>> nn_descent_core(
                 for (size_t a = 0; a < nw.size(); ++a) {
                     const int32_t p = nw[a];
                     const float wp = H.worst(p);
+                    if (a + 1 < nw.size() || !od.empty()) D.pin(S, p);
                     for (size_t b = a + 1; b < nw.size(); ++b) {
                         const int32_t q = nw[b];
                         if (p == q) continue;
                         const float wq = H.worst(q);
-                        const float dd = dist(p, q);
+                        const float dd = D.dist_pinned(S, q);
                         if (dd < wp) buckets[t][p % nt].push_back({p, q, dd});
                         if (dd < wq) buckets[t][q % nt].push_back({q, p, dd});
                     }
@@ -513,7 +548,7 @@ std::tuple<arr<int32_t>, arr<float>> nn_descent_core(
                         const int32_t q = od[b];
                         if (p == q) continue;
                         const float wq = H.worst(q);
-                        const float dd = dist(p, q);
+                        const float dd = D.dist_pinned(S, q);
                         if (dd < wp) buckets[t][p % nt].push_back({p, q, dd});
                         if (dd < wq) buckets[t][q % nt].push_back({q, p, dd});
                     }
@@ -705,13 +740,15 @@ arr<int32_t> mid_near_core(const Data& D, int n_pairs, int n_cand, uint64_t seed
     run_threads(nt, [&](int t) {
         Rng rng(seed + 48271ULL * (uint64_t)(t + 1));
         std::vector<std::pair<float, int32_t>> cand(n_cand);
+        auto S = D.make_scratch();
         const int64_t r0 = n * t / nt, r1 = n * (t + 1) / nt;
         for (int64_t i = r0; i < r1; ++i) {
+            D.pin(S, (int32_t)i);
             for (int p = 0; p < n_pairs; ++p) {
                 for (int c = 0; c < n_cand; ++c) {
                     int32_t j = (int32_t)rng.below((uint32_t)n);
                     if (j == i) j = (int32_t)((j + 1) % n);
-                    cand[c] = {D.dist((int32_t)i, j), j};
+                    cand[c] = {D.dist_pinned(S, j), j};
                 }
                 std::partial_sort(cand.begin(), cand.begin() + 2, cand.end());
                 O[i * n_pairs + p] = cand[1].second;

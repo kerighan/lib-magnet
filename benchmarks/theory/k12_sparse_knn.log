@@ -1,0 +1,14 @@
+# 2026-11-01, 20 newsgroups TF-IDF 18846 x 24164 (+1 column from prepare_data), 1.08M non-zeros, 57 per row, cosine
+exact 15-NN (brute force, chunked sparse products): 6.2s
+sparse nn-descent, merge-join distance (before):   2.32-2.37s  recall@15 0.859
+== dense projection + dense nn-descent (negative)
+gauss 128: proj 0.16s + dense nn-descent k=15 0.16s  recall 0.124
+gauss 512: proj 0.53s + dense nn-descent k=15 0.34s  recall 0.365 ; k=60 candidates 1.22s  candidate recall 0.614
+svd 128:   proj 3.38s + dense nn-descent k=15 0.15s  recall 0.213 ; k=60 candidates 0.67s  candidate recall 0.397
+svd 256:   proj 4.43s + dense nn-descent k=15 0.21s  recall 0.286 ; k=60 candidates 0.76s  candidate recall 0.502
+== pinned-row scatter / gather distance (after), same algorithm
+k_internal 30: 0.67s  recall@15 0.859 ; k_internal 45: 1.10s  0.888 ; k_internal 60: 1.47s  0.894
+full sparse fit 3.5s -> 2.0s (1.5-1.7s on a quieter run) ; dense MNIST kNN unchanged 1.09s
+== layout quality against k_internal (MAGNET metric=cosine, 2 seeds): knn / trust / Spearman / triplets / acc
+30: 0.240 / 0.736 / 0.121 / 0.372 / 0.619 ; 45: 0.240 / 0.734 / 0.111 / 0.369 / 0.611 ; 60: 0.239 / 0.729 / 0.110 / 0.370 / 0.613  -> default stays 30
+UMAP 0.5.12 on the same matrix (warm, no random_state): 4.5s, 0.145 / 0.712 / 0.143

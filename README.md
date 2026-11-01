@@ -252,7 +252,7 @@ correlation 0.261, label accuracy 0.949). `kernel_b=0.5` closes a third of that 
 |---|---|---|---|---|
 | Fashion-MNIST 70k | **4.4 s** / 15.0 s UMAP | 0.202 / 0.327 sklearn t-SNE | 0.980 / 0.983 openTSNE | **0.730** / 0.672 TriMap |
 | 20 newsgroups SVD-300, cosine | **1.3 s** / 2.7 s UMAP | 0.134 / 0.192 sklearn t-SNE | 0.760 / 0.772 openTSNE | 0.059 / 0.232 sklearn t-SNE |
-| 20 newsgroups TF-IDF, sparse 18.8k x 24k | 5.7 s / **4.5 s** UMAP | 0.145 / 0.140 UMAP | 0.730 / 0.716 UMAP | 0.144 / 0.145 UMAP |
+| 20 newsgroups TF-IDF, sparse 18.8k x 24k | **1.6 s** / 4.5 s UMAP | **0.240** / 0.145 UMAP | **0.736** / 0.712 UMAP | 0.121 / 0.143 UMAP |
 | 15 Gaussian blobs 10k x 200 | **1.1 s** / 2.4 s UMAP | 0.067 / 0.114 sklearn t-SNE | 0.972 / 0.975 sklearn t-SNE | **0.690** / 0.666 PaCMAP |
 | SBM graph, 30k nodes, 782k edges | **4.9 s** / 10.2 s UMAP | | | 10-NN acc. 1.00 / 0.26 |
 
@@ -272,6 +272,19 @@ scipy's pocketfft, which was never the bottleneck.
 
 `transform()` on MNIST (fit 60k, transform 10k): 0.6 s and 10-NN accuracy 0.962 against 14.8 s and
 0.956 for UMAP.
+
+**Sparse inputs.** The sparse NN-descent computes a cosine or euclidean distance between two CSR rows;
+a merge join of their sorted indices costs one unpredictable branch per non-zero of either row. The
+kernel now scatters the row it is about to compare against many partners (the pivot of a leaf clique
+or of the local join, the query of the mid-near pairs) into a dense per-thread buffer once, and every
+partner's dot product is a branch-free gather over its own non-zeros: the kNN graph of 20 newsgroups
+TF-IDF (18.8k x 24k, 57 non-zeros per row) takes 0.67 s instead of 2.3 s at the same recall (0.86 of
+the exact 15-NN), the fit 1.6 s instead of 3.5. Dense projections of the rows (Gaussian 128-512
+dimensions, truncated SVD 128-256) followed by the dense NN-descent were tried first and keep 12-37 %
+of the true neighbours (61 % at best among 60 candidates): text neighbourhoods hang on a few shared
+rare terms that any projection flattens. Buying recall with more internal neighbours (45: 0.89,
+60: 0.89) changes nothing on the layout (15-NN kept 0.240 in every case), so the default stays at 30
+().
 
 **Timing protocol.** Every method runs with its defaults and all cores; UMAP and densMAP run without
 `random_state` (setting it makes their layout single-threaded: 49 s instead of 10 s on MNIST), MAGNET
