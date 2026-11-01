@@ -160,7 +160,14 @@ the logs of benchmarks/theory; re-run with error bars.}}
   global structure: Spearman 0.285 without it, 0.413 / 0.427 / 0.478 at 0.1 / 0.3 / 1.0
   (Fig.~\ref{fig:hybrid}a).
 \item Full-batch mode (\texttt{loss="tsne"}): the same graph, full-batch gradient, FFT-interpolated
-  repulsion in 2-D, early exaggeration; 9~s on MNIST 70k against 102~s for openTSNE.
+  repulsion in 2-D, early exaggeration; 600 iterations (200 + 400) in 9~s on MNIST 70k against 102~s
+  for openTSNE's 750. Audit of openTSNE 1.0.4 (\texttt{opentsne\_audit.py}, defaults: perplexity 30, 90
+  neighbours, Annoy, PCA init, FFT, lr $n/12$): 24~s of affinities, 2~s of init, 12~s of early
+  exaggeration, 76~s of main phase (0.15~s per iteration); \texttt{n\_jobs} 10 or 20 and the
+  pynndescent index change nothing; 125 + 250 iterations give 0.329 of 15-NN in 56~s; uniform $k = 15$
+  affinities (\magnet{}'s graph size) 0.330 in 100~s. openTSNE is not misconfigured: the gap is 20$\times$
+  on the neighbour search (90 neighbours with Annoy against 15 with NN-descent) and 10$\times$ per FFT
+  iteration, at the same 15-NN (0.347--0.349).
 \item Hybrid (\texttt{loss="hybrid"}): SGD layout, rescaled to the full-batch mode's scale
   ($\sigma = 31\sqrt{n/70000}$), then 300 full-batch iterations with no early exaggeration and no mid spring.
 \item Defaults: $b = 0.6$ (0.5 for images, 0.6--0.7 for text), $b_r = 1$, repulsion strength 2,

@@ -285,6 +285,14 @@ rare terms that any projection flattens. Buying recall with more internal neighb
 60: 0.89) changes nothing on the layout (15-NN kept 0.240 in every case), so the default stays at 30
 (`benchmarks/theory/k12_sparse_knn.py`).
 
+**openTSNE's 102 s.** Its defaults on MNIST 70k (`benchmarks/opentsne_audit.py`; perplexity 30, so 90
+neighbours, Annoy index, PCA init, FFT gradient, 250 + 500 iterations at learning rate n/12) split into
+24 s of affinities, 2 s of init, 12 s of early exaggeration and 76 s of main phase, 0.15 s per
+iteration. `n_jobs` 10 or 20 and the pynndescent index change nothing; 125 + 250 iterations give 0.329
+of 15-NN kept in 56 s (0.347 at the defaults); uniform k = 15 affinities, MAGNET's graph size, 0.330 in
+100 s. The comparison is fair as it stands: MAGNET's full-batch mode runs 600 iterations in 9 s because
+its neighbour search is 20x cheaper (15 neighbours by NN-descent, 1.1 s) and its FFT iteration 10x.
+
 **Graph inputs and UMAP.** The SBM line gives UMAP the graph as a sparse precomputed distance matrix
 (`metric="precomputed"`, 1 on every edge); an earlier version of this table fed it the adjacency rows as a
 feature matrix under the euclidean metric, which is not a graph layout and scored 0.26-0.38 of 10-NN
