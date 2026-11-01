@@ -135,7 +135,8 @@ the logs of benchmarks/theory; re-run with error bars.}}
   ($\sigma = 31\sqrt{n/70000}$), then 300 exact iterations with no early exaggeration and no mid spring.
 \item Defaults: $b = 0.6$ (0.5 for images, 0.6--0.7 for text), $b_r = 1$, repulsion strength 2,
   \texttt{mid\_weight} 0.1 (0.5 under hybrid), 5 negatives.
-\item Cost: 1M points in 55~s and 3.1~GB (Fig.~\ref{fig:scaling}).
+\item Cost: 1M points in 44~s and 3.3~GB (Fig.~\ref{fig:scaling}); sparse inputs through a scatter/gather NN-descent
+  (20 newsgroups TF-IDF 18.8k $\times$ 24k in 1.6~s, UMAP 4.5~s).
 \end{itemize}
 
 \section{Experiments}\label{sec:exp}
@@ -176,7 +177,7 @@ the logs of benchmarks/theory; re-run with error bars.}}
 \input{tables/blobs.tex}
 \end{table}
 \begin{itemize}
-\item SGD mode: fastest on every set (4.4~s MNIST; UMAP 18.2~s; h-NNE 9.1~s), best global structure of
+\item SGD mode: fastest on every set (4.4~s MNIST; UMAP 11.2~s; h-NNE 9.1~s), best global structure of
   the panel on MNIST, Fashion-MNIST, blobs; local structure above UMAP by 60--70\%; h-NNE is the one
   fast method above it on 15-NN (0.233 vs 0.193) and pays on every other column.
 \item Exact mode: $t$-SNE's local structure (0.349 vs 0.350 / 0.347) in 9~s vs 196 / 102~s; $t$-SNE-CUDA
