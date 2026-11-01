@@ -198,7 +198,7 @@ networkx graph / sparse adjacency ───────────────�
 
 ## Benchmarks
 
-Measured on a 20-core i9-9900X, several seeds, defaults everywhere. Local structure: 15-NN
+Measured on a 10-core (20-thread) i9-9900X, several seeds, defaults everywhere. Local structure: 15-NN
 preservation and trustworthiness. Global structure: Spearman correlation of pairwise distances and
 random-triplet accuracy on a sample. Label structure: 10-NN accuracy in 2-D. The full table against
 UMAP, densMAP, openTSNE, PaCMAP, TriMap, PHATE, h-NNE, scikit-learn's t-SNE and t-SNE-CUDA is in
