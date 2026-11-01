@@ -375,3 +375,20 @@ def test_hybrid_loss():
     assert 0.5 * rule < Y[:, 0].std() < 2.0 * rule
     with pytest.raises(ValueError):
         MAGNET(loss="hybrid", n_components=3, random_state=0).fit(X)
+
+
+def test_owner_parallel_mode():
+    """parallel="owner": same result for any thread count on a fixed graph, and a sound layout."""
+    from sklearn.neighbors import kneighbors_graph
+    X, y = make_blobs(n_samples=3000, centers=6, n_features=20, random_state=0)
+    A = kneighbors_graph(X.astype(np.float32), 15, mode="distance", include_self=False)
+    A.data = np.exp(-A.data / A.data.mean()).astype(np.float32)
+    A = ((A + A.T) * 0.5).tocsr()
+    outs = [MAGNET(parallel="owner", random_state=0, n_threads=t, n_epochs=40).fit_transform(A) for t in (1, 3)]
+    assert np.array_equal(outs[0], outs[1])
+    assert np.isfinite(outs[0]).all() and outs[0].shape == (3000, 2)
+    from sklearn.neighbors import KNeighborsClassifier
+    acc = KNeighborsClassifier(10).fit(outs[0], y).score(outs[0], y)
+    assert acc > 0.95
+    with pytest.raises(ValueError):
+        MAGNET(parallel="owner", loss="infonce", random_state=0).fit(X.astype(np.float32))

@@ -273,6 +273,25 @@ scipy's pocketfft, which was never the bottleneck.
 `transform()` on MNIST (fit 60k, transform 10k): 0.6 s and 10-NN accuracy 0.962 against 14.8 s and
 0.956 for UMAP.
 
+**Where the SGD time goes, and `parallel="owner"`.** On MNIST 70k the default fit is 1.1 s of kNN graph,
+0.9 s of graph construction and spectral init, and 2-3 s of SGD. One thread runs the SGD at 47 cycles per
+force evaluation, but 10 cores gave only 3.7x and 20 threads 4.3x: with lock-free (hogwild) updates every
+sampled edge writes two or three cache lines owned by other cores, every negative sample reads a line
+another core has just written, and the slowest thread sets the pace of each epoch (half the wall-clock
+time is spent in transfers and waiting). `parallel="owner"` splits the nodes into chunks of about 4096
+edges that the threads claim dynamically, writes only the chunk's own nodes and reads every other node
+from a snapshot of the layout frozen for the epoch (double-buffered, one barrier per epoch, persistent
+threads). The attraction then moves the head of the edge only, scaled by 1.5 (the mirrored edge moves the
+other end), and the pull of the mid-range spring on the partner is delivered when the partner is the head
+(reverse pairs): without that term the global structure collapses (Spearman 0.31), it is the inter-cluster
+spring. Result on MNIST, 20 threads with other jobs running: SGD 1.45 s against 2.98 s, fit 3.4 s against
+5.1 s; 15-NN kept 0.189 against 0.193, trustworthiness 0.948 against 0.957, distance Spearman 0.451
+against 0.415, triplets 0.656 against 0.645. Same trade on Fashion-MNIST (0.202 / 0.974 / 0.782 against
+0.205 / 0.979 / 0.731), 20 newsgroups (0.133 / 0.742 / 0.090 against 0.134 / 0.755 / 0.046) and blobs; SBM
+graph 2.9 s against 4.0 s at the same accuracy. The layout is identical for any `n_threads` given the graph
+and the seed. The hogwild mode stays the default until the hybrid's `mid_weight` is re-tuned for it (the
+owner mode shifts the attraction / mid-range balance; `benchmarks/theory/k11_owner.py`).
+
 Regenerate everything with `benchmarks/full_table.py`, `benchmarks/render_table.py`, `benchmarks/plot_tradeoff.py`,
 `benchmarks/compare_plots.py`, `benchmarks/scaling.py` and `benchmarks/graph_demo.py`.
 
@@ -298,6 +317,7 @@ Any networkx graph or sparse adjacency matrix is laid out directly, in linear ti
 | `samples_per_node` | 5 | attractive samples per node and per epoch |
 | `negative_sample_rate` | 5 | negatives per positive sample |
 | `mid_source`, `n_mid_pairs`, `mid_jump` | `"auto"`, 5, 0.5 | mid-range partners from the data (PaCMAP-style pairs), from random walks on the graph, or `"hybrid"` walks on both layers |
+| `parallel` | `"hogwild"` | `"owner"`: threads own node chunks and read the others from a per-epoch snapshot; the SGD runs 2x faster, the layout is deterministic for any `n_threads`, global structure up (MNIST Spearman 0.451 against 0.415), local slightly down (15-NN 0.189 against 0.193, trustworthiness 0.948 against 0.957) |
 | `walk_len`, `mid_weight`, `mid_rate`, `mid_phase` | 4, None (0.1; 0.5 under `loss="hybrid"`), 0.25, 0.5 | strength and schedule of the mid-range attraction (`mid_weight=0` disables) |
 | `init` | `"auto"` | PCA for `loss="tsne"` on data, spectral otherwise; or `"spectral"`, `"pca"`, `"random"`, an array |
 | `knn` | `"nndescent"` | or `"hnsw"` (needs hnswlib) |

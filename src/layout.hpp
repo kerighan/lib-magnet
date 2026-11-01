@@ -47,7 +47,8 @@ void optimize_layout(
     arr<float> adam_m, arr<float> adam_v, arr<int32_t> adam_t, float beta1, float beta2,
     arr<int32_t> walk_lens, arr<int32_t> mid_pairs,
     arr<int32_t> jump_indptr, arr<int32_t> jump_indices, float mid_jump,
-    int kernel, arr<float> node_b, uint64_t seed, int n_threads);
+    int kernel, arr<float> node_b, uint64_t seed, int n_threads, int parallel,
+    arr<int32_t> rev_indptr, arr<int32_t> rev_indices);
 
 arr<float> subspace_iteration(
     arr<int32_t> indptr, arr<int32_t> indices, arr<float> data,

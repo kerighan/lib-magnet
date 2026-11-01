@@ -11,6 +11,11 @@
 #include "rng.hpp"
 #include <thread>
 #include <vector>
+#include <atomic>
+#include <cstring>
+#include <chrono>
+#include <cstdio>
+#include <cstdlib>
 #include <cmath>
 #include <algorithm>
 #include <stdexcept>
@@ -22,6 +27,34 @@ static int resolve_threads(int n_threads) {
 }
 
 namespace {
+
+// Owner mode: the attraction moves the head only, scaled by OWNER_ATT. Hogwild moves both ends by the same gradient
+// and the mirrored edge (v, u) is sampled at the same rate, so the expected pull per epoch is matched by a factor 2;
+// 1.5 measured best on MNIST 70k (15-NN kept 0.189 / trustworthiness 0.948 / distance Spearman 0.451 against
+// 0.193 / 0.957 / 0.415 for hogwild; factor 1: 0.192 / 0.917 / 0.485, factor 2: 0.183 / 0.948 / 0.435): part of the
+// hogwild pull on v lands while v is being repelled, which a bigger single step on u does not reproduce. The
+// mid-range spring keeps its coefficient and the pull hogwild applies to the partner is delivered through the
+// reverse pairs (see the worker). A second pure-attraction pass over the node's sampled edges, emulating the
+// mirrored pulls as separate clipped steps, was worse (0.158 / 0.951 / 0.388) and is not kept.
+// MAGNET_PROFILE=1 in the environment prints the per-thread busy and barrier-wait times of each call.
+static const float OWNER_ATT = 1.5f;
+static const bool PROFILE = std::getenv("MAGNET_PROFILE") != nullptr;
+
+// Reusable spin barrier (C++17 has none; atomics only, so the binary does not depend on a recent libstdc++):
+// the persistent epoch threads meet here once per epoch, every 5-50 ms, so spinning with yield is the right tool.
+struct Barrier {
+    std::atomic<int> count{0}; std::atomic<int> gen{0}; const int n;
+    explicit Barrier(int n_) : n(n_) {}
+    void wait() {
+        const int g = gen.load(std::memory_order_acquire);
+        if (count.fetch_add(1, std::memory_order_acq_rel) + 1 == n) {
+            count.store(0, std::memory_order_relaxed);
+            gen.store(g + 1, std::memory_order_release);
+        } else {
+            while (gen.load(std::memory_order_acquire) == g) std::this_thread::yield();
+        }
+    }
+};
 
 struct Adam {
     float* m; float* v; int32_t* t; float beta1, beta2; bool on;
@@ -40,6 +73,13 @@ struct Ctx {
     const float* node_b;  // optional per-node kernel exponent (power kernel)
     bool rep_coupled;     // the per-node exponent also drives the repulsion only when the two exponents are coupled
     Adam ad; uint64_t seed; int nt;
+    // parallel == 1 ("owner"): thread t owns the nodes [own[t], own[t+1]) and the edges [eown[t], eown[t+1]) whose head
+    // lies there; it writes only its own nodes and reads every other node from Ysnap, a copy of Y frozen for the
+    // epoch (double-buffered). No cache line is ever written by two threads, and the lines of the snapshot stay
+    // shared across cores instead of bouncing. The attraction and the mid-range spring move the head only, with a
+    // doubled coefficient: the mirrored edge (v, u) moves v, so the expected displacement per epoch is the hogwild one.
+    int parallel; const int64_t* eown; int n_chunks;
+    const int32_t* rev_indptr; const int32_t* rev_indices;   // owner mode: who chose u as a mid-range partner
 };
 
 template <int DIM>
@@ -70,13 +110,17 @@ inline void apply_step(const Ctx& c, float* yu, const float* g, float alpha, int
     for (int d = 0; d < dim; ++d) yu[d] += step[d];
 }
 
-template <int DIM>
-void epoch_worker(const Ctx& c, int epoch, float alpha, float mid_w, int tid) {
+template <int DIM, bool OWNER>
+void epoch_worker(const Ctx& c, int epoch, float alpha, float mid_w, int tid, const float* Ysnap) {
+    // tid is the thread in hogwild mode and the node chunk in owner mode (the RNG is seeded by it either way)
     constexpr int D = DIM ? DIM : MAX_DIM;
     const int dim = DIM ? DIM : c.dim;
     Rng rng(c.seed * 0x9E3779B1ULL + (uint64_t)epoch * 0x85EBCA6BULL + (uint64_t)tid * 0xC2B2AE35ULL);
-    const int64_t e0 = c.n_edges * tid / c.nt;
-    const int64_t e1 = c.n_edges * (tid + 1) / c.nt;
+    const int64_t e0 = OWNER ? c.eown[tid] : c.n_edges * tid / c.nt;
+    const int64_t e1 = OWNER ? c.eown[tid + 1] : c.n_edges * (tid + 1) / c.nt;
+    const float inv_n_mid = c.n_mid > 0 ? 1.0f / (float)c.n_mid : 0.0f;
+    const float* Yr = OWNER ? Ysnap : c.Y;   // where the other nodes are read from
+    const float pair_scale = OWNER ? OWNER_ATT : 1.0f;
     const float fepoch = (float)epoch;
     float* Y = c.Y;
     float diff[D], gu[D], gk[D];
@@ -87,8 +131,8 @@ void epoch_worker(const Ctx& c, int epoch, float alpha, float mid_w, int tid) {
         const int32_t u = c.head[i];
         const int32_t v = c.tail[i];
         float* yu = Y + (int64_t)u * dim;
-        float* yv = Y + (int64_t)v * dim;
-        const bool move_u = u >= c.n_fixed, move_v = v >= c.n_fixed;
+        float* yv = OWNER ? const_cast<float*>(Yr + (int64_t)v * dim) : Y + (int64_t)v * dim;
+        const bool move_u = u >= c.n_fixed, move_v = !OWNER && v >= c.n_fixed;
         for (int d = 0; d < dim; ++d) gu[d] = 0.0f;
 
         float d2 = 0.0f;
@@ -101,10 +145,10 @@ void epoch_worker(const Ctx& c, int epoch, float alpha, float mid_w, int tid) {
             // ---- attraction along the edge (gradient of log q)
             if (d2 > 0.0f) {
                 float coeff;
-                if (c.kernel == 0) coeff = -c.exaggeration * 2.0f * c.a * b_uv * pw_v / (d2 * (c.a * pw_v + 1.0f));
-                else if (c.kernel == 1) coeff = -c.exaggeration * 2.0f * c.a;                       // gaussian: q = exp(-a d^2)
-                else if (c.kernel == 2) { const float dd = sqrtf(d2); coeff = -c.exaggeration * c.a * tanhf(c.a * dd) / dd; }  // sech: q = 1 / cosh(a d)
-                else coeff = -c.exaggeration * 2.0f * c.a * (1.0f + tanhf(c.a * d2));               // tanh: q = 1 - tanh(a d^2)
+                if (c.kernel == 0) coeff = -pair_scale * c.exaggeration * 2.0f * c.a * b_uv * pw_v / (d2 * (c.a * pw_v + 1.0f));
+                else if (c.kernel == 1) coeff = -pair_scale * c.exaggeration * 2.0f * c.a;          // gaussian: q = exp(-a d^2)
+                else if (c.kernel == 2) { const float dd = sqrtf(d2); coeff = -pair_scale * c.exaggeration * c.a * tanhf(c.a * dd) / dd; }  // sech: q = 1 / cosh(a d)
+                else coeff = -pair_scale * c.exaggeration * 2.0f * c.a * (1.0f + tanhf(c.a * d2));  // tanh: q = 1 - tanh(a d^2)
                 for (int d = 0; d < dim; ++d) { const float g = coeff * diff[d]; gu[d] += g; gk[d] = -g; }
                 if (move_v) apply_step<DIM>(c, yv, gk, alpha, v);
             }
@@ -115,7 +159,7 @@ void epoch_worker(const Ctx& c, int epoch, float alpha, float mid_w, int tid) {
             for (int p = 0; p < n_neg; ++p) {
                 const int32_t k = (int32_t)rng.below((uint32_t)c.n_nodes);
                 if (k == u) continue;
-                const float* yk = Y + (int64_t)k * dim;
+                const float* yk = Yr + (int64_t)k * dim;
                 float dd = 0.0f;
                 for (int d = 0; d < dim; ++d) { diff[d] = yu[d] - yk[d]; dd += diff[d] * diff[d]; }
                 if (dd > 0.0f) {
@@ -199,22 +243,94 @@ void epoch_worker(const Ctx& c, int epoch, float alpha, float mid_w, int tid) {
                 }
             }
             if (w != u) {
-                float* yw = Y + (int64_t)w * dim;
+                float* yw = OWNER ? const_cast<float*>(Yr + (int64_t)w * dim) : Y + (int64_t)w * dim;
                 for (int d = 0; d < dim; ++d) { const float g = -mid_w * (yu[d] - yw[d]); gu[d] += g; gk[d] = -g; }
-                if (w >= c.n_fixed) apply_step<DIM>(c, yw, gk, alpha, w);
+                if (!OWNER && w >= c.n_fixed) apply_step<DIM>(c, yw, gk, alpha, w);
             }
         }
         if (move_u) apply_step<DIM>(c, yu, gu, alpha, u);
+        // ---- owner mode: the pulls that hogwild applies to the partner w are delivered here, to u as the partner of
+        // the nodes that chose it (reverse pairs), at the hogwild rate (mid_rate per edge sample of the chooser, one
+        // chooser in n_mid), each as its own step so that the clipping matches
+        if (OWNER && move_u && mid_w > 0.0f && c.rev_indptr) {
+            const int32_t rs = c.rev_indptr[u], re = c.rev_indptr[u + 1];
+            float p = c.mid_rate * (float)(re - rs) * inv_n_mid;
+            while (p > 0.0f && re > rs) {
+                if (rng.uniform() < p) {
+                    const int32_t x = c.rev_indices[rs + (int32_t)rng.below((uint32_t)(re - rs))];
+                    if (x != u) {
+                        const float* yx = Yr + (int64_t)x * dim;
+                        for (int d = 0; d < dim; ++d) gk[d] = -mid_w * (yu[d] - yx[d]);
+                        apply_step<DIM>(c, yu, gk, alpha, u);
+                    }
+                }
+                p -= 1.0f;
+            }
+        }
     }
 }
 
+// Runs epochs [e0, e1) with persistent threads. Hogwild: a barrier per epoch (the learning rate changes).
+// Owner mode: thread t copies its own nodes into the next snapshot at the end of each epoch, then the barrier;
+// the two snapshot buffers alternate so that one barrier per epoch suffices.
 template <int DIM>
-void run_epoch(const Ctx& c, int epoch, float alpha, float mid_w) {
-    if (c.nt == 1) { epoch_worker<DIM>(c, epoch, alpha, mid_w, 0); return; }
-    std::vector<std::thread> pool;
-    pool.reserve(c.nt);
-    for (int t = 0; t < c.nt; ++t) pool.emplace_back([&c, epoch, alpha, mid_w, t] { epoch_worker<DIM>(c, epoch, alpha, mid_w, t); });
-    for (auto& th : pool) th.join();
+void run_epochs(Ctx& c, int e0, int e1, float alpha0, float alpha1, float mid_w0, float mid_w1, const int64_t* own,
+                std::vector<float>* snapA, std::vector<float>* snapB) {
+    const int n_span = std::max(1, e1 - e0);
+    auto sched = [&](int epoch, float& alpha, float& mid_w) {
+        const float frac = (float)(epoch - e0) / (float)n_span;
+        alpha = alpha0 + (alpha1 - alpha0) * frac;
+        mid_w = c.use_mid ? mid_w0 + (mid_w1 - mid_w0) * frac : 0.0f;
+    };
+    const bool owner = c.parallel == 1;
+    if (c.nt == 1 && !owner) {
+        for (int epoch = e0; epoch < e1; ++epoch) {
+            float alpha, mid_w; sched(epoch, alpha, mid_w);
+            epoch_worker<DIM, false>(c, epoch, alpha, mid_w, 0, nullptr);
+        }
+        return;
+    }
+    Barrier bar(c.nt);
+    float* bufs[2] = {snapA ? snapA->data() : nullptr, snapB ? snapB->data() : nullptr};
+    std::vector<double> busy(c.nt, 0.0), waited(c.nt, 0.0);
+    const auto t_start = std::chrono::steady_clock::now();
+    std::atomic<int64_t> next_chunk{0};   // owner mode: chunks are claimed dynamically (a preempted thread takes fewer)
+    auto work = [&](int tid) {
+        for (int epoch = e0; epoch < e1; ++epoch) {
+            const auto t0 = std::chrono::steady_clock::now();
+            float alpha, mid_w; sched(epoch, alpha, mid_w);
+            if (owner) {
+                const int cur = (epoch - e0) & 1;
+                const int64_t base = (int64_t)(epoch - e0) * (c.n_chunks + c.nt);   // each thread adds exactly (chunks + 1)
+                for (;;) {
+                    const int64_t k = next_chunk.fetch_add(1, std::memory_order_relaxed) - base;
+                    if (k >= c.n_chunks) break;
+                    epoch_worker<DIM, true>(c, epoch, alpha, mid_w, (int)k, bufs[cur]);
+                    const int64_t a = own[k] * c.dim, b = own[k + 1] * c.dim;
+                    std::memcpy(bufs[cur ^ 1] + a, c.Y + a, (size_t)(b - a) * sizeof(float));
+                }
+            } else {
+                epoch_worker<DIM, false>(c, epoch, alpha, mid_w, tid, nullptr);
+            }
+            const auto t1 = std::chrono::steady_clock::now();
+            bar.wait();
+            if (PROFILE) { busy[tid] += std::chrono::duration<double>(t1 - t0).count(); waited[tid] += std::chrono::duration<double>(std::chrono::steady_clock::now() - t1).count(); }
+        }
+    };
+    if (c.nt == 1) work(0);
+    else {
+        std::vector<std::thread> pool;
+        pool.reserve(c.nt);
+        for (int t = 0; t < c.nt; ++t) pool.emplace_back(work, t);
+        for (auto& th : pool) th.join();
+    }
+    if (PROFILE) {
+        const double wall = std::chrono::duration<double>(std::chrono::steady_clock::now() - t_start).count();
+        double bmax = 0, bsum = 0, wsum = 0;
+        for (int t = 0; t < c.nt; ++t) { bmax = std::max(bmax, busy[t]); bsum += busy[t]; wsum += waited[t]; }
+        std::fprintf(stderr, "[profile] %s nt=%d epochs=%d wall=%.3fs busy mean=%.3fs max=%.3fs wait mean=%.3fs\n",
+                     owner ? "owner" : "hogwild", c.nt, e1 - e0, wall, bsum / c.nt, bmax, wsum / c.nt);
+    }
 }
 
 }  // namespace
@@ -233,7 +349,8 @@ void optimize_layout(
     arr<float> adam_m_, arr<float> adam_v_, arr<int32_t> adam_t_, float beta1, float beta2,
     arr<int32_t> walk_lens_, arr<int32_t> mid_pairs_,
     arr<int32_t> jump_indptr_, arr<int32_t> jump_indices_, float mid_jump,
-    int kernel, arr<float> node_b_, uint64_t seed, int n_threads)
+    int kernel, arr<float> node_b_, uint64_t seed, int n_threads, int parallel,
+    arr<int32_t> rev_indptr_, arr<int32_t> rev_indices_)
 {
     auto Yb = Y_.request();
     require(Yb.ndim == 2, "Y must be 2-dimensional");
@@ -251,6 +368,8 @@ void optimize_layout(
     require(loss == 0 || loss == 1, "loss must be 0 (umap) or 1 (infonce)");
     require(kernel >= 0 && kernel <= 3, "kernel must be 0 (power), 1 (gaussian), 2 (sech) or 3 (tanh)");
     require(loss == 0 || kernel == 0, "the InfoNCE loss supports the power kernel only");
+    require(parallel == 0 || parallel == 1, "parallel must be 0 (hogwild) or 1 (owner)");
+    require(parallel == 0 || loss == 0, "parallel='owner' supports the umap loss only (InfoNCE moves the negatives)");
     require(n_fixed >= 0 && n_fixed <= n_nodes, "n_fixed out of range");
 
     Ctx c;
@@ -311,19 +430,39 @@ void optimize_layout(
         for (int64_t i = 0; i < n_nodes; ++i) require(node_b_.data()[i] > 0.05f && node_b_.data()[i] <= 2.0f, "node_b out of range");
         c.node_b = node_b_.data();
     }
-    const int n_span = std::max(1, epoch_end - epoch_start);
+    c.parallel = parallel; c.eown = nullptr; c.n_chunks = 0; c.rev_indptr = nullptr; c.rev_indices = nullptr;
+    std::vector<int64_t> own, eown;
+    std::vector<float> snapA, snapB;
+    if (parallel == 1) {
+        for (int64_t i = 1; i < n_edges; ++i) require(c.head[i - 1] <= c.head[i], "parallel='owner' needs edges sorted by head");
+        if (rev_indptr_.size() > 0) {
+            validate_csr(rev_indptr_, rev_indices_, nullptr, n_nodes);
+            c.rev_indptr = rev_indptr_.data(); c.rev_indices = rev_indices_.data();
+        }
+        // node chunks at the edge quantiles (about 4096 edges each), claimed dynamically by the threads. The chunking
+        // and the per-chunk RNG streams do not depend on the thread count, so the result does not either.
+        c.n_chunks = (int)std::min<int64_t>(4096, std::max<int64_t>(1, n_edges / 4096));
+        own.assign(c.n_chunks + 1, 0); eown.assign(c.n_chunks + 1, 0);
+        own[c.n_chunks] = n_nodes; eown[c.n_chunks] = n_edges;
+        for (int t = 1; t < c.n_chunks; ++t) {
+            const int64_t e = n_edges * t / c.n_chunks;
+            int64_t node = std::max<int64_t>(c.head[e], own[t - 1]);
+            own[t] = node;
+            int64_t k = eown[t - 1];
+            while (k < n_edges && c.head[k] < node) ++k;
+            eown[t] = k;
+        }
+        c.eown = eown.data();
+        snapA.assign(c.Y, c.Y + (size_t)n_nodes * dim);
+        snapB.assign(c.Y, c.Y + (size_t)n_nodes * dim);
+    }
 
     py::gil_scoped_release release;
 
-    for (int epoch = epoch_start; epoch < epoch_end; ++epoch) {
-        const float frac = (float)(epoch - epoch_start) / (float)n_span;
-        const float alpha = alpha0 + (alpha1 - alpha0) * frac;
-        const float mid_w = c.use_mid ? mid_w0 + (mid_w1 - mid_w0) * frac : 0.0f;
-        switch (dim) {
-            case 2: run_epoch<2>(c, epoch, alpha, mid_w); break;
-            case 3: run_epoch<3>(c, epoch, alpha, mid_w); break;
-            default: run_epoch<0>(c, epoch, alpha, mid_w); break;
-        }
+    switch (dim) {
+        case 2: run_epochs<2>(c, epoch_start, epoch_end, alpha0, alpha1, mid_w0, mid_w1, own.data(), &snapA, &snapB); break;
+        case 3: run_epochs<3>(c, epoch_start, epoch_end, alpha0, alpha1, mid_w0, mid_w1, own.data(), &snapA, &snapB); break;
+        default: run_epochs<0>(c, epoch_start, epoch_end, alpha0, alpha1, mid_w0, mid_w1, own.data(), &snapA, &snapB); break;
     }
 }
 

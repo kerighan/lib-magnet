@@ -16,7 +16,8 @@ PYBIND11_MODULE(_magnet, m) {
           py::arg("optimizer"), py::arg("clip_mode"), py::arg("n_fixed"),
           py::arg("adam_m"), py::arg("adam_v"), py::arg("adam_t"), py::arg("beta1"), py::arg("beta2"),
           py::arg("walk_lens"), py::arg("mid_pairs"), py::arg("jump_indptr"), py::arg("jump_indices"),
-          py::arg("mid_jump"), py::arg("kernel"), py::arg("node_b"), py::arg("seed"), py::arg("n_threads"));
+          py::arg("mid_jump"), py::arg("kernel"), py::arg("node_b"), py::arg("seed"), py::arg("n_threads"), py::arg("parallel") = 0,
+          py::arg("rev_indptr") = arr<int32_t>(0), py::arg("rev_indices") = arr<int32_t>(0));
     m.def("subspace_iteration", &subspace_iteration, "Block power iteration for spectral init",
           py::arg("indptr"), py::arg("indices"), py::arg("data"), py::arg("X"),
           py::arg("inv_sqrt_deg"), py::arg("component"), py::arg("n_iter"), py::arg("tol"),

@@ -1,0 +1,28 @@
+# 2026-11-01, MNIST 70k, 20-thread box shared with 3 other busy processes (timings +-15 %).
+== SGD alone (60 epochs, harness), hogwild vs owner, wall / per-thread busy mean / wait mean
+hogwild  1 thread   1.77s (47 cycles per force evaluation)       owner  1 thread   1.67s
+hogwild  4 threads  0.79s busy 0.77 wait 0.02                    owner  4 threads  0.49s busy 0.47 wait 0.01
+hogwild 10 threads  0.44s busy 0.35 wait 0.10                    owner 10 threads  0.24s busy 0.22 wait 0.02
+hogwild 20 threads  0.53s busy 0.26 wait 0.27                    owner 20 threads  0.24s busy 0.18 wait 0.06
+full fit, 300 epochs, 20 threads: SGD wall hogwild 2.98-3.09s (busy 1.45-1.49, wait 1.49-1.64) ; owner 1.37-1.50s (busy 1.01-1.04, wait 0.36-0.46)
+== diagnosis (fixed-partition owner prototype, before the reverse pulls): hogwild moving u only -> 10 threads 5.3x instead of 3.7x;
+   snapshot reads alone did not change the scaling: the loss was barrier waiting behind preempted threads -> dynamic chunks.
+== attribution of the global structure (hogwild, 4 threads, MNIST): both moved 0.194 / 0.956 / 0.412 (15-NN / trust / Spearman)
+   w (mid partner) not moved 0.200 / 0.957 / 0.309 ; v not moved 0.198 / 0.934 / 0.467 ; neither 0.215 / 0.942 / 0.344
+== owner factorial before the reverse pulls (4 threads): att x1 mid x1 0.202 / 0.925 / 0.336 ; att x2 mid x1 0.190 / 0.950 / 0.341 ;
+   att x2 mid x2 0.181 / 0.946 / 0.342 ; att x1 mid x2 0.133 / 0.680 / 0.171   (doubling the mid coefficient does nothing: the step is clipped)
+== owner with reverse pulls, attraction factor sweep (20 threads, seed 0): knn / trust / Spearman / triplets / acc
+att x1.0   0.192 / 0.917 / 0.485 / 0.666 / 0.897
+att x1.25  0.193 / 0.946 / 0.461 / 0.658 / 0.947
+att x1.5   0.189 / 0.948 / 0.451 / 0.656 / 0.954   <- kept
+att x1.75  0.187 / 0.949 / 0.443 / 0.653 / 0.957
+att x2.0   0.183 / 0.948 / 0.435 / 0.651 / 0.954
+second pure-attraction pass (att x1 + pass): 0.158 / 0.951 / 0.388 ; (x0.75 + pass) 0.163 / 0.951 / 0.402  -> not kept
+hogwild reference, seeds 0 / 1: 0.192 / 0.957 / 0.415 / 0.646 / 0.965 ; 0.193 / 0.957 / 0.417 / 0.645 / 0.966
+== validate (att x1.5): hogwild -> owner, fit time and metrics
+fmnist  4.80s -> 3.41s   knn 0.205 -> 0.202  trust 0.979 -> 0.974  sp 0.731 -> 0.782  tri 0.787 -> 0.815  acc 0.800 -> 0.786
+news20  1.21s -> 0.78s   knn 0.134 -> 0.133  trust 0.755 -> 0.742  sp 0.046 -> 0.090  tri 0.525 -> 0.535  acc 0.511 -> 0.495
+blobs   1.04s -> 0.58s   knn 0.067 -> 0.072  trust 0.972 -> 0.972  sp 0.710 -> 0.700  tri 0.740 -> 0.737
+sbm     4.02s -> 2.92s   acc 1.000 -> 1.000
+mnist hybrid (mid_weight 0.5)  11.9s -> 10.4s   knn 0.354 -> 0.343  trust 0.959 -> 0.917  sp 0.453 -> 0.458  acc 0.960 -> 0.917  (mid_weight to re-tune for the owner mode)
+determinism: same graph, owner mode, 20 / 7 / 1 threads identical: True (the full fit differs across thread counts through the kNN search)
