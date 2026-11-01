@@ -289,6 +289,39 @@ dof 0.8: 0.343 / 0.447; exaggeration 1.2: 0.343 / 0.448. Scale 40 and 450 iterat
 15-NN for 5-6 s; dof below 1 and late exaggeration cost local structure, as in the exact mode alone.
 The hybrid has one knob worth turning, and it is in the SGD pass.
 
+### 6.2 Where the time goes (`k10_speed.py`)
+
+MNIST 70k, 20 threads, CPU shared with other jobs (timings within 15 %):
+
+| mode | kNN graph | init + graph | layout | of which repulsion | total |
+|---|---|---|---|---|---|
+| SGD (300 epochs) | 1.1 s | 0.9 s | 2.9 s | (sampled) | 4.0-5.7 s |
+| exact (600 iterations) | 1.1 s | | 7.7 s | 5.5 s | 9-11 s |
+| hybrid (SGD + 300 exact) | 1.0 s | 0.9 s | 2.9 + 9.1 s | 8.0 s | 12.5-14 s |
+
+The exact mode's repulsion costs 0.9 s per 100 iterations while the layout is small and 2.8 s for the
+last 100: the FFT grid follows the layout's extent (140 boxes of width 1 at the end). The hybrid pays
+the large grid from its first iteration (162 boxes), which is why its 300 iterations cost more than the
+exact mode's 600. What buys time:
+
+* Hybrid, wider boxes: `fft_box=1.5` cuts the pass to 8.5 s at MNIST 15-NN 0.349-0.352 (base
+  0.351-0.356), Fashion-MNIST 8.1 s at 0.322-0.324 (base 0.327-0.329), 20 newsgroups 3.2 s at 0.179
+  (0.182), blobs 2.0 s at 0.114-0.117 (0.122-0.124); Spearman unchanged everywhere. About -1 % of local
+  structure for -30 % of time; 2.0 costs the same on MNIST but is the limit (3.0: 0.335). Not the
+  default, which stays on the fidelity side; documented as the preset.
+* Hybrid, fewer iterations at a larger step: 150 iterations at lr n/6 give 0.343-0.346 in 6.4 s, 200 at
+  n/8 0.346 in 7 s; with `fft_box=1.5` as well, 5.5 s at 0.341. The exact pass converges in 150
+  iterations when the step is doubled, where 150 at the default step gave 0.281 (section 6).
+* Exact mode: no equivalent. Box 1.5 for the whole run or for the late phase only (research edit,
+  reverted) both cost 0.017 of 15-NN (0.331 against 0.348) for 1.5-2 s; 2.0 costs 0.043. The late
+  phase is where the local structure forms, and it needs the fine grid; the hybrid tolerates the coarse
+  grid because it refines an existing structure.
+* SGD mode: nothing dominates. The attraction's `pow` costs 0.25 s (b = 1 runs in 3.72 s against 3.97),
+  three negatives instead of five 0.27 s, the mid-range term 0.4 s, 200 epochs instead of 300 0.7 s;
+  10 threads are slower than 20 (4.37 s, hyper-threading pays). The loop is at about 70 cycles per
+  force evaluation (2.6 G evaluations in 2.9 s on 20 threads); a fast `pow` and a cheaper RNG would
+  give 10-20 %, not a factor.
+
 ## Scripts (`benchmarks/theory/`)
 
 `e1_force_spectrum.py` (per-octave repulsive force on MAGNET's own embeddings), `e1b_powerlaw.py`

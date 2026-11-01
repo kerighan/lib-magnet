@@ -1,0 +1,50 @@
+# Runs of 2026-11-01 (CPU shared with other jobs: timings +-15 %). MNIST 70k unless stated.
+== profile (verbose=True)
+SGD:    kNN graph 1.1-1.2 s | spectral init 0.4 s | graph + mid-near pairs ~0.5 s | SGD layout 300 epochs 2.9 s | total 4.0-5.7 s
+tsne:   kNN 1.1 s | 600 iterations 7.6-7.8 s: attraction 1.35 s, repulsion 5.47 s, update 0.81 s; repulsion per 100 iterations 0.9 / 0.8 / 0.7 / 1.0 / 1.4 / 2.8 s (grid grows with the layout: 140 boxes at the end)
+hybrid: kNN 1.0 s | init 0.4 s | SGD 2.9 s | exact pass 300 iterations 9.1 s: attraction 0.69 s, repulsion 8.0 s, update 0.35 s (162 boxes from the first iteration)
+== hybrid: box width, iterations x learning rate (seed 0 unless two rows)
+hybrid base          12.9s  knn 0.352  trust 0.955  sp 0.441
+box 1.5               8.3s  knn 0.347  trust 0.958  sp 0.452
+box 2.0               7.2s  knn 0.347  trust 0.957  sp 0.427
+box 3.0               6.7s  knn 0.335  trust 0.960  sp 0.437
+it150 lr n/6          7.4s  knn 0.346  trust 0.959  sp 0.453
+it200 lr n/8          8.5s  knn 0.347  trust 0.962  sp 0.462
+it150 lr n/6 box 2    5.5s  knn 0.341  trust 0.959  sp 0.432
+box1.5 it300         s0  10.4s  knn 0.352  trust 0.958  sp 0.472
+box1.5 it300         s1   8.5s  knn 0.349  trust 0.960  sp 0.453
+box1.5 it200 lr1.5   s0   6.9s  knn 0.346  trust 0.959  sp 0.438
+box1.5 it200 lr1.5   s1   7.2s  knn 0.346  trust 0.957  sp 0.475
+box1.5 it150 lr2     s0   6.5s  knn 0.343  trust 0.958  sp 0.478
+box1.5 it150 lr2     s1   6.3s  knn 0.345  trust 0.960  sp 0.463
+box1.25 it200 lr1.5  s0   7.5s  knn 0.346  trust 0.960  sp 0.445
+box1.25 it200 lr1.5  s1   7.6s  knn 0.349  trust 0.962  sp 0.453
+box1.0 it200 lr1.5   s0   8.8s  knn 0.351  trust 0.959  sp 0.437
+box1.0 it200 lr1.5   s1  10.5s  knn 0.352  trust 0.959  sp 0.464
+== hybrid box 1.5 on the other sets (box 1.0 / 1.5, seeds 0 and 1)
+fmnist  box 1.0 s0  13.1s  knn 0.327  trust 0.979  sp 0.750
+fmnist  box 1.0 s1  10.4s  knn 0.329  trust 0.978  sp 0.751
+fmnist  box 1.5 s0   8.1s  knn 0.324  trust 0.979  sp 0.753
+fmnist  box 1.5 s1   8.1s  knn 0.322  trust 0.979  sp 0.752
+news20  box 1.0 s0   4.1s  knn 0.182  trust 0.770  sp 0.091
+news20  box 1.0 s1   4.5s  knn 0.181  trust 0.766  sp 0.078
+news20  box 1.5 s0   3.0s  knn 0.179  trust 0.769  sp 0.080
+news20  box 1.5 s1   3.5s  knn 0.179  trust 0.770  sp 0.084
+blobs   box 1.0 s0   2.4s  knn 0.124  trust 0.974  sp 0.697
+blobs   box 1.0 s1   2.4s  knn 0.122  trust 0.974  sp 0.703
+blobs   box 1.5 s0   2.0s  knn 0.117  trust 0.974  sp 0.719
+blobs   box 1.5 s1   2.1s  knn 0.114  trust 0.974  sp 0.687
+== exact mode: box width (whole run, or 1.0 then wider from iteration k; research edit, not kept)
+box1.0           9.5s  knn 0.348  trust 0.966  sp 0.342
+box1.5           8.8s  knn 0.331  trust 0.966  sp 0.341
+1.0->1.5@300     7.4s  knn 0.331  trust 0.966  sp 0.341
+1.0->1.5@200     7.3s  knn 0.331  trust 0.966  sp 0.341
+1.0->2.0@400     6.9s  knn 0.305  trust 0.966  sp 0.335
+== SGD mode: total fit time, best of 2
+b0.6 t20   3.97s
+b0.6 t10   4.37s
+b1.0 t20   3.72s   (no pow in the attraction)
+b0.5 t20   4.01s
+neg3       3.70s
+mid0       3.59s
+epochs200  3.24s

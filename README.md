@@ -235,7 +235,11 @@ keeps the global lead there; the global column of that set moves by 0.02 between
 0.124 / 0.684 (t-SNE 0.114 / 0.381, SGD 0.067 / 0.690). The exact pass refines the SGD layout, it
 does not repair one: the SGD pass must run its full schedule (100 epochs: 15-NN 0.276), and the knobs
 of the exact pass (scale, learning rate, iterations, dof, exaggeration) move the result by at most
-the seed noise (`docs/kernel_exponents.md`, section 6.1).
+the seed noise (`docs/kernel_exponents.md`, section 6.1). The time of the hybrid is the exact pass's
+repulsion (8 of its 9 s on MNIST: the FFT grid is set by the layout's extent, 162 boxes from the first
+iteration). Two presets trade a little local structure for it: `fft_box=1.5` (MNIST 8.5 s, 15-NN
+0.350; Fashion-MNIST 8.1 s, 0.323) and `hybrid_iter=150, tsne_learning_rate=n/6` (6.4 s, 0.344);
+together 5.5 s at 0.341 (section 6.2 of the note).
 h-NNE is the one fast method that beats the default MAGNET on neighbourhood preservation (0.233
 against 0.193 on MNIST, 0.154 against 0.134 on 20 newsgroups, the other way round on Fashion-MNIST,
 0.173 against 0.202); it pays for it on every other column (trustworthiness 0.940, distance
@@ -303,7 +307,7 @@ Any networkx graph or sparse adjacency matrix is laid out directly, in linear ti
 | `repulsion_b` | 1.0 | repulsion exponent (Cauchy tail); None couples it to `kernel_b` (UMAP's compact look, 20% slower) |
 | `kernel` | `"power"` | or `"gaussian"`, `"sech"` (exponential tails, for comparison) |
 | `tsne_dof` | 1.0 | Student-t degrees of freedom of `loss="tsne"` (< 1 = heavier tail, Kobak et al. 2019) |
-| `fft_interp`, `fft_box` | 3, 1.0 | grid of the exact repulsion (`fft_box=1.5` is the fast preset) |
+| `fft_interp`, `fft_box` | 3, 1.0 | grid of the exact repulsion (`fft_box=1.5` is the fast preset: -3% 15-NN in `loss="tsne"`, -1% in `loss="hybrid"` for 30% less time) |
 | `mid_scale` | `"fixed"` | or `"spread"` / `"rolewalk"`: per-node length of the mid-range walks from the graph's diffusion spread or from RoleWalk roles |
 | `component_placement` | `"centroid"` | or `"rolewalk"`: disconnected components of a graph placed by their structural-role signature |
 | `optimizer`, `clip` | `"sgd"`, `"coord"` | or `"adam"`; `"norm"` clips the step norm |
