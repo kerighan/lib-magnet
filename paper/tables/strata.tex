@@ -1,0 +1,13 @@
+\begin{tabular}{lrrrrrrr}
+\toprule
+MNIST 70k, distance Spearman & all & same class & diff.\ class & short & intermediate & long & centroids \\
+\midrule
+PCA-2 & \textbf{0.488} & \textbf{0.526} & \textbf{0.452} & \textbf{0.392} & 0.131 & \textbf{0.231} & \textbf{0.814} \\
+UMAP 0.5.12 & 0.296 & 0.421 & 0.214 & 0.261 & 0.061 & 0.130 & 0.752 \\
+openTSNE (FIt-SNE) & 0.329 & 0.483 & 0.250 & 0.320 & 0.073 & 0.090 & 0.607 \\
+PaCMAP & 0.306 & 0.412 & 0.228 & 0.287 & 0.068 & 0.108 & 0.684 \\
+\magnet{} SGD & 0.418 & 0.466 & 0.362 & 0.364 & 0.108 & 0.127 & 0.635 \\
+\magnet{} full-batch & 0.342 & 0.477 & 0.268 & 0.316 & 0.084 & 0.083 & 0.669 \\
+\magnet{} hybrid & 0.461 & 0.501 & 0.412 & 0.371 & \textbf{0.132} & 0.158 & 0.421 \\
+\bottomrule
+\end{tabular}

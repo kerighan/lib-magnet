@@ -219,6 +219,15 @@ the logs of benchmarks/theory; re-run with error bars.}}
   sets (hybrid 0.444 / 0.752 / 0.09; Barnes--Hut $t$-SNE 0.232 on news20) and above it only on the blobs
   (0.682). ``Best global structure'' in this paper means best among neighbour embeddings; PCA keeps
   15-NN at 0.01--0.03.
+\item Where the global score comes from (MNIST, same layouts, Table~\ref{tab:strata},
+  \texttt{global\_strata.py}): split by class, by tercile of the input distance, and reduced to the
+  45 distances between class centroids. PCA is ahead on every stratum; the hybrid ties it on the
+  intermediate tercile (0.132 vs 0.131) and is second everywhere else on pairwise distances, but its
+  arrangement of the ten class centroids is the worst of the panel (0.421 against PCA 0.814, UMAP 0.752,
+  SGD 0.635, full-batch 0.669). \magnet{}'s global advantage over the other neighbour embeddings is in
+  pairwise distances within and between classes, not in the placement of the classes relative to each
+  other; the refinement pass costs centroid arrangement (0.635 to 0.421). One layout per method;
+  45 centroid pairs. \todo{Seeds; Fashion-MNIST; a global metric that PCA does not win is still missing.}
 \item Neighbourhood scale (MNIST, same layouts, Table~\ref{tab:kscale}): the hybrid leads at $k = 5$ and
   15 (0.351 / 0.351), openTSNE at $k = 50$ and 100 (0.327 / 0.329 against 0.319 / 0.313); continuity is
   0.944--0.953 for every method; \magnet{} SGD has the best continuity (0.953 / 0.927 at $k = 15$ / 50),
@@ -235,6 +244,15 @@ kNN preservation at $k = 5$ to 100, trustworthiness and continuity at $k = 15$ a
 (\texttt{benchmarks/extra\_metrics.py}).}
 \input{tables/kscale.tex}
 \label{tab:kscale}
+\end{table}
+
+\begin{table}[t]
+\centering\small
+\caption{Where the global score comes from, MNIST 70k, same layouts: distance Spearman on the 2000-point
+sample split by class membership and by tercile of the input distance (terciles at 9.64 / 10.81), and
+Spearman of the 45 inter-centroid distances of the ten classes (\texttt{benchmarks/global\_strata.py}).}
+\input{tables/strata.tex}
+\label{tab:strata}
 \end{table}
 
 \begin{figure}[t]

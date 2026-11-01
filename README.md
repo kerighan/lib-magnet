@@ -291,6 +291,16 @@ rare terms that any projection flattens. Buying recall with more internal neighb
 is below PCA on that global metric on the three real data sets and above it only on the blobs; "best
 global structure" above means best among neighbour embeddings.
 
+**Where the global score comes from.** On the same MNIST layouts (`benchmarks/global_strata.py`),
+the distance Spearman split by class and by tercile of the input distance, and reduced to the 45
+distances between class centroids: PCA is ahead on every stratum (same class 0.526, different class
+0.452, short / intermediate / long 0.392 / 0.131 / 0.231, centroids 0.814). The hybrid ties PCA on the
+intermediate tercile (0.132) and is second on the other pairwise strata (0.501 / 0.412 / 0.371 / 0.158),
+but its arrangement of the ten class centroids is the worst of the panel (0.421; UMAP 0.752, SGD 0.635,
+full-batch 0.669). MAGNET's global advantage over the other neighbour embeddings is in pairwise distances
+within and between classes, not in the placement of the classes relative to each other, and the
+refinement pass of the hybrid costs centroid arrangement (0.635 to 0.421). One layout per method.
+
 **Neighbourhood scale.** On the six MNIST layouts of the figure, kNN preservation at k = 5 / 15 / 50 / 100
 (`benchmarks/extra_metrics.py`): hybrid 0.351 / 0.351 / 0.319 / 0.313, full-batch 0.333 / 0.348 / 0.325 /
 0.325, openTSNE 0.375 / 0.348 / 0.327 / 0.329, SGD 0.159 / 0.193 / 0.219 / 0.249, UMAP 0.071 / 0.117 /

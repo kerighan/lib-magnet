@@ -232,7 +232,10 @@ limit, a data set where every point would rather be at L2 and the mode only move
 
 The sampled optimiser gives the best global structure among the neighbour embeddings of the benchmark
 (MNIST 70k distance Spearman 0.41; PCA to 2-D reaches 0.488 on that metric, 0.873 on Fashion-MNIST,
-`benchmarks/baselines_linear.py`) and the exact one the best local structure (15-NN kept 0.35); each is mediocre on the other
+`benchmarks/baselines_linear.py`; split by class, by tercile of the input distance or reduced to the 45
+inter-centroid distances, PCA stays ahead on every stratum, the hybrid ties it on intermediate distances
+only and places the ten class centroids worst of the panel, 0.421 against PCA 0.814 and UMAP 0.752,
+`benchmarks/global_strata.py`) and the exact one the best local structure (15-NN kept 0.35); each is mediocre on the other
 axis (0.19 and 0.34). Can one loss fade from one regime to the other? What was tried (`k1`-`k7`, MNIST
 70k unless said otherwise):
 
