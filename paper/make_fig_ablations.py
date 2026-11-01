@@ -63,10 +63,10 @@ plt.tight_layout(); plt.savefig(os.path.join(FIG, "hybrid.png"), dpi=150, bbox_i
 # ---------- Figure: scaling ----------
 fig, ax = plt.subplots(figsize=(5.5, 4.2))
 n = [1e5, 2.5e5, 5e5, 1e6]
-ax.plot(n, [7, 16, 30, 55], "o-", color=C["blue"], lw=2, ms=7, label="MAGNET (SGD)")
+ax.plot(n, [6.5, 12.0, 23.1, 43.9], "o-", color=C["blue"], lw=2, ms=7, label="MAGNET (SGD)")
 ax.plot([2.5e5, 1e6], [17, 56], "s-", color=C["verm"], lw=2, ms=7, label='MAGNET loss="tsne"')
-ax.plot(n[:3], [37, 55, 85], "^-", color=C["orange"], lw=2, ms=7, label="UMAP")
+ax.plot(n[:3], [9.5, 23.4, 61.7], "^-", color=C["orange"], lw=2, ms=7, label="UMAP 0.5.12")
 ax.set_xscale("log"); ax.set_yscale("log"); ax.set_xlabel("points (50 clusters in 50-D)"); ax.set_ylabel("wall-clock time (s), 20 cores")
-ax.set_yticks([10, 20, 50, 100]); ax.set_yticklabels([10, 20, 50, 100]); ax.legend(); ax.set_title("Scaling (peak RSS 3.1 GB at 1M)")
+ax.set_yticks([10, 20, 50, 100]); ax.set_yticklabels([10, 20, 50, 100]); ax.legend(); ax.set_title("Scaling (MAGNET peak RSS 3.3 GB at 1M)")
 plt.tight_layout(); plt.savefig(os.path.join(FIG, "scaling.png"), dpi=150, bbox_inches="tight"); plt.close()
 print("ok")

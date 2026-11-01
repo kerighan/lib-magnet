@@ -13,7 +13,7 @@ def cell(x):
 
 def name(x):
     x = x.replace('loss="tsne"', r'\texttt{loss="tsne"}').replace('loss="hybrid"', r'\texttt{loss="hybrid"}')
-    return x.replace("_", r"\_").replace("(umap-learn 0.5.11)", "").replace("(GPU, RTX 2070)", "(GPU)")
+    return x.replace("_", r"\_").replace("(umap-learn 0.5.12)", "").replace("(GPU, RTX 2070)", "(GPU)")
 
 for sec in re.split(r"^## ", md, flags=re.M)[1:]:
     title, body = sec.split("\n", 1)

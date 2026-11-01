@@ -8,12 +8,12 @@ rebuilds that pipeline from scratch in C++ and makes the one choice that matters
 repulsion is estimated.
 
 * `loss="umap"` (default): negative sampling, lock-free multithreaded SGD. **MNIST 70k in 4.4 s**
-  against 18 s for UMAP, 15-NN preservation 0.19 against 0.12 and a distance correlation of 0.41
+  against 11 s for UMAP 0.5.12, 15-NN preservation 0.19 against 0.12 and a distance correlation of 0.41
   against 0.30: the best global structure of the seven methods benchmarked.
 * `loss="tsne"`: exact repulsion over all pairs through FFT interpolation. **MNIST 70k in 9 s**
   against 102 s for openTSNE and 196 s for scikit-learn's t-SNE, with the same neighbourhood
   preservation as those two, three times that of UMAP in less time.
-* 1M points in 55 s and 3 GB. Native NN-descent (1.2 s for 70k x 784), spectral initialisation by
+* 1M points in 44 s and 3.3 GB. Native NN-descent (1.2 s for 70k x 784), spectral initialisation by
   Chebyshev-filtered subspace iteration, `transform()` for new points, sparse inputs, networkx graphs.
 
 ![MNIST 70k: UMAP, MAGNET, MAGNET with exact repulsion](benchmarks/plots/compare_mnist70000_tsne.png)
@@ -217,8 +217,8 @@ sits below the CPU t-SNEs on neighbourhood preservation.
 | MAGNET, `late_exaggeration=1.5` (compact preset, silhouette 0.51) | 4.7 s | 0.181 | 0.956 | 0.386 | 0.637 | 0.967 |
 | **MAGNET `loss="tsne"`** | 9.2 s | 0.349 | 0.966 | 0.348 | 0.627 | 0.966 |
 | **MAGNET `loss="hybrid"`** | 12.5 s | **0.353** | 0.961 | **0.444** | **0.656** | 0.960 |
-| UMAP 0.5.11 | 18.2 s | 0.116 | 0.951 | 0.300 | 0.607 | 0.967 |
-| densMAP (umap-learn 0.5.11) | 43.2 s | 0.070 | 0.923 | 0.357 | 0.621 | 0.956 |
+| UMAP 0.5.12 | 11.2 s | 0.117 | 0.951 | 0.297 | 0.606 | 0.967 |
+| densMAP (umap-learn 0.5.12) | 37.2 s | 0.068 | 0.921 | 0.364 | 0.623 | 0.945 |
 | openTSNE 1.0.4 | 102.5 s | 0.347 | **0.968** | 0.330 | 0.619 | 0.965 |
 | PaCMAP | 24.8 s | 0.093 | 0.946 | 0.307 | 0.614 | **0.976** |
 | TriMap | 57.0 s | 0.088 | 0.933 | 0.184 | 0.597 | 0.964 |
@@ -251,19 +251,19 @@ correlation 0.261, label accuracy 0.949). `kernel_b=0.5` closes a third of that 
 | dataset | time | 15-NN pres. | trust. | dist. Spearman |
 |---|---|---|---|---|
 | Fashion-MNIST 70k | **4.4 s** / 15.0 s UMAP | 0.202 / 0.327 sklearn t-SNE | 0.980 / 0.983 openTSNE | **0.730** / 0.672 TriMap |
-| 20 newsgroups SVD-300, cosine | **1.3 s** / 5.9 s UMAP | 0.134 / 0.192 sklearn t-SNE | 0.760 / 0.772 openTSNE | 0.059 / 0.232 sklearn t-SNE |
-| 20 newsgroups TF-IDF, sparse 18.8k x 24k | **5.7 s** / 22.2 s UMAP | 0.145 / 0.140 UMAP | 0.730 / 0.716 UMAP | 0.144 / 0.145 UMAP |
-| 15 Gaussian blobs 10k x 200 | **1.1 s** / 2.3 s UMAP | 0.067 / 0.114 sklearn t-SNE | 0.972 / 0.975 sklearn t-SNE | **0.690** / 0.666 PaCMAP |
-| SBM graph, 30k nodes, 782k edges | **4.9 s** / 36 s UMAP | | | 10-NN acc. 1.00 / 0.26 |
+| 20 newsgroups SVD-300, cosine | **1.3 s** / 2.7 s UMAP | 0.134 / 0.192 sklearn t-SNE | 0.760 / 0.772 openTSNE | 0.059 / 0.232 sklearn t-SNE |
+| 20 newsgroups TF-IDF, sparse 18.8k x 24k | 5.7 s / **4.5 s** UMAP | 0.145 / 0.140 UMAP | 0.730 / 0.716 UMAP | 0.144 / 0.145 UMAP |
+| 15 Gaussian blobs 10k x 200 | **1.1 s** / 2.4 s UMAP | 0.067 / 0.114 sklearn t-SNE | 0.972 / 0.975 sklearn t-SNE | **0.690** / 0.666 PaCMAP |
+| SBM graph, 30k nodes, 782k edges | **4.9 s** / 10.2 s UMAP | | | 10-NN acc. 1.00 / 0.26 |
 
 **Scaling** (50 anisotropic clusters in 50 dimensions)
 
 | n | MAGNET | UMAP | peak RSS |
 |---|---|---|---|
-| 100k | 7 s | 37 s | 0.4 / 2.1 GB |
-| 250k | 16 s | 55 s | 0.8 / 3.0 GB |
-| 500k | 30 s | 85 s | 1.6 / 5.1 GB |
-| 1M | 55 s | | 3.1 GB |
+| 100k | 6.5 s | 9.5 s | 0.5 / 1.7 GB |
+| 250k | 12 s | 23 s | 0.9 / 2.1 GB |
+| 500k | 23 s | 62 s | 1.7 / 2.7 GB |
+| 1M | 44 s | | 3.3 GB |
 
 `loss="tsne"` on the same data: 17 s at 250k and 56 s at 1M points (600 iterations; at 1M the
 attraction pass over the 40M edges and the position update dominate, the FFT repulsion step costs
@@ -272,6 +272,13 @@ scipy's pocketfft, which was never the bottleneck.
 
 `transform()` on MNIST (fit 60k, transform 10k): 0.6 s and 10-NN accuracy 0.962 against 14.8 s and
 0.956 for UMAP.
+
+**Timing protocol.** Every method runs with its defaults and all cores; UMAP and densMAP run without
+`random_state` (setting it makes their layout single-threaded: 49 s instead of 10 s on MNIST), MAGNET
+with a seed (its threads do not depend on it). The numba methods are warmed up before the clock on
+data of the same dtype and on enough points (6000) to compile the NN-descent path as well: a float64
+warm-up on 500 points left the float32 and NN-descent compilations inside the timed call, which had
+put UMAP at 18 s on MNIST and 36 s on the SBM graph in earlier versions of this table (10-11 s both).
 
 **Where the SGD time goes, and `parallel="owner"`.** On MNIST 70k the default fit is 1.1 s of kNN graph,
 0.9 s of graph construction and spectral init, and 2-3 s of SGD. One thread runs the SGD at 47 cycles per

@@ -39,22 +39,14 @@ def main():
         m = MAGNET(loss="tsne", random_state=0, verbose=True)
         t = time.time(); Y = m.fit_transform(X); phases["fit_total"] = time.time() - t
     elif method == "magnet":
+        # the full default pipeline (an earlier version replayed the fit's internals by hand and drifted from it)
         from magnet import MAGNET
         m = MAGNET(random_state=0)
-        t = time.time(); P = m.build_graph(X); phases["knn+graph"] = time.time() - t
-        m.graph_ = P
-        from magnet import find_ab_params
-        m.a_, m.b_ = find_ab_params(m.spread, m.min_dist)
-        rng = np.random.default_rng(0)
-        t = time.time(); Y = m._initial_embedding(P, X, rng); phases["spectral_init"] = time.time() - t
-        t = time.time()
-        n_epochs = m._resolve_epochs(n)
-        head, tail, eps = m._edge_schedule(P, n_epochs); phases["edge_schedule"] = time.time() - t
-        t = time.time(); m._optimize(Y, head, tail, eps, P, n_epochs, 0, 1, m.mid_weight); phases["sgd"] = time.time() - t
-        phases["epochs"] = n_epochs
+        t = time.time(); Y = m.fit_transform(X); phases["fit_total"] = time.time() - t
+        phases["epochs"] = m.n_epochs_
     elif method == "umap":
         import umap
-        umap.UMAP(n_neighbors=5, n_epochs=20).fit_transform(np.random.rand(500, 10))
+        umap.UMAP(n_epochs=20, random_state=0).fit_transform(np.random.rand(6000, 10).astype(X.dtype))   # numba warm-up on the data's dtype, large enough for the NN-descent path
         t = time.time(); Y = umap.UMAP().fit_transform(X); phases["umap_total"] = time.time() - t
     else:
         raise ValueError(method)

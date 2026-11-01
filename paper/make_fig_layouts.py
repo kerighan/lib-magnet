@@ -13,13 +13,16 @@ ds = sys.argv[1] if len(sys.argv) > 1 else "mnist"
 data, labels, name = LOADERS[ds](70000)
 labels = np.asarray(labels).astype(int)
 
+import umap
+umap.UMAP(n_epochs=20).fit_transform(np.random.rand(6000, 10).astype(data.dtype))   # numba warm-up outside the clock: same dtype, same
+# parallel setting (no random_state), enough points for the NN-descent path. Earlier renders timed the compilation too.
 def umap_(X):
-    import umap; return umap.UMAP(random_state=0).fit_transform(X)
+    return umap.UMAP().fit_transform(X)   # no random_state: with it UMAP's layout runs single-threaded (49 s instead of 10 s)
 def opentsne_(X):
     from openTSNE import TSNE; return np.asarray(TSNE(n_jobs=-1, random_state=0).fit(X))
 def pacmap_(X):
     import pacmap; return pacmap.PaCMAP(random_state=0).fit_transform(X)
-methods = [("UMAP", umap_), ("openTSNE (FIt-SNE)", opentsne_), ("PaCMAP", pacmap_),
+methods = [("UMAP 0.5.12", umap_), ("openTSNE (FIt-SNE)", opentsne_), ("PaCMAP", pacmap_),
            ("MAGNET (SGD)", lambda X: MAGNET(random_state=0).fit_transform(X)),
            ('MAGNET loss="tsne"', lambda X: MAGNET(loss="tsne", random_state=0).fit_transform(X)),
            ('MAGNET loss="hybrid"', lambda X: MAGNET(loss="hybrid", random_state=0).fit_transform(X))]

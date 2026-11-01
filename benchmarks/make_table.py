@@ -3,14 +3,14 @@ import os, json, collections
 HERE = os.path.dirname(os.path.abspath(__file__))
 import numpy as np
 
-LABELS = {"umap": "UMAP 0.5.11", "opentsne": "openTSNE 1.0.4", "pacmap": "PaCMAP", "trimap": "TriMap", "sktsne": "sklearn t-SNE (Barnes-Hut)",
-          "densmap": "densMAP (umap-learn 0.5.11)", "phate": "PHATE 2.0", "hnne": "h-NNE", "tsnecuda": "t-SNE-CUDA 3.0.1 (GPU, RTX 2070)"}
+LABELS = {"umap": "UMAP 0.5.12", "opentsne": "openTSNE 1.0.4", "pacmap": "PaCMAP", "trimap": "TriMap", "sktsne": "sklearn t-SNE (Barnes-Hut)",
+          "densmap": "densMAP (umap-learn 0.5.12)", "phate": "PHATE 2.0", "hnne": "h-NNE", "tsnecuda": "t-SNE-CUDA 3.0.1 (GPU, RTX 2070)"}
 DATASETS = [("mnist70000", "MNIST (70k x 784)"), ("fmnist70000", "Fashion-MNIST (70k x 784)"),
             ("news20", "20 newsgroups (18.8k x 300 SVD, cosine)"), ("blobs10k", "15 Gaussian blobs (10k x 200)")]
 KEYS = [("time", "time (s)", False), ("knn15_preservation", "15-NN pres.", True), ("trustworthiness", "trust.", True),
         ("dist_spearman", "dist. Spearman", True), ("triplet_acc", "triplet acc.", True), ("knn_acc", "10-NN acc.", True),
         ("silhouette", "compactness*", True)]
-ORDER = ["MAGNET (SGD, default)", 'MAGNET (loss="tsne")', 'MAGNET (loss="hybrid")', "UMAP 0.5.11", "densMAP (umap-learn 0.5.11)", "openTSNE 1.0.4", "PaCMAP", "TriMap", "PHATE 2.0", "h-NNE", "sklearn t-SNE (Barnes-Hut)", "t-SNE-CUDA 3.0.1 (GPU, RTX 2070)"]
+ORDER = ["MAGNET (SGD, default)", 'MAGNET (loss="tsne")', 'MAGNET (loss="hybrid")', "UMAP 0.5.12", "densMAP (umap-learn 0.5.12)", "openTSNE 1.0.4", "PaCMAP", "TriMap", "PHATE 2.0", "h-NNE", "sklearn t-SNE (Barnes-Hut)", "t-SNE-CUDA 3.0.1 (GPU, RTX 2070)"]
 
 
 def name_of(r):

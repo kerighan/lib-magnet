@@ -28,7 +28,10 @@ def run(method, dataset, n=70000, tag="", plot=True, **kw):
     if method == "umap":
         import umap
         if not is_graph:
-            umap.UMAP(n_neighbors=5, n_epochs=20).fit_transform(np.random.rand(500, 10))  # numba warm-up
+            # numba warm-up on the data's dtype and the run's settings: a float64 warm-up leaves the float32 path to compile
+            # inside the timed call (25-69 s instead of 11 s on MNIST); 6000 points so that the NN-descent path compiles too,
+            # and the same random_state setting (with one, UMAP's layout is single-threaded: a different compiled variant)
+            umap.UMAP(n_neighbors=kw.get("n_neighbors", 15), n_epochs=20, metric=kw.get("metric", "euclidean"), random_state=kw.get("random_state")).fit_transform(np.random.rand(6000, 10).astype(data.dtype))
         t = time.time()
         Y = umap.UMAP(**kw).fit_transform(data if not is_graph else _graph_to_dist(data))
     elif method == "magnet":
@@ -57,7 +60,7 @@ def run(method, dataset, n=70000, tag="", plot=True, **kw):
         Y = TSNE(n_jobs=-1, init="pca", **kw).fit_transform(np.asarray(data, dtype=np.float32))
     elif method == "densmap":
         import umap
-        umap.UMAP(n_neighbors=5, n_epochs=20, densmap=True).fit_transform(np.random.rand(500, 10))  # numba warm-up
+        umap.UMAP(n_neighbors=kw.get("n_neighbors", 15), n_epochs=20, densmap=True, metric=kw.get("metric", "euclidean"), random_state=kw.get("random_state")).fit_transform(np.random.rand(6000, 10).astype(data.dtype))  # numba warm-up, same dtype
         t = time.time()
         Y = umap.UMAP(densmap=True, **kw).fit_transform(data)
     elif method == "phate":
