@@ -284,7 +284,7 @@ dimensions, truncated SVD 128-256) followed by the dense NN-descent were tried f
 of the true neighbours (61 % at best among 60 candidates): text neighbourhoods hang on a few shared
 rare terms that any projection flattens. Buying recall with more internal neighbours (45: 0.89,
 60: 0.89) changes nothing on the layout (15-NN kept 0.240 in every case), so the default stays at 30
-().
+(`benchmarks/theory/k12_sparse_knn.py`).
 
 **Timing protocol.** Every method runs with its defaults and all cores; UMAP and densMAP run without
 `random_state` (setting it makes their layout single-threaded: 49 s instead of 10 s on MNIST), MAGNET
