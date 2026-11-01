@@ -1,0 +1,12 @@
+\begin{tabular}{lrrrrrrrr}
+\toprule
+MNIST 70k & $k=5$ & $k=15$ & $k=50$ & $k=100$ & trust$_{15}$ & cont$_{15}$ & trust$_{50}$ & cont$_{50}$ \\
+\midrule
+UMAP 0.5.12 & 0.071 & 0.117 & 0.176 & 0.226 & 0.950 & 0.951 & 0.943 & 0.921 \\
+openTSNE (FIt-SNE) & \textbf{0.375} & 0.348 & \textbf{0.327} & \textbf{0.329} & \textbf{0.968} & 0.952 & \textbf{0.944} & 0.924 \\
+PaCMAP & 0.052 & 0.094 & 0.158 & 0.211 & 0.947 & 0.944 & 0.941 & 0.912 \\
+\magnet{} SGD & 0.159 & 0.193 & 0.219 & 0.249 & 0.956 & \textbf{0.953} & 0.941 & \textbf{0.927} \\
+\magnet{} full-batch & 0.333 & 0.348 & 0.325 & 0.325 & 0.966 & 0.948 & 0.935 & 0.920 \\
+\magnet{} hybrid & 0.351 & \textbf{0.351} & 0.319 & 0.313 & 0.960 & 0.945 & 0.928 & 0.917 \\
+\bottomrule
+\end{tabular}

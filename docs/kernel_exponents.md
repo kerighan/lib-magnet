@@ -2,7 +2,7 @@
 
 MAGNET's SGD mode minimises the UMAP loss with the low-dimensional kernel `w(d) = 1 / (1 + a d^(2b))`.
 Since commit `1471e5c` the attraction and the repulsion use two different exponents (`kernel_b`, default
-0.6, and `repulsion_b`, default 1.0). This note derives why the two roles want different exponents, says
+0.6, and `repulsion_b`, default 1.0). This note argues why the two roles want different exponents (asymptotic arguments, stated with their assumptions and checked against measurement; the crowding argument gives a direction, not an optimum), says
 which parts of the derivation are checked and which are only consistent with the data, and records what
 the derivation gave back to the algorithm. Scripts: `benchmarks/theory/`.
 
@@ -99,6 +99,21 @@ b = 1), the clusters become compact and the local structure is squeezed; above m
 and the global arrangement is free, the t-SNE regime. Measured optima (fidelity): 1.0 in 2-D, 1.0-1.5 in
 3-D, 2-4 in 4-D, 3-4 in 6-D, the law m/2 within the flatness of the optimum.
 
+Where the law applies, measured on fixed layouts (`k13_tail_crossover.py`, 256 anchors against all
+points, every exponent evaluated on the same coordinates, octaves of d / d_kr with d_kr = a^(-1/2b_r)
+the crossover of the kernel, fit window a d^2b_r > 100 and d < R/2): at MAGNET's working scale no octave
+of a MNIST layout (2-D or 3-D) is in the window, so the asymptotic regime is simply not reached on the
+layout itself. Binned by the 1-NN distance, as an earlier version of this analysis did, the fitted
+octaves sit below the crossover, where the force is 2 b_r / d whatever b_r, and the slope comes out at
++0.1 to +0.2 for every exponent, which looked like a failure of the law and was a failure of the window.
+Rescaled by 16-64 (equivalent to shrinking a) the window opens to 4-5 octaves and the slope follows
+alpha - 1 - 2 b_r within 0.05, alpha being the occupancy exponent of the layout in the window (d log N /
+d log d): 1.6-1.7 for MNIST in 2-D and in 3-D alike (a clustered layout does not fill its space at those
+scales), 1.8 for a 2-D Gaussian cloud and 2.7 for a 3-D one (finite cloud). So the power counting is
+right, m must be read as alpha < m, and at the scale the optimiser works at there is no asymptotic
+window for the law to act in: it cannot fix the optimum by itself, consistent with the measured optima
+sitting at or above alpha/2 and m/2. Log: `k13_tail_crossover.log`; figure `paper/figures/tail_crossover.png`.
+
 What is checked and what is not. The per-octave *force* was measured on fixed clouds with the pure power
 law (`e1b_powerlaw.py`, 40k points, slopes of log2(force per octave) against the octave): it scales as
 `d^(m - 1 - 2 b_r)` (2-D, b_r = 0.5 / 1 / 1.5 / 2: measured +0.07 / -0.97 / -2.01 / -3.06 on a uniform
@@ -180,7 +195,7 @@ no far edge and at least two neighbours to L2 for the rest of the run, with no r
 | US airports graph | 0.333 | 0.344 | 0.297 | | | 0.344 | 0.339 |
 | SBM + chains | 0.449 | 0.484 | 0.532 | 0.571 | | **0.573** | 0.568 |
 
-The adaptive mode is never worse than its base exponent (within 0.002) and better where the data is
+The adaptive mode stays within 0.005 of its base exponent on homogeneous data (airports, base 0.6: 0.344 to 0.339) and better where the data is
 heterogeneous; the local-dimension mode is the better of the two when the low-dimensional regions are
 flat enough for the estimator (the synthetic mixtures, where it beats the 1.0 / 0.5 oracle) and useless
 when they are not (COIL-20) or when there is no data matrix (graphs). The minimum degree matters on
@@ -215,8 +230,9 @@ limit, a data set where every point would rather be at L2 and the mode only move
 
 ## 6. Two regimes in one layout (`loss="hybrid"`)
 
-The sampled optimiser gives the best global structure in the benchmark (MNIST 70k distance Spearman
-0.41) and the exact one the best local structure (15-NN kept 0.35); each is mediocre on the other
+The sampled optimiser gives the best global structure among the neighbour embeddings of the benchmark
+(MNIST 70k distance Spearman 0.41; PCA to 2-D reaches 0.488 on that metric, 0.873 on Fashion-MNIST,
+`benchmarks/baselines_linear.py`) and the exact one the best local structure (15-NN kept 0.35); each is mediocre on the other
 axis (0.19 and 0.34). Can one loss fade from one regime to the other? What was tried (`k1`-`k7`, MNIST
 70k unless said otherwise):
 
@@ -282,7 +298,7 @@ of the hybrid stays SGD plus exact. On the other data sets (`k9`, hybrid at `mid
 default is `mid_weight=0.5` (the SGD mode keeps 0.1; the constructor default is None, resolved per
 mode, the value used is in `mid_weight_`).
 
-The knobs of the exact pass move the result by at most the seed noise, or hurt (`mid_weight=1.0`
+The knobs of the exact pass buy at most 0.005 of 15-NN and 0.015 of Spearman for 5-6 s more, or hurt (`mid_weight=1.0`
 SGD pass; 15-NN / Spearman / time): scale 22: 0.344 / 0.443 / 8.9 s; scale 40: 0.356 / 0.459 /
 16.2 s; lr n/24: 0.346 / 0.458; lr n/6: 0.356 / 0.446; 450 iterations: 0.357 / 0.443 / 17.0 s;
 dof 0.8: 0.343 / 0.447; exaggeration 1.2: 0.343 / 0.448. Scale 40 and 450 iterations buy 0.005 of
@@ -318,13 +334,14 @@ exact mode's 600. What buys time:
   grid because it refines an existing structure.
 * SGD mode: nothing dominates. The attraction's `pow` costs 0.25 s (b = 1 runs in 3.72 s against 3.97),
   three negatives instead of five 0.27 s, the mid-range term 0.4 s, 200 epochs instead of 300 0.7 s;
-  10 threads are slower than 20 (4.37 s, hyper-threading pays). The loop is at about 70 cycles per
-  force evaluation (2.6 G evaluations in 2.9 s on 20 threads); a fast `pow` and a cheaper RNG would
+  10 threads are slower than 20 (4.37 s, hyper-threading pays). The loop is at about 39 core-cycles per
+  force evaluation at the 3.5 GHz base clock (2.6 G evaluations in 2.9 s on 10 physical cores; the
+  earlier figure of 70 counted the 20 hyper-threads as cores), against 47 on one thread (`k11`); a fast `pow` and a cheaper RNG would
   give 10-20 %, not a factor.
 
 ## Scripts (`benchmarks/theory/`)
 
-`e1_force_spectrum.py` (per-octave repulsive force on MAGNET's own embeddings), `e1b_powerlaw.py`
+`e1_force_spectrum.py` (per-octave repulsive force on MAGNET's own embeddings), `k13_tail_crossover.py` (the same binned by the kernel crossover, with the shell-count-adjusted prediction), `e1b_powerlaw.py`
 (pure power law on smooth clouds; `e1b.log`), `e2_contamination.py` (edge-distance distribution per
 data set), `e3_huber.py` (needs the research build with the Huber kernel; the C++ and Python patch is
 described in the script's docstring), `e4_oracle_local.py`, `e5_law.py`, `e6_estimator.py`,

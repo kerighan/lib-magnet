@@ -1,0 +1,81 @@
+  o = np.clip(np.floor(x).astype(int) - lo, 0, nb - 1); o[self_mask] = 0
+  xo = np.log2(Ds / d1_s); oo = np.clip(np.floor(xo).astype(int) + 6, 0, 39); oo[self_mask] = 0
+  o = np.clip(np.floor(x).astype(int) - lo, 0, nb - 1); o[self_mask] = 0
+  xo = np.log2(Ds / d1_s); oo = np.clip(np.floor(xo).astype(int) + 6, 0, 39); oo[self_mask] = 0
+  o = np.clip(np.floor(x).astype(int) - lo, 0, nb - 1); o[self_mask] = 0
+  xo = np.log2(Ds / d1_s); oo = np.clip(np.floor(xo).astype(int) + 6, 0, 39); oo[self_mask] = 0
+  o = np.clip(np.floor(x).astype(int) - lo, 0, nb - 1); o[self_mask] = 0
+  xo = np.log2(Ds / d1_s); oo = np.clip(np.floor(xo).astype(int) + 6, 0, 39); oo[self_mask] = 0
+== MNIST 20k 2-D (defaults)  m=2 n=20000  R/d1=2^9.3  (window: a d^2br > 100, d < R/2, >= 20 pairs/anchor/octave)
+  s  b_r     a   window log2(d/dkr) oct  theory adj.pred meas.mag meas.net  alpha old(d/d1 oct1-5)
+  1  0.5  1.80                 none   0   +0.00     +nan     +nan     +nan   +nan            +0.08
+  1  1.0  1.74                 none   0   -1.00     +nan     +nan     +nan   +nan            +0.15
+  1  1.5  1.78                 none   0   -2.00     +nan     +nan     +nan   +nan            +0.20
+  1  2.0  1.96                 none   0   -3.00     +nan     +nan     +nan   +nan            +0.23
+  4  0.5  1.80                 none   0   +0.00     +nan     +nan     +nan   +nan            -0.20
+  4  1.0  1.74                 none   0   -1.00     +nan     +nan     +nan   +nan            -0.53
+  4  1.5  1.78              [+3,+4]   1   -2.00     +nan     +nan     +nan   +nan            -0.80
+  4  2.0  1.96              [+2,+4]   2   -3.00    -3.29    -3.40    -3.75  +1.71            -1.08
+ 16  0.5  1.80                 none   0   +0.00     +nan     +nan     +nan   +nan            -0.47
+ 16  1.0  1.74              [+4,+6]   2   -1.00    -1.34    -1.42    -1.77  +1.65            -1.36
+ 16  1.5  1.78              [+3,+6]   3   -2.00    -2.37    -2.38    -2.51  +1.63            -2.24
+ 16  2.0  1.96              [+2,+6]   4   -3.00    -3.34    -3.38    -3.48  +1.65            -3.12
+ 64  0.5  1.80              [+7,+8]   1   +0.00     +nan     +nan     +nan   +nan            -0.62
+ 64  1.0  1.74              [+4,+8]   4   -1.00    -1.34    -1.37    -1.47  +1.65            -1.66
+ 64  1.5  1.78              [+3,+8]   5   -2.00    -2.42    -2.46    -2.58  +1.58            -2.68
+ 64  2.0  1.96              [+3,+8]   5   -3.00    -3.41    -3.46    -3.58  +1.59            -3.70
+== MNIST 20k 3-D (defaults)  m=3 n=20000  R/d1=2^8.2  (window: a d^2br > 100, d < R/2, >= 20 pairs/anchor/octave)
+  s  b_r     a   window log2(d/dkr) oct  theory adj.pred meas.mag meas.net  alpha old(d/d1 oct1-5)
+  1  0.5  1.80                 none   0   +1.00     +nan     +nan     +nan   +nan            +0.20
+  1  1.0  1.74                 none   0   +0.00     +nan     +nan     +nan   +nan            +0.19
+  1  1.5  1.78                 none   0   -1.00     +nan     +nan     +nan   +nan            +0.21
+  1  2.0  1.96                 none   0   -2.00     +nan     +nan     +nan   +nan            +0.21
+  4  0.5  1.80                 none   0   +1.00     +nan     +nan     +nan   +nan            -0.10
+  4  1.0  1.74                 none   0   +0.00     +nan     +nan     +nan   +nan            -0.64
+  4  1.5  1.78                 none   0   -1.00     +nan     +nan     +nan   +nan            -1.14
+  4  2.0  1.96              [+2,+3]   1   -2.00     +nan     +nan     +nan   +nan            -1.64
+ 16  0.5  1.80                 none   0   +1.00     +nan     +nan     +nan   +nan            -0.33
+ 16  1.0  1.74              [+4,+6]   2   +0.00    -1.58    -1.62    -1.52  +1.42            -1.32
+ 16  1.5  1.78              [+3,+5]   2   -1.00    -2.33    -2.18    -2.03  +1.67            -2.31
+ 16  2.0  1.96              [+2,+5]   3   -2.00    -3.18    -3.18    -3.21  +1.82            -3.30
+ 64  0.5  1.80              [+7,+8]   1   +1.00     +nan     +nan     +nan   +nan            -0.44
+ 64  1.0  1.74              [+4,+8]   4   +0.00    -1.30    -1.31    -1.28  +1.70            -1.48
+ 64  1.5  1.78              [+3,+7]   4   -1.00    -2.31    -2.34    -2.41  +1.69            -2.49
+ 64  2.0  1.96              [+3,+7]   4   -2.00    -3.30    -3.34    -3.40  +1.70            -3.50
+== Gaussian cloud 2-D  m=2 n=20000  R/d1=2^8.6  (window: a d^2br > 100, d < R/2, >= 20 pairs/anchor/octave)
+  s  b_r     a   window log2(d/dkr) oct  theory adj.pred meas.mag meas.net  alpha old(d/d1 oct1-5)
+  1  0.5  1.80                 none   0   +0.00     +nan     +nan     +nan   +nan            +0.52
+  1  1.0  1.74                 none   0   -1.00     +nan     +nan     +nan   +nan            +0.34
+  1  1.5  1.78                 none   0   -2.00     +nan     +nan     +nan   +nan            +0.21
+  1  2.0  1.96              [+2,+3]   1   -3.00     +nan     +nan     +nan   +nan            +0.07
+  4  0.5  1.80                 none   0   +0.00     +nan     +nan     +nan   +nan            +0.23
+  4  1.0  1.74              [+4,+5]   1   -1.00     +nan     +nan     +nan   +nan            -0.53
+  4  1.5  1.78              [+3,+5]   2   -2.00    -2.75    -2.56    -1.70  +1.25            -1.28
+  4  2.0  1.96              [+2,+5]   3   -3.00    -3.50    -3.34    -2.45  +1.50            -2.03
+ 16  0.5  1.80                 none   0   +0.00     +nan     +nan     +nan   +nan            +0.06
+ 16  1.0  1.74              [+4,+7]   3   -1.00    -1.40    -1.32    -0.41  +1.59            -0.97
+ 16  1.5  1.78              [+3,+7]   4   -2.00    -2.32    -2.24    -1.40  +1.68            -1.98
+ 16  2.0  1.96              [+2,+7]   5   -3.00    -3.24    -3.16    -2.61  +1.76            -3.00
+ 64  0.5  1.80              [+7,+9]   2   +0.00    -0.35    -0.30    +0.62  +1.64            -0.01
+ 64  1.0  1.74              [+4,+9]   5   -1.00    -1.19    -1.15    -0.56  +1.80            -1.03
+ 64  1.5  1.78              [+4,+9]   5   -2.00    -2.23    -2.17    -1.58  +1.77            -2.03
+ 64  2.0  1.96              [+4,+9]   5   -3.00    -3.24    -3.16    -2.61  +1.76            -3.03
+== Gaussian cloud 3-D  m=3 n=20000  R/d1=2^5.9  (window: a d^2br > 100, d < R/2, >= 20 pairs/anchor/octave)
+  s  b_r     a   window log2(d/dkr) oct  theory adj.pred meas.mag meas.net  alpha old(d/d1 oct1-5)
+  1  0.5  1.80                 none   0   +1.00     +nan     +nan     +nan   +nan            +0.24
+  1  1.0  1.74                 none   0   +0.00     +nan     +nan     +nan   +nan            -0.61
+  1  1.5  1.78                 none   0   -1.00     +nan     +nan     +nan   +nan            -1.47
+  1  2.0  1.96              [+2,+3]   1   -2.00     +nan     +nan     +nan   +nan            -2.34
+  4  0.5  1.80                 none   0   +1.00     +nan     +nan     +nan   +nan            +0.11
+  4  1.0  1.74              [+4,+5]   1   +0.00     +nan     +nan     +nan   +nan            -0.86
+  4  1.5  1.78              [+3,+5]   2   -1.00    -1.80    -1.59    -0.78  +2.20            -1.82
+  4  2.0  1.96              [+2,+5]   3   -2.00    -2.52    -2.36    -1.57  +2.47            -2.78
+ 16  0.5  1.80                 none   0   +1.00     +nan     +nan     +nan   +nan            +0.07
+ 16  1.0  1.74              [+4,+7]   3   +0.00    -0.42    -0.34    +0.47  +2.57            -0.88
+ 16  1.5  1.78              [+3,+7]   4   -1.00    -1.34    -1.25    -0.79  +2.66            -1.83
+ 16  2.0  1.96              [+3,+7]   4   -2.00    -2.36    -2.24    -1.82  +2.64            -2.78
+ 64  0.5  1.80              [+7,+9]   2   +1.00    +0.63    +0.68    +1.56  +2.63            +0.06
+ 64  1.0  1.74              [+5,+9]   4   +0.00    -0.29    -0.23    +0.22  +2.71            -0.88
+ 64  1.5  1.78              [+5,+9]   4   -1.00    -1.34    -1.25    -0.79  +2.66            -1.83
+ 64  2.0  1.96              [+5,+9]   4   -2.00    -2.36    -2.24    -1.82  +2.64            -2.78
+saved /home/maixent/Reputation Squad Dropbox/Maixent Chenebaux/DATAPROJECTS/lib/cmagnet/benchmarks/theory/k13_tail_crossover.json

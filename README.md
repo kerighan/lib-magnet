@@ -10,7 +10,7 @@ repulsion is estimated.
 * `loss="umap"` (default): negative sampling, lock-free multithreaded SGD. **MNIST 70k in 4.4 s**
   against 11 s for UMAP 0.5.12, 15-NN preservation 0.19 against 0.12 and a distance correlation of 0.41
   against 0.30: the best global structure of the seven methods benchmarked.
-* `loss="tsne"`: exact repulsion over all pairs through FFT interpolation. **MNIST 70k in 9 s**
+* `loss="tsne"`: repulsion over all pairs through FFT interpolation ("exact" below is shorthand for all pairs, not for an exact gradient: the interpolation is accurate to its grid). **MNIST 70k in 9 s**
   against 102 s for openTSNE and 196 s for scikit-learn's t-SNE, with the same neighbourhood
   preservation as those two, three times that of UMAP in less time.
 * 1M points in 44 s and 3.3 GB. Native NN-descent (1.2 s for 70k x 784), spectral initialisation by
@@ -234,8 +234,7 @@ sits below the CPU t-SNEs on neighbourhood preservation.
 keeps the global lead there; the global column of that set moves by 0.02 between seeds); blobs
 0.124 / 0.684 (t-SNE 0.114 / 0.381, SGD 0.067 / 0.690). The exact pass refines the SGD layout, it
 does not repair one: the SGD pass must run its full schedule (100 epochs: 15-NN 0.276), and the knobs
-of the exact pass (scale, learning rate, iterations, dof, exaggeration) move the result by at most
-the seed noise (`docs/kernel_exponents.md`, section 6.1). The time of the hybrid is the exact pass's
+of the exact pass (scale, learning rate, iterations, dof, exaggeration) buy at most 0.005 of 15-NN and 0.015 of Spearman for 5-6 s more, or hurt (`docs/kernel_exponents.md`, section 6.1). The time of the hybrid is the exact pass's
 repulsion (8 of its 9 s on MNIST: the FFT grid is set by the layout's extent, 162 boxes from the first
 iteration). Two presets trade a little local structure for it: `fft_box=1.5` (MNIST 8.5 s, 15-NN
 0.350; Fashion-MNIST 8.1 s, 0.323) and `hybrid_iter=150, tsne_learning_rate=n/6` (6.4 s, 0.344);
@@ -285,6 +284,19 @@ of the true neighbours (61 % at best among 60 candidates): text neighbourhoods h
 rare terms that any projection flattens. Buying recall with more internal neighbours (45: 0.89,
 60: 0.89) changes nothing on the layout (15-NN kept 0.240 in every case), so the default stays at 30
 (`benchmarks/theory/k12_sparse_knn.py`).
+
+**Linear reference.** PCA (or truncated SVD) to 2-D, scored with the same metrics and subsamples
+(`benchmarks/baselines_linear.py`): distance Spearman 0.488 on MNIST, 0.873 on Fashion-MNIST, 0.319 on
+20 newsgroups, 0.588 on the blobs, with 15-NN kept at 0.01-0.03. Every neighbour embedding in the tables
+is below PCA on that global metric on the three real data sets and above it only on the blobs; "best
+global structure" above means best among neighbour embeddings.
+
+**Neighbourhood scale.** On the six MNIST layouts of the figure, kNN preservation at k = 5 / 15 / 50 / 100
+(`benchmarks/extra_metrics.py`): hybrid 0.351 / 0.351 / 0.319 / 0.313, full-batch 0.333 / 0.348 / 0.325 /
+0.325, openTSNE 0.375 / 0.348 / 0.327 / 0.329, SGD 0.159 / 0.193 / 0.219 / 0.249, UMAP 0.071 / 0.117 /
+0.176 / 0.226, PaCMAP 0.052 / 0.094 / 0.158 / 0.211. The hybrid leads at k = 5-15, openTSNE at k = 50-100.
+Continuity (trustworthiness with the two spaces swapped) is 0.944-0.953 for every method at k = 15, the
+SGD mode's 0.953 the highest.
 
 **Timing protocol.** Every method runs with its defaults and all cores; UMAP and densMAP run without
 `random_state` (setting it makes their layout single-threaded: 49 s instead of 10 s on MNIST), MAGNET
