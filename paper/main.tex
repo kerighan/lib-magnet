@@ -38,8 +38,12 @@ difference of 0.10 on both. The shipped operating point reaches 0.353 / 0.455 an
 specific: the local advantage holds at the graph's own neighbourhood size and not at $k = 5$ or
 $k \ge 50$, the stiff attraction makes the class-centroid geometry of MNIST the worst and most variable
 among the methods with centroid measurements, PCA stays ahead of every neighbour embedding on pairwise Spearman on the real data sets,
-and on 20 newsgroups the sequence trails six methods including our own full-batch mode. The sampled
-mode is the fastest CPU method on the twelve-method panel on the four tabulated data sets.
+and on 20 newsgroups the sequence trails six methods including our own full-batch mode. With every setting frozen, the recipe transfers to five held-out cases (covertype at 20k--250k,
+letter, RCV1): the pass equalises 15-NN across starts and our start keeps the highest pairwise Spearman
+on all five, by 0.07--0.13 over the stiffened PaCMAP start, with two caveats, PCA-2 refined by the same
+pass wins on a nearly linear data set and the weaker stiffness $\kappa = 0.1$ transfers better than the
+shipped 0.5. The sampled mode is the fastest CPU method on the twelve-method panel on the four tabulated
+data sets.
 \end{abstract}
 
 \section{Introduction}
@@ -69,7 +73,8 @@ The contributions, with their scope stated:
   from the start. Removing the mid-range attraction removes the first stage's Spearman advantage. A
   repeated tuned-start comparison (\magnet{} and PaCMAP starts, weak and stiff mid-range attraction,
   five runs each) tests whether the start matters beyond that attraction's presence; it does, by 0.10
-  of Spearman on both image sets, for the configurations measured.
+  of Spearman on both image sets, for the configurations measured. A frozen-rule transfer study on
+  five held-out cases (Sec.~\ref{sec:transfer}) reproduces the pattern without retuning.
 \item \textbf{A fast implementation with audited protocols} (Sec.~\ref{sec:exp}): MNIST 70k in 3.6~s for
   the sampled mode, 8~s for the full-batch mode, 11~s for the sequence, against 8~s for UMAP and 94~s
   for openTSNE on an idle 20-thread machine. The baselines' timings are audited (numba warm-up, UMAP's
@@ -533,6 +538,42 @@ its main-phase iteration takes 0.15~s where ours takes 0.015~s at a different la
 schedule (600 iterations against 750). We do not claim a controlled per-component speed-up; the
 end-to-end comparison at defaults is the claim.
 
+\subsection{Frozen-rule transfer to held-out data}\label{sec:transfer}
+Everything above was developed on MNIST and Fashion-MNIST. Table~\ref{tab:transfer}
+(\texttt{k27\_transfer.py}) applies the recipe with every setting frozen ($\kappa = 0.5$, hand-over
+scale $31\sqrt{n/70000}$, 300 iterations, no exaggeration, default grid; PaCMAP's stiff setting frozen
+at \texttt{MN\_ratio} 4; UMAP, PaCMAP and PCA-2 at their defaults; the same pass on \magnet{}'s graph
+for every start) to data never used in development: covertype (UCI, 54 standardised features, 7
+classes) at 20k, 70k and 250k points, letter (UCI, 16 features, 26 classes, 20k) and RCV1 (TF-IDF to
+SVD-300, L2-normalised rows, cosine, 70k, labels not used). Three runs at 20k and 70k, two on RCV1, one
+at 250k; standalone openTSNE and our full-batch mode as references; 8 threads on a shared machine.
+
+The pattern transfers without retuning. The pass equalises 15-NN across starts on every data set
+(0.62 on covertype at every size, 0.62--0.63 on letter, 0.48--0.50 on RCV1), and the start with the
+highest pairwise Spearman after it is \magnet{}'s on all five cases, ahead of the stiff PaCMAP start by
+0.13 / 0.07 / 0.11 / 0.08 / 0.10 (covertype 20k / letter / covertype 70k / RCV1 / covertype 250k), of
+UMAP by 0.16--0.38 and of standalone openTSNE by 0.28 / 0.13 / 0.25 / 0.03 (RCV1, where the text
+pattern of 20 newsgroups does not recur). The exceptions and the surprises: on letter, a nearly linear
+data set (PCA-2 alone has Spearman 0.716), PCA-2 refined by the same pass scores 0.629 against 0.580 and
+is the better global start, as it was on Fashion-MNIST; and the stiffness $\kappa = 0.1$, our default
+for the sampled mode, does as well as or better than the frozen $\kappa = 0.5$ on every held-out set
+(Spearman 0.545 / 0.582 / 0.572 / 0.387 / 0.557 against 0.548 / 0.580 / 0.562 / 0.408 / 0.530) and far
+better on the centroids of covertype (0.76 / 0.87 / 0.82 against 0.70 / 0.42 / 0.63). The 0.04 that
+$\kappa = 0.5$ gains over 0.1 on MNIST is a property of MNIST; the stiffness that transfers is the
+weaker one, and the choice of 0.5 for the shipped hybrid is not supported outside the image sets. The
+hand-over rule holds at 250k (15-NN 0.63 at scale 59), where the whole sequence takes 40~s against
+107~s for UMAP and 146--265~s for PaCMAP at 8 threads.
+
+\begin{table}[t]
+\centering\small
+\caption{Frozen-rule transfer to held-out data (\texttt{k27\_transfer.py}, 8 threads, shared machine;
+nothing tuned on these data). Each start goes through the same pass; Spearman before the pass, then
+15-NN, Spearman and centroid Spearman after it (means over runs, $\pm$ standard deviation when more
+than one); references without a start. RCV1 has no labels in this protocol.}
+\label{tab:transfer}
+\resizebox{\textwidth}{!}{\input{tables/transfer.tex}}
+\end{table}
+
 \subsection{Where the global score comes from}\label{sec:global}
 \paragraph{Linear reference.} PCA (truncated SVD on text) to 2-D, scored with the same metrics and
 samples (\texttt{baselines\_linear.py}), reaches a distance Spearman of 0.488 on MNIST, 0.873 on
@@ -646,8 +687,11 @@ Sec.~\ref{sec:theory} varies the two independently. FIt-SNE \citep{linderman2019
 repulsion estimator of our full-batch mode; openTSNE is its reference implementation on the panel.
 
 \section{Limitations}
-The result is for two image data sets at 70k points; on text the sequence trails Barnes--Hut $t$-SNE on
-pairwise Spearman and the hand-over rule has not been validated at other sizes. The staged baselines of
+The recipe was developed on two image data sets at 70k points and transfers to five held-out cases
+with its settings frozen (Sec.~\ref{sec:transfer}), with the hand-over rule holding at 20k--250k; but
+the stiffness 0.5 of the shipped hybrid is an MNIST choice (0.1 transfers at least as well), on 20
+newsgroups the sequence trails Barnes--Hut $t$-SNE and five other methods on pairwise Spearman, and on
+nearly linear data PCA-2 refined by the same pass is the better global start. The staged baselines of
 Table~\ref{tab:staged} are single runs; the repeated tuned-start comparison repeats its decisive rows.
 The start's Spearman continues to drift through 3000 iterations of the pass; convergence and the
 limiting value are unknown (Sec.~\ref{sec:persist}). PCA keeps the lead on pairwise
@@ -670,7 +714,8 @@ full-batch mode's 15-NN preservation and most of the first stage's pairwise-dist
 refinement does the same to the tested neighbour-embedding starts, and openTSNE's optimiser returns
 nearly the same fidelity scores from the same affinities; the pairwise Spearman after it is predominantly inherited from the start, and in
 this pipeline adding the mid-range attraction is what supplies the start's advantage. The price is paid
-in class-centroid geometry and at neighbourhood sizes other than the graph's. The implementation runs
+in class-centroid geometry and at neighbourhood sizes other than the graph's. With its settings frozen
+the recipe transfers to held-out tabular and text data at 20k--250k points. The implementation runs
 the whole sequence in 1.3 times the time of a UMAP layout.
 
 \appendix

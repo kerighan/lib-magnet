@@ -522,6 +522,28 @@ while raising the centroids (0.68): the spring's arrangement is the one the pair
   0.359. The scale is the operative hand-over condition; exaggeration costs 0.006 of 15-NN at the matched
   scale and a further 0.06 of Spearman at the tiny one.
 
+* Lead from k22: the conditional KL with the block masses floored at 0.1 / B^2 (then renormalised) and the MDS
+  stress at ratio 1 reaches 0.354 / 0.514 / centroids 0.683 at 600 iterations on the 5k subset against 0.449 /
+  0.435 / 0.499 for the plain KL (without the stress: 0.400 / 0.491 / 0.586): a large move of both global columns
+  for a large local loss; the floor was not tuned. Not pursued.
+
+### 6.8 Frozen-rule transfer to held-out data (`k27_transfer.py`, table `k27_table.py`)
+
+Nothing tuned on these data: kappa 0.5, hand-over 31 sqrt(n/70000), 300 iterations, PaCMAP stiff MN_ratio 4,
+UMAP / PaCMAP / PCA-2 at defaults, same pass on MAGNET's graph. covertype (UCI, 54 z-scored features) at
+20k / 70k / 250k, letter (UCI, 16 features, 20k), RCV1 (TF-IDF -> SVD-300, L2 rows, cosine, 70k, no labels).
+Spearman after the pass (MAGNET kappa 0.5 / kappa 0.1 / PaCMAP stiff / PaCMAP default / UMAP / PCA-2 /
+openTSNE standalone): covertype 20k 0.548 / 0.545 / 0.416 / 0.375 / 0.326 / 0.293 / 0.265; letter 0.580 /
+0.582 / 0.507 / 0.485 / 0.199 / 0.629 / 0.455; covertype 70k 0.562 / 0.572 / 0.453 / 0.388 / 0.339 / 0.353 /
+0.298; RCV1 0.408 / 0.387 / 0.329 / 0.343 / 0.246 / 0.322 / 0.382; covertype 250k 0.530 / 0.557 / 0.433 /
+0.377 / 0.271 / 0.393 / (not run). 15-NN after the pass is equalised (0.62-0.64 covertype, 0.60-0.63 letter,
+0.48-0.50 RCV1; PCA-2 0.01-0.03 below). The pattern transfers: MAGNET's start keeps the highest Spearman among
+neighbour-embedding starts on all five cases, by 0.07-0.13 over the stiffened PaCMAP. Two caveats: PCA-2 ->
+pass wins on letter (nearly linear data: PCA alone 0.716), and kappa 0.1 is as good as or better than 0.5
+everywhere here and far better on covertype's centroids (0.76 / 0.87 / 0.82 against 0.70 / 0.42 / 0.63): the
+0.5 of the shipped hybrid is an MNIST choice. At 250k the hybrid takes 40 s (8 threads) against 107 s for UMAP
+and 146-265 s for PaCMAP; the hand-over rule holds (15-NN 0.63 at scale 59).
+
 ## Scripts (`benchmarks/theory/`)
 
 `e1_force_spectrum.py` (per-octave repulsive force on MAGNET's own embeddings), `k13_tail_crossover.py` (the same binned by the kernel crossover, with the shell-count-adjusted prediction), `e1b_powerlaw.py`

@@ -395,6 +395,15 @@ the arrangement (tiny init: -0.04 Spearman, -0.02 15-NN), early exaggeration cos
 matched scale. Negative results on the same page of the docs (section 6.7): conditional KL by blocks,
 metric budgets, mid-near heat flow in place of the spring.
 
+**Frozen-rule transfer** (`benchmarks/theory/k27_transfer.py`, docs section 6.8). With every setting frozen
+(spring 0.5, scale 31 sqrt(n/70000), 300 iterations, PaCMAP's stiff MN_ratio 4), on data never used in
+development (covertype 20k / 70k / 250k, letter 20k, RCV1 70k text): the pass equalises 15-NN across starts
+and MAGNET's start keeps the highest pairwise Spearman on all five cases, 0.07-0.13 above the stiffened
+PaCMAP start, 0.16-0.38 above UMAP, 0.03-0.28 above standalone openTSNE. Caveats: PCA-2 refined by the
+same pass wins on letter (nearly linear data), and spring 0.1 transfers at least as well as 0.5 (and much
+better on covertype's class centroids): the hybrid's 0.5 is an MNIST choice. At 250k the sequence takes
+40 s at 8 threads (UMAP 107 s, PaCMAP 146-265 s).
+
 **Timing protocol.** Every method runs with its defaults and all cores; UMAP and densMAP run without
 `random_state` (setting it makes their layout single-threaded: 49 s instead of 10 s on MNIST), MAGNET
 with a seed (its threads do not depend on it). The numba methods are warmed up before the clock on
