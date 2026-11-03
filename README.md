@@ -387,6 +387,14 @@ stress on the barycentres of 64 label-free cells does the same at no local cost 
 and with input-derived targets (2-D MDS of the cells' means) lifts the centroid Spearman by 0.06-0.10 for
 0.007-0.013 of 15-NN. In the SGD stage the same scaffold destroys the spring's pairwise Spearman.
 
+**Two controls** (`benchmarks/theory/k26_backend_control.py`). Given the same affinity matrix, start, scale
+and budget, openTSNE's optimiser and MAGNET's pass return the same layout to within 0.001 on every metric
+(5 starts, MNIST and Fashion-MNIST), MAGNET's in 7 s against 36 s: the pass is the objective and the
+hand-over, not the implementation. Scale x exaggeration from one start: the hand-over scale is what keeps
+the arrangement (tiny init: -0.04 Spearman, -0.02 15-NN), early exaggeration costs 0.006 of 15-NN at the
+matched scale. Negative results on the same page of the docs (section 6.7): conditional KL by blocks,
+metric budgets, mid-near heat flow in place of the spring.
+
 **Timing protocol.** Every method runs with its defaults and all cores; UMAP and densMAP run without
 `random_state` (setting it makes their layout single-threaded: 49 s instead of 10 s on MNIST), MAGNET
 with a seed (its threads do not depend on it). The numba methods are warmed up before the clock on

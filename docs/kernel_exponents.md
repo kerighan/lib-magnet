@@ -369,12 +369,14 @@ from? The same pass (300 full-batch iterations, no early exaggeration, no mid sp
 | MAGNET SGD, mid 0.5 (= hybrid) | 0.193 -> 0.329 | 0.774 -> 0.753 | 0.958 -> 0.931 |
 | MAGNET SGD, default | 0.203 -> 0.328 | 0.729 -> 0.716 | 0.939 -> 0.908 |
 
-Three facts. (i) The pass is generic: every neighbour-embedding start lands at 0.353-0.356 of 15-NN on
-MNIST and 0.327-0.330 on Fashion-MNIST, the full-batch mode's own level, in 8-13 s. (ii) It keeps the
-start's global structure: the Spearman moves by -0.02 to +0.03 (it even rises for UMAP and PaCMAP on
-Fashion-MNIST), and the centroid arrangement by -0.07 to +0.01. The global column after the pass is the
-global column of the start. (iii) It refines, it does not repair: PCA-2 reaches 0.315 only and loses
-0.07-0.09 of Spearman, a random start reaches 0.065. So the hybrid's lead on both axes decomposes into a
+Three facts (single runs; the seeded version is in 6.5). (i) The pass brings every neighbour-embedding
+start to 0.353-0.356 of 15-NN on MNIST and 0.327-0.330 on Fashion-MNIST, competitive with or slightly
+above the standalone full-batch mode (0.347 / 0.323), in 8-13 s. (ii) The Spearman moves by -0.023 to
++0.035 (it rises for UMAP and PaCMAP, falls for our stiff starts): the large differences between starts
+persist (two rank reversals among starts within 0.01 of each other) and the column after the pass is
+predominantly inherited from the start; on MNIST the centroid arrangement moves by -0.07 to +0.01.
+(iii) 300 iterations do not rebuild the neighbourhoods of a start that has none: PCA-2 reaches 0.315
+and loses 0.07-0.09 of Spearman, a random start 0.065 (a limitation of this schedule, not of refinement). So the hybrid's lead on both axes decomposes into a
 general recipe (a short full-batch pass at the right scale, without exaggeration, on top of any layout
 that already has neighbourhoods) and a specific start: MAGNET's SGD layout with a stiff mid spring has
 the best global structure among the neighbour embeddings (0.459 / 0.774 against UMAP 0.296 / 0.572,
@@ -413,10 +415,11 @@ iterations is the one setting that keeps the whole Spearman of the SGD layout (0
 knob). The mid spring is confirmed fatal in the pass (0.04-0.24 of 15-NN), the learning rate and the dof
 buy nothing. On the centroids: here the pass leaves them where the SGD put them (0.594 -> 0.596, and
 0.586-0.600 under every sane variant), and the three starts of the staged table move by -0.07 to +0.01.
-The 0.421 of the strata table is the hybrid layout of the figure, one run; the SGD start itself lands at
-0.52-0.59 of centroid Spearman from one Hogwild run to the next with the same seed (0.524 in
-`staged_baselines`, 0.594 here), and that metric is a rank correlation over 45 pairs, so a single layout
-says little about it. The seed table (`benchmarks/seeds.py`) carries the dispersion.
+The 0.421 of the strata table is the hybrid layout of the figure, one run; the stiff SGD start itself
+lands at 0.52-0.59 of centroid Spearman from one Hogwild run to the next with the same seed (0.524 in
+`staged_baselines`, 0.594 here). The statistic is deterministic given a layout; its run-to-run variation
+(0.47 ± 0.16 after the pass over 5 runs, section 6.5) is a property of the stiff first stage, not
+measurement noise. The seed table (`benchmarks/seeds.py`) carries the dispersion.
 
 ### 6.5 The 2 x 2 with seeds, persistence, and the FFT's accuracy (`benchmarks/staged_seeds.py`, `k15`, `k16`)
 
@@ -492,6 +495,31 @@ means (the raw 784-d distances are not realisable in 2-D): centroid Spearman of 
 the SGD stage as rigid cell translations between segments (`k21_scaffold_sgd.py`, through the new
 `epoch_callback` research hook of `_optimize`) destroys the spring's pairwise Spearman (0.47 -> 0.31-0.33)
 while raising the centroids (0.68): the spring's arrangement is the one the pairwise metric rewards.
+
+### 6.7 The ideas that did not work, and two controls (`k22`-`k26`)
+
+* Conditional KL by blocks (`k22_conditional_kl.py`, idea 8, exact pilot on a 5k MNIST subset, B = 16 cells):
+  keeping only sum_b P_b KL(P(.|b) || Q(.|b)) and replacing the block-mass term by a coarse stress loses the
+  local structure (15-NN 0.267 against 0.449 for the plain KL at 600 iterations) and the Spearman (0.395
+  against 0.435); 32 of the 256 blocks have zero mass and no repulsion. Negative as implemented.
+* Coarse-metric budget (`k23_metric_budget.py`, idea 4): a constraint G <= eps^2 on the start's coarse
+  distances (tangent projection + normal correction) holds the Spearman at the start's value through 1000
+  iterations for eps = 2-10 % RMS at the same 15-NN cost as the frozen coordinates (0.346-0.351 against
+  0.366 unconstrained). Same trade as the projection and the penalty: no net gain.
+* Implicit / explicit mid-near heat flow instead of the spring (`k25_implicit_spring.py`, idea 2): SGD without
+  the spring plus (I + tau L_mid)^-1 steps between segments reaches 0.37-0.38 of Spearman before the pass
+  (spring 0.5: 0.47) and 0.39-0.40 after (0.46); the explicit step diverges at tau >= 1. The spring's effect
+  is not graph diffusion. The implicit variant does give good centroids (0.65-0.68 against 0.42-0.50).
+* Common-affinity backend control (`k26_backend_control.py`): same P (through openTSNE's
+  PrecomputedAffinities), same start, scale, learning rate, momentum, 300 iterations, 20 threads, 5 stiff
+  starts per data set: openTSNE's optimiser and ours return the same layout (paired 15-NN difference
+  -0.0009 ± 0.0002 MNIST, -0.0003 ± 0.0006 Fashion; Spearman +0.0009 ± 0.0004 / +0.0001 ± 0.0001), ours
+  in 6.4-7.5 s against 33-39 s. The earlier gap (openTSNE 0.346 / 0.428 against 0.356 / 0.442) was its
+  perplexity-30 affinities.
+* Scale x exaggeration from one cached stiff start (`k26`): scale 31 / exaggeration 1: 0.352 / 0.458;
+  31 / 12 (first 100 of 300 iterations): 0.346 / 0.462; tiny 1e-4 / 1: 0.333 / 0.417; tiny / 12: 0.295 /
+  0.359. The scale is the operative hand-over condition; exaggeration costs 0.006 of 15-NN at the matched
+  scale and a further 0.06 of Spearman at the tiny one.
 
 ## Scripts (`benchmarks/theory/`)
 
