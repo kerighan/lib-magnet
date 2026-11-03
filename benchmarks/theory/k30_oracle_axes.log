@@ -1,0 +1,43 @@
+
+mnist: panel best knn15 0.352 sp 0.488 ari 0.914
+layout                transform                     knn15     sp    ari    geo   min
+hybrid                identity                      0.351  0.461  0.509  0.807  0.56
+hybrid                contract 0.8                  0.344  0.455  0.582  0.834  0.64
+hybrid                contract 0.6                  0.341  0.440  0.704  0.877  0.77
+hybrid                contract 0.4                  0.346  0.418  0.778  0.895  0.85
+hybrid                centroids -> MDS(means)       0.282  0.301  0.274  0.529  0.30
+hybrid                MDS + contract 0.8            0.288  0.299  0.338  0.570  0.37
+hybrid                MDS + contract 0.6            0.299  0.290  0.395  0.602  0.43
+full-batch            identity                      0.348  0.342  0.802  0.847  0.70
+full-batch            contract 0.8                  0.343  0.331  0.916  0.872  0.68
+full-batch            contract 0.6                  0.344  0.316  0.944  0.867  0.65
+full-batch            contract 0.4                  0.344  0.297  0.967  0.858  0.61
+full-batch            centroids -> MDS(means)       0.272  0.314  0.370  0.586  0.40
+full-batch            MDS + contract 0.8            0.280  0.307  0.408  0.606  0.45
+full-batch            MDS + contract 0.6            0.290  0.298  0.461  0.633  0.50
+Traceback (most recent call last):
+  File "/home/maixent/Reputation Squad Dropbox/Maixent Chenebaux/DATAPROJECTS/lib/cmagnet/benchmarks/theory/k30_oracle_axes.py", line 55, in <module>
+    p = os.path.join(B, "..", "paper", "figures", "cache", f); Y = np.load(p)["Y"].astype(np.float32)
+  File "/home/maixent/miniconda3/lib/python3.10/site-packages/numpy/lib/_npyio_impl.py", line 451, in load
+    fid = stack.enter_context(open(os.fspath(file), "rb"))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/maixent/Reputation Squad Dropbox/Maixent Chenebaux/DATAPROJECTS/lib/cmagnet/benchmarks/../paper/figures/cache/../../benchmarks/cache/layouts/mnist_sklearn_t-SNE_BH.npz'
+
+mnist: panel best knn15 0.352 sp 0.488 ari 0.914
+layout                transform                     knn15     sp    ari    geo   min
+BH t-SNE              identity                      0.350  0.338  0.829  0.855  0.69
+BH t-SNE              contract 0.8                  0.344  0.330  0.937  0.878  0.68
+BH t-SNE              contract 0.6                  0.345  0.317  0.948  0.870  0.65
+BH t-SNE              contract 0.4                  0.345  0.299  0.968  0.861  0.61
+BH t-SNE              centroids -> MDS(means)       0.277  0.311  0.376  0.591  0.41
+BH t-SNE              MDS + contract 0.8            0.286  0.304  0.399  0.605  0.44
+BH t-SNE              MDS + contract 0.6            0.299  0.294  0.446  0.630  0.49
+
+fmnist: panel best knn15 0.328 sp 0.873 ari 0.483
+layout                transform                     knn15     sp    ari    geo   min
+BH t-SNE              identity                      0.327  0.634  0.398  0.841  0.73
+BH t-SNE              contract 0.8                  0.284  0.625  0.500  0.862  0.72
+BH t-SNE              contract 0.6                  0.286  0.602  0.658  0.936  0.69
+BH t-SNE              contract 0.4                  0.292  0.566  0.756  0.966  0.65
+BH t-SNE              centroids -> MDS(means)       0.258  0.651  0.293  0.709  0.61
+BH t-SNE              MDS + contract 0.8            0.269  0.647  0.354  0.763  0.73
+BH t-SNE              MDS + contract 0.6            0.277  0.631  0.457  0.832  0.72

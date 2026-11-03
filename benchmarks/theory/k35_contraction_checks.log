@@ -1,0 +1,66 @@
+community counts per level (Leiden RBConfiguration on the fuzzy graph):
+  mnist n=70000: 1 components; r=0.02: 2 comm (ARI 0.10), r=0.1: 6 comm (ARI 0.55), r=0.3: 9 comm (ARI 0.85), r=1.0: 15 comm (ARI 0.82)
+  mnist n=20000: 1 components; r=0.02: 1 comm (ARI 0.00), r=0.1: 6 comm (ARI 0.54), r=0.3: 8 comm (ARI 0.74), r=1.0: 13 comm (ARI 0.77)
+  fmnist n=70000: 1 components; r=0.02: 3 comm (ARI 0.22), r=0.1: 5 comm (ARI 0.42), r=0.3: 10 comm (ARI 0.51), r=1.0: 22 comm (ARI 0.39)
+  letter n=20000: 20 components; r=0.02: 39 comm (ARI 0.07), r=0.1: 55 comm (ARI 0.16), r=0.3: 65 comm (ARI 0.22), r=1.0: 97 comm (ARI 0.25)
+  covertype n=20000: 37 components; r=0.02: 48 comm (ARI 0.05), r=0.1: 52 comm (ARI 0.05), r=0.3: 61 comm (ARI 0.03), r=1.0: 71 comm (ARI 0.02)
+mnist: levels r=0.02: 2 comm, r=0.1: 6 comm, r=0.3: 9 comm; panel best knn15 0.352 sp 0.488 ari 0.914; finest level at c_f=0.7
+layout              step                                knn15     sp    ari    geo   min
+MAGNET full-batch   identity                            0.348  0.342  0.802  0.847  0.70
+MAGNET full-batch   r0.02 c0.5 (held-out search)        0.347  0.397  0.818  0.896  0.81
+MAGNET full-batch   r0.1 c1.0 (held-out search)         0.347  0.397  0.818  0.896  0.81
+MAGNET full-batch   + r0.3 c0.7 (dial)                  0.346  0.386  0.900  0.915  0.79
+MAGNET hybrid       identity                            0.351  0.461  0.509  0.807  0.56
+MAGNET hybrid       r0.02 c0.5 (held-out search)        0.350  0.481  0.498  0.812  0.54
+MAGNET hybrid       r0.1 c1.0 (held-out search)         0.350  0.481  0.498  0.812  0.54
+MAGNET hybrid       + r0.3 c0.7 (dial)                  0.346  0.466  0.695  0.893  0.76
+MAGNET quality      identity                            0.352  0.355  0.780  0.853  0.73
+MAGNET quality      r0.02 c0.5 (held-out search)        0.352  0.403  0.790  0.894  0.83
+MAGNET quality      r0.1 c1.0 (held-out search)         0.352  0.403  0.790  0.894  0.83
+MAGNET quality      + r0.3 c0.7 (dial)                  0.350  0.390  0.831  0.897  0.80
+sklearn t-SNE (BH)  identity                            0.350  0.338  0.829  0.855  0.69
+sklearn t-SNE (BH)  r0.02 c0.5 (held-out search)        0.349  0.389  0.809  0.888  0.80
+sklearn t-SNE (BH)  r0.1 c1.0 (held-out search)         0.349  0.389  0.809  0.888  0.80
+sklearn t-SNE (BH)  + r0.3 c0.7 (dial)                  0.348  0.377  0.908  0.913  0.77
+openTSNE            identity                            0.348  0.329  0.726  0.809  0.68
+openTSNE            r0.02 c0.5 (held-out search)        0.347  0.385  0.718  0.849  0.79
+openTSNE            r0.1 c1.0 (held-out search)         0.347  0.385  0.718  0.849  0.79
+openTSNE            + r0.3 c0.7 (dial)                  0.346  0.376  0.899  0.906  0.77
+UMAP                identity                            0.117  0.296  0.778  0.556  0.33
+UMAP                r0.02 c0.4 (held-out search)        0.117  0.343  0.774  0.583  0.33
+UMAP                r0.1 c1.0 (held-out search)         0.117  0.343  0.774  0.583  0.33
+UMAP                + r0.3 c0.7 (dial)                  0.117  0.340  0.805  0.589  0.33
+PaCMAP              identity                            0.094  0.306  0.914  0.552  0.27
+PaCMAP              r0.02 c0.5 (held-out search)        0.095  0.361  0.798  0.559  0.27
+PaCMAP              r0.1 c0.8 (held-out search)         0.095  0.361  0.895  0.581  0.27
+PaCMAP              + r0.3 c0.7 (dial)                  0.095  0.359  0.908  0.583  0.27
+fmnist: levels r=0.02: 3 comm, r=0.1: 5 comm, r=0.3: 10 comm; panel best knn15 0.328 sp 0.873 ari 0.483; finest level at c_f=0.7
+layout              step                                knn15     sp    ari    geo   min
+MAGNET full-batch   identity                            0.323  0.700  0.333  0.816  0.69
+MAGNET full-batch   r0.02 c1.0 (held-out search)        0.323  0.700  0.333  0.816  0.69
+MAGNET full-batch   r0.1 c1.0 (held-out search)         0.323  0.700  0.333  0.816  0.69
+MAGNET full-batch   + r0.3 c0.7 (dial)                  0.320  0.671  0.480  0.906  0.77
+MAGNET hybrid       identity                            0.328  0.755  0.288  0.802  0.60
+MAGNET hybrid       r0.02 c1.0 (held-out search)        0.328  0.755  0.288  0.802  0.60
+MAGNET hybrid       r0.1 c1.0 (held-out search)         0.328  0.755  0.288  0.802  0.60
+MAGNET hybrid       + r0.3 c0.7 (dial)                  0.325  0.717  0.443  0.907  0.82
+MAGNET quality      identity                            0.324  0.648  0.413  0.855  0.74
+MAGNET quality      r0.02 c1.0 (held-out search)        0.324  0.648  0.413  0.855  0.74
+MAGNET quality      r0.1 c0.8 (held-out search)         0.323  0.649  0.452  0.881  0.74
+MAGNET quality      + r0.3 c0.7 (dial)                  0.321  0.623  0.519  0.908  0.71
+sklearn t-SNE (BH)  identity                            0.327  0.634  0.398  0.841  0.73
+sklearn t-SNE (BH)  r0.02 c1.0 (held-out search)        0.327  0.634  0.398  0.841  0.73
+sklearn t-SNE (BH)  r0.1 c1.0 (held-out search)         0.327  0.634  0.398  0.841  0.73
+sklearn t-SNE (BH)  + r0.3 c0.7 (dial)                  0.324  0.613  0.454  0.867  0.70
+openTSNE            identity                            0.323  0.619  0.388  0.824  0.71
+openTSNE            r0.02 c1.0 (held-out search)        0.323  0.619  0.388  0.824  0.71
+openTSNE            r0.1 c1.0 (held-out search)         0.323  0.619  0.388  0.824  0.71
+openTSNE            + r0.3 c0.7 (dial)                  0.321  0.597  0.418  0.833  0.68
+UMAP                identity                            0.133  0.572  0.427  0.616  0.40
+UMAP                r0.02 c1.0 (held-out search)        0.133  0.572  0.427  0.616  0.40
+UMAP                r0.1 c1.0 (held-out search)         0.133  0.572  0.427  0.616  0.40
+UMAP                + r0.3 c0.7 (dial)                  0.134  0.548  0.483  0.635  0.41
+PaCMAP              identity                            0.098  0.582  0.483  0.584  0.30
+PaCMAP              r0.02 c1.0 (held-out search)        0.098  0.582  0.483  0.584  0.30
+PaCMAP              r0.1 c1.0 (held-out search)         0.098  0.582  0.483  0.584  0.30
+PaCMAP              + r0.3 c0.7 (dial)                  0.101  0.564  0.485  0.584  0.31

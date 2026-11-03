@@ -1,0 +1,28 @@
+mnist: 9 communities, 9 above 1 %; frozen panel best {'knn15': 0.352, 'sp': 0.488, 'ari': 0.914}; axes ('knn15', 'sp', 'ari')
+layout     scheme                              knn15     sp    ari    geo   min     t  sweeps
+full-batch identity                            0.348  0.342  0.802  0.847  0.70   2.4  []
+full-batch fine 0.7                            0.346  0.327  0.901  0.866  0.67   2.4  []
+full-batch safe place > fine 0.7               0.346  0.460  0.902  0.970  0.94  15.5  [(0, 5, 0.4463), (1, 4, 0.4888)]
+full-batch fine 0.7 > safe place               0.346  0.479  0.832  0.958  0.91  15.5  [(0, 9, 0.4724), (1, 6, 0.4919)]
+full-batch fine 0.7 > safe place tol 0.01      0.344  0.488  0.706  0.911  0.77  15.3  [(0, 9, 0.484), (1, 6, 0.5)]
+full-batch fine 0.7 > free place               0.322  0.504  0.581  0.843  0.64  14.9  [(0, 9, 0.4879), (1, 8, 0.5186)]
+hybrid     identity                            0.351  0.461  0.509  0.806  0.56   2.4  []
+hybrid     fine 0.7                            0.346  0.450  0.628  0.854  0.69   2.4  []
+hybrid     safe place > fine 0.7               0.346  0.523  0.728  0.943  0.80  15.2  [(0, 3, 0.5248), (1, 4, 0.5479)]
+hybrid     fine 0.7 > safe place               0.348  0.547  0.465  0.826  0.51  15.4  [(0, 9, 0.5417), (1, 8, 0.5534)]
+hybrid     fine 0.7 > safe place tol 0.01      0.347  0.549  0.471  0.830  0.52  15.2  [(0, 8, 0.5373), (1, 8, 0.5544)]
+hybrid     fine 0.7 > free place               0.325  0.555  0.510  0.837  0.56  14.7  [(0, 9, 0.5483), (1, 7, 0.5642)]
+fmnist: 11 communities, 10 above 1 %; frozen panel best {'knn15': 0.328, 'sp': 0.873, 'ari': 0.483}; axes ('knn15', 'sp', 'ari')
+layout     scheme                              knn15     sp    ari    geo   min     t  sweeps
+full-batch identity                            0.323  0.700  0.333  0.816  0.69   2.4  []
+full-batch fine 0.7                            0.320  0.672  0.480  0.907  0.77   2.4  []
+full-batch safe place > fine 0.7               0.320  0.675  0.486  0.913  0.77  16.9  [(0, 1, 0.7147), (1, 0, 0.7147)]
+full-batch fine 0.7 > safe place               0.321  0.710  0.398  0.868  0.81  16.6  [(0, 7, 0.7167), (1, 1, 0.7199)]
+full-batch fine 0.7 > safe place tol 0.01      0.319  0.713  0.413  0.879  0.82  16.6  [(0, 8, 0.7149), (1, 5, 0.7237)]
+full-batch fine 0.7 > free place               0.310  0.728  0.358  0.836  0.74  16.2  [(0, 8, 0.7288), (1, 7, 0.7408)]
+hybrid     identity                            0.328  0.755  0.288  0.802  0.60   2.4  []
+hybrid     fine 0.7                            0.326  0.717  0.473  0.928  0.82   2.4  []
+hybrid     safe place > fine 0.7               0.326  0.724  0.429  0.901  0.83  16.4  [(0, 3, 0.7656), (1, 0, 0.7656)]
+hybrid     fine 0.7 > safe place               0.326  0.747  0.412  0.899  0.85  17.0  [(0, 5, 0.7563), (1, 3, 0.757)]
+hybrid     fine 0.7 > safe place tol 0.01      0.324  0.753  0.409  0.896  0.85  16.4  [(0, 8, 0.7606), (1, 1, 0.7617)]
+hybrid     fine 0.7 > free place               0.316  0.777  0.356  0.858  0.74  16.1  [(0, 8, 0.7682), (1, 9, 0.7848)]

@@ -116,6 +116,14 @@ class MAGNET:
         (default (0, 1.0): none). (100, 2.0) is the "clusters" preset: on MNIST 70k it trades 0.05 of 15-NN
         and 0.02 of distance Spearman for cluster recovery (HDBSCAN ARI 0.10 -> 0.76, k-means ARI 0.62 ->
         0.71; benchmarks/theory/k28_exaggeration_tail.py).
+    contraction : community placement and contraction of the final layout (magnet/contraction.py). None (default):
+        off. A float g in (0, 1]: the communities of the fuzzy graph (Leiden, resolution 0.3) are first translated as
+        rigid bodies by a label-free coordinate ascent of the distance Spearman between the input and the layout on
+        a 500-point sample (overlap guard: communities may not mix), then each contracted rigidly towards its
+        centroid by g ("separation" dial: 0.7 = compact clusters). A similarity within a community keeps the
+        neighbourhoods: MNIST 70k full-batch 15-NN 0.348 -> 0.346, Spearman 0.342 -> 0.46, k-means ARI 0.80 ->
+        0.90 at g=0.7 (benchmarks/theory/k30-k37). A dict passes the arguments of hierarchical_contraction
+        (resolution, separation, placement, n_sample, tol, sweeps). Needs python-igraph.
     tsne_init_scale, tsne_learning_rate, tsne_far, tsne_mid : research knobs of the exact mode (warm start
         scale and learning rate, constant far-field repulsion, bounded mid-range springs; docs/kernel_exponents.md).
     tsne_dof : degrees of freedom of the Student-t kernel of loss="tsne" (1 = Cauchy, the t-SNE kernel;
@@ -197,7 +205,7 @@ class MAGNET:
                  set_op_mix_ratio=1.0, neighbor_power=1.0, neighbor_rank_exponent=0.0,
                  samples_per_node=5.0, graph_norm="sym", input="auto",
                  adaptive=(0.5, 1.0, 0.75, 0.0, 2.0, 2), tsne_init_scale=None, tsne_learning_rate=None, tsne_far=(0.0, 0.1), tsne_mid=("mean", 0.3), hybrid_iter=300, hybrid_tail=(0, 1.0), tsne_early_exaggeration=12.0,
-                 transform_epochs=None, parallel="hogwild", n_threads=-1, random_state=None, verbose=False):
+                 contraction=None, transform_epochs=None, parallel="hogwild", n_threads=-1, random_state=None, verbose=False):
         self.n_components = n_components
         self.parallel = parallel
         self.adaptive = adaptive
@@ -208,6 +216,7 @@ class MAGNET:
         self.hybrid_iter = hybrid_iter
         self.hybrid_tail = hybrid_tail
         self.tsne_early_exaggeration = tsne_early_exaggeration
+        self.contraction = contraction
         self.n_neighbors = n_neighbors
         self.metric = metric
         self.min_dist = min_dist
@@ -262,6 +271,7 @@ class MAGNET:
         """Return the symmetric weighted graph (CSR) the layout is computed from.
         X : array (n, d), networkx graph (rows follow list(G.nodes)) or scipy sparse adjacency."""
         is_data = False
+        self._is_data_ = False
         is_graph_input = (self.input == "graph") or (
             self.input == "auto" and sp.issparse(X) and X.shape[0] == X.shape[1])
         if sp.issparse(X) and is_graph_input:
@@ -276,6 +286,7 @@ class MAGNET:
             P = sp.csr_matrix(A).maximum(sp.csr_matrix(A).T).tocsr()
         else:
             is_data = True
+            self._is_data_ = True
             if not sp.issparse(X):
                 X = np.asarray(X)
                 if X.ndim != 2:
@@ -496,6 +507,11 @@ class MAGNET:
         if self.verbose:
             print(f"Layout ({self.n_epochs_} epochs, {len(head)} edges) - T={time.time() - t:.2f}s"
                   f" | total {time.time() - t0:.2f}s")
+        if self.contraction is not None:
+            from .contraction import hierarchical_contraction
+            opts = dict(self.contraction) if isinstance(self.contraction, dict) else {"separation": float(self.contraction)}
+            Y, self.contraction_log_ = hierarchical_contraction(Y, P, X=X if getattr(self, "_is_data_", False) else None,
+                                                                metric=self.metric, random_state=self.random_state or 0, verbose=self.verbose, **opts)
         self.embedding_ = Y
         return self
 

@@ -35,6 +35,7 @@ from magnet import MAGNET
 Y = MAGNET().fit_transform(X)                        # X: (n, d) array; row i of Y is X[i]
 Y = MAGNET(loss="tsne").fit_transform(X)             # exact repulsion, t-SNE-grade local structure
 Y = MAGNET(loss="hybrid").fit_transform(X)           # SGD layout refined by the exact repulsion: both at once (2-D)
+Y = MAGNET(loss="tsne", contraction=0.7).fit_transform(X)   # + community placement and separation: all three axes (needs igraph)
 Y = MAGNET(metric="cosine").fit_transform(T)         # sparse CSR matrix (TF-IDF), no densification
 Y = MAGNET().fit_transform(G)                        # networkx graph, rows follow list(G.nodes)
 Y = MAGNET().fit_transform(A)                        # scipy sparse adjacency (weights = similarities)
@@ -425,6 +426,25 @@ nearest neighbours, local scaling, Sinkhorn, hub capping, degree normalisation, 
 perplexity-30 affinities) in the same optimiser: none beats the fuzzy union; t-SNE's own affinities score
 lower than the fuzzy graph on MNIST, Fashion-MNIST and 20 newsgroups.
 
+**Community placement and separation** (`contraction=0.7`; `magnet/contraction.py`, docs 6.12,
+`benchmarks/theory/k30`-`k38`). The three axes are compatible: a rigid similarity within a cluster keeps its
+neighbourhoods, a rank statistic of the distances only sees how the clusters are arranged, and k-means sees
+how compact they are. The step treats the communities of the fuzzy graph (Leiden, resolution 0.3; 9 on MNIST,
+ARI 0.85 against the labels, labels never used) as rigid bodies: it first translates them, coordinate ascent of
+the Spearman correlation between the input distances and the layout distances of a 500-point sample under an
+overlap guard (communities may not mix), then contracts each towards its centroid by 0.7. MNIST 70k,
+`loss="tsne"`, three seeds: 15-NN 0.347 -> 0.346, Spearman 0.350 -> 0.461 (+- 0.002; the hybrid 0.46, PCA-2
+0.49), k-means ARI 0.79 -> 0.92 (+- 0.01; PaCMAP 0.91), triplet accuracy and class-centroid Spearman up as well,
+composite 0.848 -> 0.976; Fashion-MNIST (three seeds) 0.324 / 0.698 / 0.340 -> 0.322 / 0.682 / 0.416 (+- 0.05),
+composite 0.822 -> 0.869 (hybrid 0.847 -> 0.920); letter (classes are not clusters) within 0.01 of 15-NN and
+Spearman; covertype 20k Spearman 0.383 -> 0.524 at -0.003 of 15-NN. In the method x data set tables
+(`composite_table.py`) the three MAGNET rows with the step take the first three places on both composites
+(mean geometric 0.906 / 0.888 / 0.884 against 0.836 for the best row without it). The t-SNE-like
+arrangement of the clusters is far from rank-optimal and nine translations fix most of it. The step is a
+post-processing of a layout, not an objective: it lifts the other methods' layouts too, a Barnes-Hut t-SNE
+layout with it scores like ours at 25 times the time. 5-6 s on 70k (one Leiden run, ~250 Spearman
+evaluations; 19 s on covertype 250k with 141 communities), off by default.
+
 **Timing protocol.** Every method runs with its defaults and all cores; UMAP and densMAP run without
 `random_state` (setting it makes their layout single-threaded: 49 s instead of 10 s on MNIST), MAGNET
 with a seed (its threads do not depend on it). The numba methods are warmed up before the clock on
@@ -485,6 +505,8 @@ Any networkx graph or sparse adjacency matrix is laid out directly, in linear ti
 | `adaptive` | `(0.5, 1.0, 0.75, 0.0, 2.0, 2)` | for `kernel_b="adaptive"`: base and high exponents, switch epoch fraction, crowding threshold, far-edge reference (times the median edge length), minimum degree |
 | `repulsion_b` | 1.0 | repulsion exponent (Cauchy tail); None couples it to `kernel_b` (UMAP's compact look, 20% slower) |
 | `kernel` | `"power"` | or `"gaussian"`, `"sech"` (exponential tails, for comparison) |
+| `hybrid_tail`, `tsne_early_exaggeration` | (0, 1.0), 12 | exaggerated tail (iterations, factor) of the full-batch pass (`(100, 2.0)` = "clusters" preset, `n_epochs=900, hybrid_tail=(100, 1.5)` = quality preset); early-exaggeration factor of `loss="tsne"` |
+| `contraction` | None | community placement and separation of the final layout (needs python-igraph): a float g = the graph's Leiden communities are translated as rigid bodies by a label-free ascent of the input-vs-layout distance Spearman (overlap guard), then each contracted towards its centroid by g (0.7 = compact clusters); a dict passes `resolution`, `separation`, `placement`, `n_sample`, `tol`, `sweeps` |
 | `tsne_dof` | 1.0 | Student-t degrees of freedom of `loss="tsne"` (< 1 = heavier tail, Kobak et al. 2019) |
 | `fft_interp`, `fft_box` | 3, 1.0 | grid of the exact repulsion (`fft_box=1.5` is the fast preset: -3% 15-NN in `loss="tsne"`, -1% in `loss="hybrid"` for 30% less time) |
 | `mid_scale` | `"fixed"` | or `"spread"` / `"rolewalk"`: per-node length of the mid-range walks from the graph's diffusion spread or from RoleWalk roles |

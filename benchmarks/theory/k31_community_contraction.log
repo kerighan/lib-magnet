@@ -1,0 +1,70 @@
+
+mnist: panel best knn15 0.352 sp 0.488 ari 0.914
+  leiden r=0.02: 2 communities, ARI vs labels 0.096 (3 s)
+  leiden r=0.05: 5 communities, ARI vs labels 0.501 (2 s)
+  leiden r=0.1: 6 communities, ARI vs labels 0.549 (2 s)
+  leiden r=0.3: 9 communities, ARI vs labels 0.845 (2 s)
+layout      communities         c repair  knn15     sp    ari    geo   min
+full-batch  leiden r=0.02     0.6      0  0.347  0.391  0.811  0.889  0.80
+full-batch  leiden r=0.02     0.6     30  0.290  0.392  0.766  0.822  0.80
+full-batch  leiden r=0.02     0.4      0  0.347  0.394  0.794  0.885  0.81
+full-batch  leiden r=0.02     0.4     30  0.225  0.397  0.783  0.764  0.64
+full-batch  leiden r=0.05     0.6      0  0.347  0.332  0.855  0.856  0.68
+full-batch  leiden r=0.05     0.6     30  0.294  0.335  0.857  0.812  0.69
+full-batch  leiden r=0.05     0.4      0  0.347  0.313  0.860  0.841  0.64
+full-batch  leiden r=0.05     0.4     30  0.235  0.319  0.859  0.743  0.65
+full-batch  leiden r=0.1      0.6      0  0.347  0.323  0.867  0.853  0.66
+full-batch  leiden r=0.1      0.6     30  0.294  0.326  0.870  0.810  0.67
+full-batch  leiden r=0.1      0.4      0  0.347  0.300  0.868  0.832  0.62
+full-batch  leiden r=0.1      0.4     30  0.236  0.308  0.866  0.737  0.63
+full-batch  leiden r=0.3      0.6      0  0.347  0.319  0.901  0.860  0.65
+full-batch  leiden r=0.3      0.6     30  0.297  0.323  0.901  0.819  0.66
+full-batch  leiden r=0.3      0.4      0  0.347  0.301  0.907  0.845  0.62
+full-batch  leiden r=0.3      0.4     30  0.244  0.308  0.906  0.757  0.63
+  full-batch hdbscan: 10 clusters, noise 0.01, ARI vs labels 0.925
+full-batch  hdbscan(layout)   0.6      0  0.347  0.316  0.921  0.864  0.65
+full-batch  hdbscan(layout)   0.6     30  0.298  0.320  0.922  0.825  0.66
+full-batch  hdbscan(layout)   0.4      0  0.347  0.301  0.921  0.850  0.62
+full-batch  hdbscan(layout)   0.4     30  0.247  0.308  0.922  0.765  0.63
+hybrid      leiden r=0.02     0.6      0  0.346  0.482  0.488  0.803  0.53
+hybrid      leiden r=0.02     0.6     30  0.299  0.483  0.522  0.783  0.57
+hybrid      leiden r=0.02     0.4      0  0.351  0.475  0.567  0.844  0.62
+hybrid      leiden r=0.02     0.4     30  0.238  0.478  0.545  0.734  0.60
+hybrid      leiden r=0.05     0.6      0  0.345  0.451  0.620  0.851  0.68
+hybrid      leiden r=0.05     0.6     30  0.303  0.455  0.615  0.815  0.67
+hybrid      leiden r=0.05     0.4      0  0.346  0.422  0.519  0.784  0.57
+hybrid      leiden r=0.05     0.4     30  0.245  0.428  0.521  0.704  0.57
+hybrid      leiden r=0.1      0.6      0  0.350  0.461  0.586  0.845  0.64
+hybrid      leiden r=0.1      0.6     30  0.307  0.464  0.585  0.809  0.64
+hybrid      leiden r=0.1      0.4      0  0.350  0.444  0.716  0.892  0.78
+hybrid      leiden r=0.1      0.4     30  0.249  0.450  0.616  0.760  0.67
+hybrid      leiden r=0.3      0.6      0  0.347  0.443  0.671  0.869  0.73
+hybrid      leiden r=0.3      0.6     30  0.308  0.445  0.667  0.835  0.73
+hybrid      leiden r=0.3      0.4      0  0.350  0.423  0.710  0.875  0.78
+hybrid      leiden r=0.3      0.4     30  0.257  0.430  0.772  0.816  0.73
+  hybrid hdbscan: 26 clusters, noise 0.03, ARI vs labels 0.686
+hybrid      hdbscan(layout)   0.6      0  0.349  0.433  0.578  0.823  0.63
+hybrid      hdbscan(layout)   0.6     30  0.315  0.438  0.577  0.797  0.63
+hybrid      hdbscan(layout)   0.4      0  0.349  0.416  0.581  0.813  0.63
+hybrid      hdbscan(layout)   0.4     30  0.270  0.425  0.579  0.751  0.63
+quality     leiden r=0.02     0.6      0  0.351  0.401  0.795  0.894  0.82
+quality     leiden r=0.02     0.6     30  0.312  0.404  0.779  0.855  0.83
+quality     leiden r=0.02     0.4      0  0.352  0.397  0.789  0.889  0.81
+quality     leiden r=0.02     0.4     30  0.255  0.402  0.711  0.775  0.73
+quality     leiden r=0.05     0.6      0  0.351  0.344  0.812  0.855  0.71
+quality     leiden r=0.05     0.6     30  0.314  0.347  0.809  0.826  0.71
+quality     leiden r=0.05     0.4      0  0.352  0.325  0.806  0.837  0.67
+quality     leiden r=0.05     0.4     30  0.261  0.331  0.803  0.761  0.68
+quality     leiden r=0.1      0.6      0  0.351  0.338  0.807  0.848  0.69
+quality     leiden r=0.1      0.6     30  0.314  0.341  0.812  0.822  0.70
+quality     leiden r=0.1      0.4      0  0.351  0.316  0.823  0.835  0.65
+quality     leiden r=0.1      0.4     30  0.261  0.323  0.806  0.756  0.66
+quality     leiden r=0.3      0.6      0  0.351  0.328  0.832  0.849  0.67
+quality     leiden r=0.3      0.6     30  0.316  0.332  0.833  0.822  0.68
+quality     leiden r=0.3      0.4      0  0.351  0.309  0.834  0.833  0.63
+quality     leiden r=0.3      0.4     30  0.265  0.316  0.834  0.764  0.65
+  quality hdbscan: 9 clusters, noise 0.00, ARI vs labels 0.839
+quality     hdbscan(layout)   0.6      0  0.352  0.329  0.833  0.850  0.67
+quality     hdbscan(layout)   0.6     30  0.316  0.332  0.833  0.823  0.68
+quality     hdbscan(layout)   0.4      0  0.352  0.310  0.833  0.834  0.64
+quality     hdbscan(layout)   0.4     30  0.266  0.316  0.833  0.765  0.65

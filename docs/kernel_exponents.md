@@ -605,6 +605,55 @@ t-SNE's own perplexity-calibrated affinities score lower than the fuzzy graph in
 three data sets (the earlier +21 % of 15-NN of the intersection on text was in the SGD mode and does not
 recur here). The graph is on a plateau too.
 
+### 6.12 Community placement and separation (`k30`-`k38`, `magnet/contraction.py`)
+
+Maixent: "je suis pour persister dans la recherche". Oracle first (`k30`): a rigid per-CLASS contraction of a
+cached layout, Z = mu_c + g (Y - mu_c), keeps 15-NN (a similarity within a class), costs little Spearman and
+raises k-means ARI: hybrid at g = 0.4 gives 0.346 / 0.418 / 0.778 (composite 0.895 against 0.855 for the best
+real method); so the three axes are compatible and the plateau of 6.10 is a plateau of the objective, not of the
+metrics. Moving the class centroids to the classical MDS of the input class means is a dead end (Spearman 0.46 ->
+0.30). Label-free version (`k31`-`k34`): the communities of the fuzzy graph (Leiden, modularity, resolution 0.3:
+9 communities on MNIST with ARI 0.85 against the labels, 10 on Fashion with 0.51) contracted rigidly by g = 0.7
+(MNIST full-batch k-means ARI 0.80 -> 0.90, Fashion 0.33 -> 0.48, 15-NN -0.002). What does not work: a KL
+"repair" after the contraction (15-NN 0.35 -> 0.25 in 30 iterations), the contraction as a diffusion filter
+Z = gY + (1 - g) P^t Y (`k33`: not a similarity within a community at small t, fully mixed at t = 1000), soft
+borders through W = D^-1 P (15-NN -0.05), and the contraction at the hand-over before the pass (keeps a third
+of the gain). A coarse level (Leiden resolution 0.02, 2 communities) contracted by 0.5 raised the MNIST Spearman
+0.342 -> 0.397, but the useful split is "the zeros against the rest" and depends on the Leiden seed (`k35`).
+
+Placement (`k36`, `k37`): the communities are translated as rigid bodies, coordinate ascent of the Spearman
+between the input distances and the layout distances of a random sample (500-1000 points, disjoint from the
+benchmark's sample; candidates = radial scalings 0.7-1.6 of the centroid offset and an 8-direction grid at 0.15
+RMS radius; two sweeps), with an overlap guard: the fraction of a 10k sample whose nearest sample point is in
+another community may not rise by more than 0.002. Without the guard the bodies overlap (15-NN 0.35 -> 0.32).
+Placement then separation 0.7, cached layouts, benchmark sample:
+
+| layout (MNIST 70k) | 15-NN | Spearman | triplet | centroid Sp. | k-means ARI | composite geo / min |
+|---|---|---|---|---|---|---|
+| full-batch | 0.348 | 0.342 | 0.626 | 0.669 | 0.802 | 0.847 / 0.70 |
+| full-batch + separation 0.7 | 0.346 | 0.327 | | | 0.901 | 0.866 / 0.67 |
+| full-batch + placement + separation 0.7 | 0.346 | 0.460 | 0.646 | 0.739 | 0.902 | **0.970 / 0.94** |
+| hybrid | 0.351 | 0.461 | 0.660 | | 0.509 | 0.806 / 0.56 |
+| hybrid + placement + separation 0.7 | 0.346 | 0.523 | | | 0.728 | 0.943 / 0.80 |
+| Fashion: full-batch | 0.323 | 0.700 | 0.775 | 0.894 | 0.333 | 0.816 / 0.69 |
+| Fashion: full-batch + placement + separation 0.7 | 0.321 | 0.684 | 0.765 | 0.930 | 0.452 | 0.913 / 0.77 |
+| Fashion: hybrid + separation 0.7 | 0.326 | 0.717 | | | 0.473 | 0.928 / 0.82 |
+
+The cluster arrangement of a t-SNE-like layout is far from rank-optimal: nine rigid translations lift the
+MNIST Spearman from 0.342 to 0.46 (the hybrid's level; PCA-2 0.488) and the hybrid's to 0.52, above PCA-2, and
+the two global metrics that are not optimised (triplet accuracy, class-centroid Spearman) rise too. On Fashion
+the arrangement is already good (the pass started from PCA) and the placement adds little; the separation does
+the work there, with more seed variation (`k38`, 3 seeds: full-batch ARI 0.340 -> 0.416 +- 0.05, composite 0.822
+-> 0.869 +- 0.03; hybrid 0.847 -> 0.920 +- 0.03; MNIST full-batch 0.848 -> 0.976 +- 0.004). letter: neutral
+(65 communities, -0.01 15-NN); covertype 20k: Spearman 0.383 -> 0.524 at -0.003 15-NN. The same step lifts the other methods' layouts (`k38`, communities from MAGNET's graph): it is a
+post-processing of a layout, not an objective: a Barnes-Hut t-SNE layout with it scores like ours (MNIST
+0.349 / 0.461 / 0.910, composite 0.977) at 25 times the time, openTSNE 0.809 -> 0.947, UMAP 0.555 -> 0.653,
+PaCMAP 0.552 -> 0.630 (their weak axis is 15-NN, which the step cannot change). Scaling: covertype 250k has 141
+communities, the step takes 19 s after an 18 s layout (Spearman 0.342 -> 0.413, 15-NN -0.013); the cost is
+~ communities x candidates x sweeps Spearman evaluations. Shipped as `MAGNET(contraction=0.7)` (needs python-igraph; 5-6 s on 70k: one Leiden run plus
+~250 Spearman evaluations on 500 points), off by default; `contraction=dict(...)` passes resolution, separation,
+placement, n_sample, tol, sweeps.
+
 ## Scripts (`benchmarks/theory/`)
 
 `e1_force_spectrum.py` (per-octave repulsive force on MAGNET's own embeddings), `k13_tail_crossover.py` (the same binned by the kernel crossover, with the shell-count-adjusted prediction), `e1b_powerlaw.py`

@@ -1,0 +1,73 @@
+2026-11-03 22:31:57.268030: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1793741517.283887 2259099 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1793741517.288656 2259099 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2026-11-03 22:31:57.305381: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+mnist     MAGNET full-batch + contraction  0.347  0.457  0.903    14.1
+mnist     MAGNET full-batch (quality) + contraction  0.351  0.470  0.833    27.2
+mnist     MAGNET hybrid + contraction  0.351  0.514  0.727    18.1
+fmnist    MAGNET full-batch + contraction  0.321  0.675  0.486    16.0
+fmnist    MAGNET full-batch (quality) + contraction  0.322  0.658  0.473    28.2
+fmnist    MAGNET hybrid + contraction  0.324  0.721  0.439    18.7
+
+=== covertype_20000 (54 features, metric euclidean, hand-over scale 16.6)
+
+=== letter_20000 (16 features, metric euclidean, hand-over scale 16.6)
+
+=== covertype_70000 (54 features, metric euclidean, hand-over scale 31.0)
+
+=== rcv1_70000 (300 features, metric cosine, hand-over scale 31.0)
+
+=== covertype_250000 (54 features, metric euclidean, hand-over scale 58.6)
+letter    MAGNET full-batch + contraction  0.618  0.531  0.186    14.8
+letter    MAGNET full-batch (quality) + contraction  0.616  0.534  0.197    26.2
+letter    MAGNET hybrid + contraction  0.611  0.605  0.153    13.6
+covertype MAGNET full-batch + contraction  0.621  0.524  0.066    14.9
+covertype MAGNET full-batch (quality) + contraction  0.617  0.587  0.087    24.3
+covertype MAGNET hybrid + contraction  0.618  0.622  0.059    14.1
+
+composite, geometric mean  (axes: MNIST 70k 3, Fashion 70k 3, letter 20k 2, covertype 20k 2)
+| method | MNIST 70k | Fashion 70k | letter 20k | covertype 20k | mean |
+|---|---|---|---|---|---|
+| MAGNET hybrid + contraction | 0.925 | _0.903_ | 0.897 | **0.898** | 0.906 |
+| MAGNET full-batch (quality) + contraction | _0.940_ | 0.896 | 0.846 | _0.871_ | 0.888 |
+| MAGNET full-batch + contraction | **0.953** | **0.911** | 0.845 | 0.826 | 0.884 |
+| MAGNET hybrid | 0.793 | 0.800 | **0.917** | 0.832 | 0.836 |
+| MAGNET full-batch (quality) | 0.839 | 0.854 | 0.841 | 0.719 | 0.813 |
+| MAGNET full-batch | 0.832 | 0.814 | 0.850 | 0.708 | 0.801 |
+| sklearn t-SNE (BH) | 0.840 | 0.840 | 0.818 | 0.682 | 0.795 |
+| MAGNET SGD | 0.715 | 0.762 | 0.770 | 0.759 | 0.751 |
+| openTSNE | 0.795 | 0.823 | 0.794 | 0.592 | 0.751 |
+| PCA-2 + pass | 0.653 | 0.811 | _0.905_ | 0.610 | 0.745 |
+| TriMap | 0.398 | 0.584 | 0.611 | 0.770 | 0.591 |
+| PaCMAP | 0.542 | 0.583 | 0.684 | 0.548 | 0.590 |
+| UMAP | 0.546 | 0.615 | 0.590 | 0.606 | 0.589 |
+| h-NNE | 0.510 | 0.646 | 0.608 | 0.436 | 0.550 |
+| densMAP | 0.492 | 0.501 | 0.416 | 0.509 | 0.479 |
+| PCA-2 | 0.191 | 0.315 | 0.331 | 0.224 | 0.265 |
+
+composite, minimum  (axes: MNIST 70k 3, Fashion 70k 3, letter 20k 2, covertype 20k 2)
+| method | MNIST 70k | Fashion 70k | letter 20k | covertype 20k | mean |
+|---|---|---|---|---|---|
+| MAGNET hybrid + contraction | 0.795 | **0.825** | 0.845 | **0.824** | 0.822 |
+| MAGNET full-batch (quality) + contraction | **0.911** | 0.753 | 0.746 | _0.777_ | 0.797 |
+| MAGNET full-batch + contraction | _0.891_ | _0.773_ | 0.741 | 0.694 | 0.775 |
+| MAGNET hybrid | 0.556 | 0.592 | _0.866_ | 0.703 | 0.679 |
+| MAGNET full-batch (quality) | 0.692 | 0.743 | 0.732 | 0.528 | 0.674 |
+| MAGNET SGD | 0.548 | 0.619 | 0.731 | 0.745 | 0.661 |
+| MAGNET full-batch | 0.666 | 0.685 | 0.743 | 0.507 | 0.650 |
+| sklearn t-SNE (BH) | 0.659 | 0.726 | 0.669 | 0.465 | 0.630 |
+| openTSNE | 0.641 | 0.709 | 0.635 | 0.351 | 0.584 |
+| PCA-2 + pass | 0.400 | 0.607 | **0.881** | 0.388 | 0.569 |
+| PaCMAP | 0.268 | 0.299 | 0.679 | 0.523 | 0.442 |
+| UMAP | 0.332 | 0.404 | 0.454 | 0.515 | 0.426 |
+| TriMap | 0.253 | 0.284 | 0.545 | 0.593 | 0.419 |
+| h-NNE | 0.303 | 0.537 | 0.534 | 0.263 | 0.409 |
+| densMAP | 0.195 | 0.215 | 0.392 | 0.490 | 0.323 |
+| PCA-2 | 0.028 | 0.054 | 0.109 | 0.096 | 0.072 |

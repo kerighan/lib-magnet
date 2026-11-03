@@ -1,0 +1,56 @@
+mnist: 9 communities (ARI vs labels 0.85); panel best knn15 0.352 sp 0.488 ari 0.914; axes ('knn15', 'sp', 'ari')
+layout     scheme                          knn15     sp    ari    geo   min     t
+full-batch identity                        0.348  0.342  0.802  0.847  0.70   0.0
+full-batch fine 0.7                        0.346  0.327  0.901  0.866  0.67   0.0
+full-batch radial placement                0.313  0.501  0.515  0.801  0.56   4.6
+full-batch radial placement > fine 0.7     0.337  0.494  0.750  0.926  0.82   4.7
+full-batch grid placement > fine 0.7       0.334  0.484  0.697  0.895  0.76   8.0
+full-batch radial > grid > fine 0.7        0.328  0.506  0.620  0.869  0.68  12.8
+hybrid     identity                        0.351  0.461  0.509  0.807  0.56   0.0
+hybrid     fine 0.7                        0.346  0.450  0.628  0.854  0.69   0.0
+hybrid     radial placement                0.324  0.553  0.400  0.770  0.44   4.9
+hybrid     radial placement > fine 0.7     0.347  0.542  0.524  0.857  0.57   4.9
+hybrid     grid placement > fine 0.7       0.330  0.554  0.465  0.815  0.51   7.9
+hybrid     radial > grid > fine 0.7        0.325  0.552  0.516  0.839  0.56  12.7
+fmnist: 11 communities (ARI vs labels 0.51); panel best knn15 0.328 sp 0.873 ari 0.516; axes ('knn15', 'sp', 'ari')
+layout     scheme                          knn15     sp    ari    geo   min     t
+full-batch identity                        0.323  0.700  0.333  0.798  0.64   0.0
+full-batch fine 0.7                        0.320  0.672  0.480  0.887  0.77   0.0
+full-batch radial placement                0.307  0.730  0.317  0.783  0.61   6.3
+full-batch radial placement > fine 0.7     0.314  0.705  0.402  0.845  0.78   6.4
+full-batch grid placement > fine 0.7       0.310  0.716  0.389  0.836  0.75   9.8
+full-batch radial > grid > fine 0.7        0.309  0.717  0.350  0.806  0.68  15.1
+hybrid     identity                        0.328  0.755  0.288  0.784  0.56   0.0
+hybrid     fine 0.7                        0.326  0.717  0.473  0.907  0.82   0.0
+hybrid     radial placement                0.317  0.781  0.304  0.798  0.59   5.6
+hybrid     radial placement > fine 0.7     0.321  0.746  0.393  0.859  0.76   5.7
+hybrid     grid placement > fine 0.7       0.319  0.749  0.379  0.849  0.73   9.2
+hybrid     radial > grid > fine 0.7        0.316  0.756  0.349  0.826  0.68  14.8
+letter: 65 communities (ARI vs labels 0.21); panel best knn15 0.642 sp 0.716 ari 0.246; axes ('knn15', 'sp')
+layout     scheme                          knn15     sp    ari    geo   min     t
+full-batch identity                        0.625  0.532  0.168  0.850  0.74   0.0
+full-batch fine 0.7                        0.615  0.527  0.191  0.839  0.74   0.0
+full-batch radial placement                0.589  0.620  0.136  0.891  0.87  32.4
+full-batch radial placement > fine 0.7     0.606  0.617  0.149  0.902  0.86  32.3
+full-batch grid placement > fine 0.7       0.593  0.610  0.166  0.886  0.85  52.5
+full-batch radial > grid > fine 0.7        0.591  0.626  0.147  0.897  0.87  84.7
+hybrid     identity                        0.624  0.620  0.168  0.917  0.87   0.0
+hybrid     fine 0.7                        0.613  0.615  0.162  0.906  0.86   0.0
+hybrid     radial placement                0.594  0.660  0.145  0.923  0.92  31.8
+hybrid     radial placement > fine 0.7     0.604  0.652  0.136  0.926  0.91  32.1
+hybrid     grid placement > fine 0.7       0.603  0.647  0.144  0.921  0.90  52.4
+hybrid     radial > grid > fine 0.7        0.599  0.655  0.131  0.924  0.91  86.3
+covertype: 60 communities (ARI vs labels 0.04); panel best knn15 0.632 sp 0.755 ari 0.103; axes ('knn15', 'sp')
+layout     scheme                          knn15     sp    ari    geo   min     t
+full-batch identity                        0.624  0.383  0.037  0.708  0.51   0.0
+full-batch fine 0.7                        0.623  0.394  0.050  0.717  0.52   0.0
+full-batch radial placement                0.545  0.798  0.077  0.955  0.86  31.2
+full-batch radial placement > fine 0.7     0.591  0.815  0.075  1.005  0.94  31.8
+full-batch grid placement > fine 0.7       0.585  0.693  0.064  0.922  0.92  50.4
+full-batch radial > grid > fine 0.7        0.557  0.855  0.108  0.999  0.88  81.6
+hybrid     identity                        0.622  0.531  0.015  0.832  0.70   0.0
+hybrid     fine 0.7                        0.611  0.532  0.016  0.826  0.70   0.0
+hybrid     radial placement                0.540  0.787  0.096  0.943  0.85  31.4
+hybrid     radial placement > fine 0.7     0.581  0.802  0.095  0.988  0.92  30.6
+hybrid     grid placement > fine 0.7       0.574  0.748  0.070  0.948  0.91  47.6
+hybrid     radial > grid > fine 0.7        0.560  0.819  0.090  0.980  0.89  81.2
