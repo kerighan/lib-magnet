@@ -230,12 +230,12 @@ limit, a data set where every point would rather be at L2 and the mode only move
 
 ## 6. Two regimes in one layout (`loss="hybrid"`)
 
-The sampled optimiser gives the best global structure among the neighbour embeddings of the benchmark
-(MNIST 70k distance Spearman 0.41; PCA to 2-D reaches 0.488 on that metric, 0.873 on Fashion-MNIST,
+The sampled optimiser gives the highest pairwise distance Spearman among the unstaged neighbour
+embeddings of the benchmark (MNIST 70k 0.41; PCA to 2-D reaches 0.488 on that metric, 0.873 on Fashion-MNIST,
 `benchmarks/baselines_linear.py`; split by class, by tercile of the input distance or reduced to the 45
 inter-centroid distances, PCA stays ahead on every stratum and the hybrid ties it on intermediate distances
 only, `benchmarks/global_strata.py`; the hybrid layout of that table also placed the ten class centroids
-worst of the panel, 0.421 against UMAP 0.752, which section 6.4 traces to the run rather than to the
+worst among the methods with centroid measurements, 0.421 against UMAP 0.752, which section 6.4 traces to the run rather than to the
 pass) and the exact one the best local structure (15-NN kept 0.35); each is mediocre on the other
 axis (0.19 and 0.34). Can one loss fade from one regime to the other? What was tried (`k1`-`k7`, MNIST
 70k unless said otherwise):
@@ -379,7 +379,7 @@ predominantly inherited from the start; on MNIST the centroid arrangement moves 
 and loses 0.07-0.09 of Spearman, a random start 0.065 (a limitation of this schedule, not of refinement). So the hybrid's lead on both axes decomposes into a
 general recipe (a short full-batch pass at the right scale, without exaggeration, on top of any layout
 that already has neighbourhoods) and a specific start: MAGNET's SGD layout with a stiff mid spring has
-the best global structure among the neighbour embeddings (0.459 / 0.774 against UMAP 0.296 / 0.572,
+the highest pairwise Spearman among the unstaged neighbour embeddings (0.459 / 0.774 against UMAP 0.296 / 0.572,
 PaCMAP 0.306 / 0.582, openTSNE 0.329 / 0.617), and the pass erases the local cost of that stiffness.
 The converse also holds: handed MAGNET's SGD layout at the same scale, openTSNE's optimiser (its own
 perplexity-30 affinities, 300 iterations at momentum 0.8, no exaggeration) reaches 0.346 / 0.428 on
@@ -446,12 +446,12 @@ Every start lands at 0.352-0.355 / 0.327-0.331 of 15-NN. PaCMAP's stiffened mid-
 So the start is MAGNET's beyond the attraction's presence. The price is the centroid column on MNIST:
 0.466 ± 0.158 at spring 0.5 and 0.499 ± 0.080 at 1.0 after the pass, against 0.628 ± 0.016 at 0.1,
 0.664 for UMAP, 0.687 for stiff PaCMAP (on Fashion-MNIST the stiff start is best there too, 0.934 /
-0.943). The pass adds 0.01-0.03 of Spearman to UMAP and PaCMAP starts and takes 0.01-0.02 from ours.
+0.943). The pass changes the Spearman by +0.025 / +0.022 at spring 0, -0.003 / -0.016 at 0.1, -0.014 / -0.023 at 0.5 and
+-0.017 / -0.025 at 1.0 (MNIST / Fashion, means of five), and by +0.01 to +0.03 for UMAP and PaCMAP starts.
 
 Persistence (`k15_persistence.py`, stiff start, all cores): Spearman 0.480 -> 0.470 (300 it) -> 0.462
 (600) -> 0.455 (1200) -> 0.446 (3000) while 15-NN rises 0.346 -> 0.367, the layout expands (std 31 ->
-55) and the KL is still decreasing at 3000. The pass drifts slowly; it does not preserve the start at
-convergence. From PCA-2: 0.488 -> 0.418 (300) -> 0.377 (1200), 15-NN 0.344 at 1200.
+55) and the KL is still decreasing at 3000. The drift continues through 3000 iterations; convergence and the limiting value are unknown. From PCA-2: 0.488 -> 0.418 (300) -> 0.377 (1200), 15-NN 0.344 at 1200.
 
 FFT accuracy (`k16_fft_check.py`, exact all-pairs sum in float64 on the hybrid's MNIST layout, 5k / 20k /
 70k points): default grid (3 interpolation points, box width 1) Z to 0.06-0.3 %, per-point force 2.8-4 %
@@ -470,7 +470,8 @@ objective the edge-weighted mean of d^2/(1+d^2) equals its all-pairs mean. Both 
 the ray s Y0; it depends on P and on the shape of Y0) on MNIST 70k: SGD starts 85-102, UMAP ~120, PCA-2 10,
 and the full-batch layout itself after 600 iterations is far from its equilibrium (derivative -0.05 at four
 times its std: the slow expansion of k15). s* ~ n^0.42 on MNIST subsamples (28 / 54 / 85 at 5k / 20k / 70k;
-Fashion 53 / 81 at 20k / 70k): the sqrt(n) form of the rule is right, the exponent is a little lower. s* is
+Fashion 53 / 81 at 20k / 70k): this is the dilation's dependence on n for this start, not a validation of the
+hand-over rule. s* is
 not the best hand-over: the stiff start at s* gives 0.349 / 0.460 (31: 0.350 / 0.450; 62: 0.357 / 0.458) at
 5x the cost; PCA at its s* = 10 gives 0.319 / 0.343 against 0.318 / 0.399 at 31. The scale is a local /
 global dial; the identity gives its equilibrium, not its best setting. Preset from k19 (scale x grid x
@@ -478,7 +479,7 @@ iterations): 62 / box 1.5 / 300 = 0.354 / 0.468 in 14 s against 0.356 / 0.457 in
 
 **Projected refinement.** Gradient descent on the objective restricted to the complement of the constant
 vector + K leading Laplacian eigenvectors, with exact re-projection after each update: U^T Y is invariant by
-construction (this preserves those coordinates, not any metric). K >= 32 holds the pairwise Spearman at the
+construction (this preserves those coordinates, not any metric). K = 32 and 128 (the two values tested) hold the pairwise Spearman at the
 start's value through 1000 iterations (0.461-0.462 against 0.442 unprojected, start 0.464), scale held, at a
 15-NN cost of 0.012 at 300 iterations and 0.022-0.024 at 1000; K = 8 does not hold it (0.438). Cost: an n x K
 product per iteration (the K = 512 basis is too slow to build with the Chebyshev filter).
@@ -486,8 +487,8 @@ product per iteration (the K = 512 basis is too slow to build with the Chebyshev
 **Coarse rest-length scaffold** (`k20_coarse_stress.py`, idea 1 of `paper/reviews/openai-gpt-6-astra@high_ideas.md`):
 B label-free cells (k-means on an 8-d spectral embedding), S = mean_ab ((|c_a - c_b| - l_ab) / (l_ab + delta))^2
 on the barycentres, lifted to the points as a block translation of each cell, weight set once by the ratio of
-its lifted gradient to the cell-averaged KL gradient. Target = the start's own coarse distances: a drift-free
-pass at no extra cost (ratio 1: Spearman 0.465 against 0.437 unconstrained and 0.469 at the start, 15-NN
+its lifted gradient to the cell-averaged KL gradient. Target = the start's own coarse distances: favourable retention
+over 300 iterations at the pass time, plus about 10 s of setup for the cells (ratio 1: Spearman 0.465 against 0.437 unconstrained and 0.469 at the start, 15-NN
 0.348 against 0.354, 8.5 s), better than the projection. Target = 2-D classical MDS of the cells' input-space
 means (the raw 784-d distances are not realisable in 2-D): centroid Spearman of the default start 0.61-0.62
 -> 0.67-0.68 at ratio 1 (0.71-0.73 at ratio 3) with the pairwise Spearman unchanged and 15-NN -0.007
@@ -508,11 +509,11 @@ while raising the centroids (0.68): the spring's arrangement is the one the pair
   0.366 unconstrained). Same trade as the projection and the penalty: no net gain.
 * Implicit / explicit mid-near heat flow instead of the spring (`k25_implicit_spring.py`, idea 2): SGD without
   the spring plus (I + tau L_mid)^-1 steps between segments reaches 0.37-0.38 of Spearman before the pass
-  (spring 0.5: 0.47) and 0.39-0.40 after (0.46); the explicit step diverges at tau >= 1. The spring's effect
-  is not graph diffusion. The implicit variant does give good centroids (0.65-0.68 against 0.42-0.50).
+  (spring 0.5: 0.47) and 0.39-0.40 after (0.46); the explicit step diverges at tau >= 1. The tested substitutes
+  did not reproduce the spring pipeline's result (interleaving, sampling, annealing and normalisation differ). The implicit variant does give good centroids (0.65-0.68 against 0.42-0.50).
 * Common-affinity backend control (`k26_backend_control.py`): same P (through openTSNE's
   PrecomputedAffinities), same start, scale, learning rate, momentum, 300 iterations, 20 threads, 5 stiff
-  starts per data set: openTSNE's optimiser and ours return the same layout (paired 15-NN difference
+  starts per data set: openTSNE's optimiser and ours return nearly identical fidelity scores (paired 15-NN difference
   -0.0009 ± 0.0002 MNIST, -0.0003 ± 0.0006 Fashion; Spearman +0.0009 ± 0.0004 / +0.0001 ± 0.0001), ours
   in 6.4-7.5 s against 33-39 s. The earlier gap (openTSNE 0.346 / 0.428 against 0.356 / 0.442) was its
   perplexity-30 affinities.

@@ -9,7 +9,7 @@ repulsion is estimated.
 
 * `loss="umap"` (default): negative sampling, lock-free multithreaded SGD. **MNIST 70k in 4.4 s**
   against 11 s for UMAP 0.5.12, 15-NN preservation 0.19 against 0.12 and a distance correlation of 0.41
-  against 0.30: the best global structure of the seven methods benchmarked.
+  against 0.30: the highest pairwise distance Spearman among the unstaged neighbour embeddings benchmarked (PCA stays ahead).
 * `loss="tsne"`: repulsion over all pairs through FFT interpolation ("exact" below is shorthand for all pairs, not for an exact gradient: the interpolation is accurate to its grid). **MNIST 70k in 9 s**
   against 102 s for openTSNE and 196 s for scikit-learn's t-SNE, with the same neighbourhood
   preservation as those two, three times that of UMAP in less time.
@@ -313,7 +313,7 @@ the distance Spearman split by class and by tercile of the input distance, and r
 distances between class centroids: PCA is ahead on every stratum (same class 0.526, different class
 0.452, short / intermediate / long 0.392 / 0.131 / 0.231, centroids 0.814). The hybrid ties PCA on the
 intermediate tercile (0.132) and is second on the other pairwise strata (0.501 / 0.412 / 0.371 / 0.158),
-but its arrangement of the ten class centroids is the worst of the panel (0.421; UMAP 0.752, SGD 0.635,
+but its arrangement of the ten class centroids is the worst among the methods with centroid measurements (0.421; UMAP 0.752, SGD 0.635,
 full-batch 0.669). MAGNET's global advantage over the other neighbour embeddings is in pairwise distances
 within and between classes, not in the placement of the classes relative to each other. One layout per
 method, and the centroid column is a rank correlation over 45 pairs: over 5 seeds the hybrid lands at
@@ -340,7 +340,7 @@ its own global structure: the distance Spearman moves by -0.02 to +0.03 (UMAP 0.
 UMAP and PaCMAP even gain 0.02-0.03). PCA-2 reaches 0.315 only and loses 0.07-0.09 of Spearman, a random
 start 0.065: the pass refines, it does not repair. The hybrid's lead on both axes is therefore a general
 recipe (a short full-batch pass at the right scale on top of any layout that has neighbourhoods) plus a
-specific start: MAGNET's SGD layout with a stiff mid spring has the best global structure among the
+specific start: MAGNET's SGD layout with a stiff mid spring has the highest pairwise Spearman among the unstaged
 neighbour embeddings (0.459 / 0.774 on MNIST / Fashion-MNIST against UMAP 0.296 / 0.572, PaCMAP 0.306 /
 0.582, openTSNE 0.329 / 0.617), and the pass erases the local cost of that stiffness. openTSNE's
 optimiser can do the pass as well (MAGNET's layout handed to it at the same scale, 300 iterations without
@@ -372,7 +372,7 @@ MNIST (`pacmap_sweep.py`, MN_ratio 4) reaches 0.346 / 0.648 of Spearman after th
 spring 0.5 reaches 0.449 / 0.750 (1.0: 0.456 / 0.764), UMAP 0.310 / 0.605, openTSNE 0.327 / 0.617, and
 MAGNET's SGD without the spring 0.301 / 0.588. The start matters beyond the attraction's presence, by
 0.10 on both data sets; what it pays is the MNIST centroid column (0.47 ± 0.16 at spring 0.5 against 0.63
-at 0.1 and 0.66-0.69 for UMAP / PaCMAP). The pass drifts slowly at convergence
+at 0.1 and 0.66-0.69 for UMAP / PaCMAP). The pass drifts slowly through 3000 iterations (convergence not reached)
 (`benchmarks/theory/k15_persistence.py`: Spearman 0.470 at 300 iterations, 0.446 at 3000, 15-NN 0.367,
 KL still decreasing); the FFT repulsion is accurate to 3-4 % RMS on the force and 0.1 % on Z at the
 default grid (`k16_fft_check.py`). Details in `docs/kernel_exponents.md`, section 6.5.
@@ -385,12 +385,12 @@ with `fft_box=1.5` (0.354 / 0.468 in 14 s against 0.356 / 0.457 in 10 s). Freezi
 during the pass holds the start's Spearman through 1000 iterations at a 15-NN cost of 0.02; a rest-length
 stress on the barycentres of 64 label-free cells does the same at no local cost beyond 0.005 and no time,
 and with input-derived targets (2-D MDS of the cells' means) lifts the centroid Spearman by 0.06-0.10 for
-0.007-0.013 of 15-NN. In the SGD stage the same scaffold destroys the spring's pairwise Spearman.
+0.007-0.013 of 15-NN (300 iterations; the setup costs about 10 s). In the SGD stage the same scaffold destroys the spring's pairwise Spearman.
 
 **Two controls** (`benchmarks/theory/k26_backend_control.py`). Given the same affinity matrix, start, scale
-and budget, openTSNE's optimiser and MAGNET's pass return the same layout to within 0.001 on every metric
-(5 starts, MNIST and Fashion-MNIST), MAGNET's in 7 s against 36 s: the pass is the objective and the
-hand-over, not the implementation. Scale x exaggeration from one start: the hand-over scale is what keeps
+and budget, openTSNE's optimiser and MAGNET's pass return nearly identical fidelity scores (within 0.001 on every metric)
+(5 starts, MNIST and Fashion-MNIST; nearly identical fidelity scores, not identical coordinates), MAGNET's
+in 7 s against 36 s: the pass is the objective and the hand-over, not the implementation. Scale x exaggeration from one start: the hand-over scale is what keeps
 the arrangement (tiny init: -0.04 Spearman, -0.02 15-NN), early exaggeration costs 0.006 of 15-NN at the
 matched scale. Negative results on the same page of the docs (section 6.7): conditional KL by blocks,
 metric budgets, mid-near heat flow in place of the spring.

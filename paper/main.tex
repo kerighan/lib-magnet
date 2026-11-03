@@ -25,17 +25,19 @@ refined for 300 iterations by a $t$-SNE objective on the same graph, computed in
 FFT-interpolated repulsion, started at a scale matched to that optimiser and without early
 exaggeration. On MNIST and Fashion-MNIST 70k the refinement brings the start's 15-NN preservation to
 the level of the standalone full-batch mode while changing its pairwise-distance Spearman correlation
-by a few hundredths ($-0.023$ to $+0.035$ across eight starts); applied to UMAP, PaCMAP and openTSNE
-starts it does the same, and given the same affinity matrix openTSNE's optimiser returns the same
-refined layout five times slower: the pass is the objective and the hand-over, not the implementation. The first
+by a few hundredths (changes in run means from $-0.025$ to $+0.033$ across the eight start
+configurations of Table~\ref{tab:staged_seeds}); applied to UMAP, PaCMAP and openTSNE
+starts it does the same, and given the same affinity matrix openTSNE's optimiser returns a layout with
+nearly identical fidelity scores, five times slower: the pass is the objective and the hand-over, not
+the implementation. The first
 stage's Spearman advantage is supplied by the mid-range attraction: without it the sampled layout scores
-below openTSNE. PaCMAP's own mid-near term, stiffened with the same tuning budget, reaches 0.346 / 0.648
+below openTSNE. PaCMAP's own mid-near term, stiffened by a method-specific sweep of comparable size, reaches 0.346 / 0.648
 after the same refinement against 0.449 / 0.750 for our start (MNIST / Fashion-MNIST, five runs), a
 difference of 0.10 on both. The shipped operating point reaches 0.353 / 0.455 and 0.328 / 0.750 in 15-NN
 / Spearman over five runs, at 1.3 times UMAP's runtime and a ninth of openTSNE's. The result is metric
 specific: the local advantage holds at the graph's own neighbourhood size and not at $k = 5$ or
 $k \ge 50$, the stiff attraction makes the class-centroid geometry of MNIST the worst and most variable
-of the panel, PCA stays ahead of every neighbour embedding on pairwise Spearman on the real data sets,
+among the methods with centroid measurements, PCA stays ahead of every neighbour embedding on pairwise Spearman on the real data sets,
 and on 20 newsgroups the sequence trails six methods including our own full-batch mode. The sampled
 mode is the fastest CPU method on the twelve-method panel on the four tabulated data sets.
 \end{abstract}
@@ -57,17 +59,17 @@ The contributions, with their scope stated:
   differs from the informative initialisation of \citet{kobak2021init} in the hand-over scale: the
   start is kept at the full-batch layout's scale rather than shrunk to $t$-SNE's tiny initialisation,
   and a $2 \times 2$ diagnostic shows that the scale, not the exaggeration, is what keeps the start's
-  arrangement. With a common affinity matrix, openTSNE's optimiser and ours return the same refined
-  layout; ours is five times faster. We report the configuration that worked and the ones that did
+  arrangement. With a common affinity matrix, openTSNE's optimiser and ours return layouts with nearly
+  identical fidelity scores; ours is five times faster. We report the configuration that worked and the ones that did
   not, among those tried; the shipped point is a chosen compromise, not the maximiser of any column.
 \item \textbf{Controls that say where the gain comes from} (Sec.~\ref{sec:stagedbase}). Applied to
   UMAP, PaCMAP, openTSNE and our own starts, the refinement brings every one of them to a 15-NN level
   competitive with the standalone full-batch mode, and the large differences between the starts'
   pairwise Spearman persist through it: the global column after the pass is predominantly inherited
   from the start. Removing the mid-range attraction removes the first stage's Spearman advantage. A
-  $2 \times 2$ design (\magnet{} and PaCMAP starts, weak and stiff mid-range attraction, five runs each)
-  tests whether the start matters beyond that attraction's presence; it does, by 0.10 of Spearman on
-  both image sets.
+  repeated tuned-start comparison (\magnet{} and PaCMAP starts, weak and stiff mid-range attraction,
+  five runs each) tests whether the start matters beyond that attraction's presence; it does, by 0.10
+  of Spearman on both image sets, for the configurations measured.
 \item \textbf{A fast implementation with audited protocols} (Sec.~\ref{sec:exp}): MNIST 70k in 3.6~s for
   the sampled mode, 8~s for the full-batch mode, 11~s for the sequence, against 8~s for UMAP and 94~s
   for openTSNE on an idle 20-thread machine. The baselines' timings are audited (numba warm-up, UMAP's
@@ -75,8 +77,8 @@ The contributions, with their scope stated:
   graph inputs). The speed claim is restricted to the panel; uwot is not in it.
 \item \textbf{What the global metric measures} (Sec.~\ref{sec:global}): split by class and by distance
   tercile and reduced to the class centroids, the pairwise Spearman and the centroid Spearman rank the
-  methods differently, PCA leads every neighbour embedding on both, and the hybrid is last of the
-  neighbour embeddings on the centroids of MNIST.
+  methods differently, PCA leads every neighbour embedding on both, and the hybrid is last among the
+  methods with centroid measurements on MNIST.
 \end{enumerate}
 A secondary contribution is the split of the kernel exponent into an attraction exponent and a
 repulsion exponent, which the implementation uses and which removes the \texttt{pow} from the
@@ -138,9 +140,9 @@ owner-parallel SGD kernels, the sparse search, the cost at 1M points) are in App
 
 \section{Staged refinement}\label{sec:staged}
 \subsection{Hand-over: what was tested}\label{sec:handover}
-The sampled mode has the highest pairwise Spearman among the neighbour embeddings of the benchmark and
-the full-batch mode the highest 15-NN preservation, and each is mediocre on the other axis (MNIST: 0.19
-/ 0.41 against 0.35 / 0.35). Refining the sampled layout with the full-batch objective was tried under
+Of the two unstaged \magnet{} modes on the image data sets, the sampled one has the higher pairwise
+Spearman and the full-batch one the higher 15-NN preservation, and each is mediocre on the other axis
+(MNIST: 0.19 / 0.41 against 0.35 / 0.35). Refining the sampled layout with the full-batch objective was tried under
 the following settings, each on MNIST 70k from the same start:
 \begin{itemize}[leftmargin=1.5em]
 \item \emph{Scale.} From $t$-SNE's tiny initialisation (the start shrunk to $\sigma = 10^{-4}$, with
@@ -210,12 +212,14 @@ the PCA start it does better than our pass on 15-NN (0.333 against 0.315). The t
 interchangeable in that comparison (affinities and optimiser both differ). The clean comparison gives
 both backends the same affinity matrix (our normalised graph $P$ through openTSNE's
 \texttt{PrecomputedAffinities}), the same start, scale, learning rate, momentum and 300-iteration
-budget, on 20 threads, for five stiff starts per data set (\texttt{k26}): the two optimisers return the
-same layout to within the metrics' resolution (paired differences, \magnet{} minus openTSNE: 15-NN
+budget, on 20 threads, for five stiff starts per data set (\texttt{k26}; our default FFT grid against
+openTSNE's default FFT settings, a time-to-similar-fidelity comparison rather than one at matched force
+accuracy): the two optimisers return layouts with nearly identical fidelity scores (paired differences, \magnet{} minus openTSNE: 15-NN
 $-0.0009 \pm 0.0002$ on MNIST and $-0.0003 \pm 0.0006$ on Fashion-MNIST, Spearman $+0.0009 \pm 0.0004$
 and $+0.0001 \pm 0.0001$, centroids within 0.003), ours in 6.4--7.5~s against 33--39~s. The pass is the
-objective and the hand-over, not the implementation; the 0.010 / 0.014 of Spearman that openTSNE lost
-in Table~\ref{tab:staged} is the effect of its perplexity-30 affinities.
+objective and the hand-over, not the implementation, and the 0.014 / 0.010 of Spearman that openTSNE
+lost in Table~\ref{tab:staged} (a comparison that also differed in runs and thread count) points to its
+perplexity-30 affinities as the likely source.
 
 \begin{table}[t]
 \centering\small
@@ -262,10 +266,10 @@ objective. openTSNE is above UMAP on pairwise Spearman on all four data sets (0.
 the tables say either; what they say is that a transient mid-range attraction in a sampled optimiser
 raises the pairwise Spearman, and that the refinement keeps most of it.
 
-\subsection{Is the start \magnet{}'s, or the attraction's?}\label{sec:twobytwo}
+\subsection{Is the start \magnet{}'s, or the attraction's? A repeated tuned-start comparison}\label{sec:twobytwo}
 The comparison of starts in Table~\ref{tab:staged} sets our first stage at a stiffness chosen on these
 data against UMAP and PaCMAP at their defaults, and PaCMAP has a mid-near term of its own.
-Table~\ref{tab:staged_seeds} runs a $2 \times 2$ design with five runs per cell: \magnet{}'s first stage
+Table~\ref{tab:staged_seeds} runs a repeated tuned-start comparison with five runs per cell: \magnet{}'s first stage
 at $\kappa = 0$, 0.1, 0.5 and 1.0, PaCMAP at its defaults and at a stiff mid-near setting chosen by a sweep of
 its \texttt{MN\_ratio} and phase lengths on MNIST and frozen before Fashion-MNIST
 (\texttt{pacmap\_sweep.py}), plus UMAP and openTSNE, every start going through the same pass.
@@ -276,7 +280,8 @@ reaches 0.346 $\pm$ 0.017 on MNIST and 0.648 $\pm$ 0.001 on Fashion-MNIST, again
 and 0.750 $\pm$ 0.001 for our first stage at $\kappa = 0.5$ (0.456 / 0.764 at $\kappa = 1.0$), 0.310 / 0.605 for
 UMAP and 0.327 / 0.617 for openTSNE. Our first stage without the attraction ($\kappa = 0$) lands at 0.301 /
 0.588, below UMAP on MNIST. So the start matters beyond the attraction's presence: PaCMAP's mid-near
-term, stiffened with the same tuning budget, does not reach the same pairwise Spearman, and the
+term, stiffened by a sweep of comparable size under a different selection criterion, does not reach
+the same pairwise Spearman, and the
 difference (0.103 on MNIST, 0.102 on Fashion-MNIST; an approximate Welch interval of [0.08, 0.13] on
 MNIST) is not a seed effect. Two caveats: \texttt{MN\_ratio} changes the number of mid-near pairs and
 PaCMAP's force is bounded where ours is linear, so this compares two tuned pipelines rather than one
@@ -294,8 +299,9 @@ the UMAP and PaCMAP starts.
 
 \begin{table}[t]
 \centering\small
-\caption{The $2 \times 2$ design with seeds (\texttt{staged\_seeds.py}, all cores, 5 runs per cell; 2
-for openTSNE): the same pass applied to \magnet{}'s first stage at four stiffnesses, PaCMAP at its
+\caption{Repeated tuned-start comparison (\texttt{staged\_seeds.py}, all cores, 5 runs per cell; 2
+for openTSNE; standard deviations of the values before the pass and of the paired changes are in the
+JSON): the same pass applied to \magnet{}'s first stage at four stiffnesses, PaCMAP at its
 defaults and at the stiff setting of the sweep, UMAP and openTSNE. Before $\to$ after (mean), $\pm$
 standard deviation of the value after the pass.}
 \label{tab:staged_seeds}
@@ -321,7 +327,7 @@ iterations at a local cost.
 \begin{table}[t]
 \centering\small
 \caption{Finite-time drift along the full-batch pass (MNIST 70k, all cores;
-\texttt{k15\_persistence.py}). KL is the objective (edge terms plus $\log Z$); $\sigma$ the layout's
+\texttt{k15\_persistence.py}). KL is the complete objective $\sum p \log p - \sum p \log k + \log Z$; $\sigma$ the layout's
 standard deviation.}
 \label{tab:persist}
 \begin{tabular}{lrrrrrrrr}
@@ -382,8 +388,8 @@ setting is shipped as a preset, not as a default.
 
 \begin{table}[t]
 \centering\small
-\caption{Stationary dilation $s^\ast$ of the starts along the ray $sY_0$ (MNIST 70k, $s$ in units of the
-start's standard deviation, minimum of $F(sY_0)$ over a 13-point scan refined by a parabola;
+\caption{Stationary dilation $s^\ast$ of the starts along the ray $sY_0$ (MNIST 70k; $Y_0$ has unit
+standard deviation, so $s$ is the target standard deviation; minimum of $F(sY_0)$ over a 13-point scan refined by a parabola;
 \texttt{k17\_virial\_projected.py}, \texttt{k18\_virial\_handover.py}), and the pass from three
 hand-over scales (300 iterations, all cores).}
 \label{tab:virial}
@@ -448,42 +454,45 @@ statement in the text.
 \subsection{Main results}
 \begin{table}[t]
 \centering\small
-\caption{MNIST 70k $\times$ 784, mean over 2 seeds, defaults for every method, best per column in bold;
-shared machine.}
+\caption{MNIST 70k $\times$ 784, mean over 2 runs (seeded where the method is seeded), defaults for
+every method, best per column in bold; shared machine.}
 \label{tab:mnist}
 \resizebox{\textwidth}{!}{\input{tables/mnist.tex}}
 \end{table}
 \begin{table}[t]
 \centering\small
-\caption{Fashion-MNIST 70k (1 seed).}\label{tab:fmnist}
+\caption{Fashion-MNIST 70k (1 run).}\label{tab:fmnist}
 \resizebox{\textwidth}{!}{\input{tables/fmnist.tex}}
 \end{table}
 \begin{table}[t]
 \centering\small
-\caption{20 newsgroups (18.8k $\times$ 300, cosine, 2 seeds).}\label{tab:news20}
+\caption{20 newsgroups (18.8k $\times$ 300 SVD; fitting geometry per method as in Sec.~\ref{sec:exp},
+euclidean evaluation on the SVD rows; 2 runs).}\label{tab:news20}
 \resizebox{\textwidth}{!}{\input{tables/news20.tex}}
 \end{table}
 \begin{table}[t]
 \centering\small
-\caption{15 Gaussian blobs (10k $\times$ 200, 2 seeds).}\label{tab:blobs}
+\caption{15 Gaussian blobs (10k $\times$ 200, 2 runs).}\label{tab:blobs}
 \input{tables/blobs.tex}
 \end{table}
 \begin{table}[t]
 \centering\small
 \caption{Five independent runs of the decisive rows on an idle machine (\texttt{seeds.py}; \magnet{},
 openTSNE, PaCMAP and scikit-learn seeded 0--4; UMAP unseeded, as seeding it serialises its layout).
-Mean $\pm$ standard deviation over the five runs; the dispersion of the mean is that divided by
-$\sqrt{5}$. Centroids: Spearman of the 45 inter-centroid distances.}
+Mean $\pm$ standard deviation over the five runs (embedding-run variability only; the evaluation
+samples are fixed; values below 0.0005 are shown as 0.000); the dispersion of the mean is that divided
+by $\sqrt{5}$. Centroids: Spearman of the 45 inter-centroid distances.}
 \label{tab:seeds}
 \resizebox{\textwidth}{!}{\input{tables/seeds.tex}}
 \end{table}
 
 \paragraph{Sampled mode.} Fastest row on every data set (3.6~s on MNIST over five runs; UMAP 8.4~s,
 h-NNE 9.1~s in the shared-machine table, whose rankings on 20 newsgroups and the blobs rest on one or
-two runs), highest pairwise Spearman among neighbour embeddings on MNIST, Fashion-MNIST and the blobs,
+two runs), highest pairwise Spearman among the unstaged neighbour embeddings on MNIST, Fashion-MNIST and
+the blobs,
 15-NN above UMAP by 64\% on MNIST and 54\% on Fashion-MNIST (five runs), 37\% and 43\% on 20 newsgroups
 and the blobs. h-NNE is the one fast method above
-it on 15-NN (0.233 against 0.193) and is behind on every other column.
+it on 15-NN (0.233 against 0.193) and is behind on every other column on MNIST.
 
 \paragraph{Full-batch mode.} 15-NN 0.347 $\pm$ 0.001 over five runs against 0.347 $\pm$ 0.001 for
 openTSNE and 0.350 for Barnes--Hut $t$-SNE (whose five seeded runs are nearly identical on every
@@ -494,8 +503,9 @@ reported metric, standard deviations below 0.001), in 8.2~s against 93.5 and 186
 / 0.750 $\pm$ 0.001 on Fashion-MNIST: the highest 15-NN and the highest pairwise Spearman of the
 neighbour embeddings in Table~\ref{tab:seeds} on both data sets. The 15-NN margin over openTSNE
 (0.006) is the same as what the pass adds to openTSNE's own layout (0.348 $\to$ 0.354,
-Table~\ref{tab:staged}): it is the margin of refining on the 15-NN graph that the metric reads, not of
-the sequence. The difference with Barnes--Hut $t$-SNE (0.003 on MNIST, 0.001 on Fashion-MNIST, against a standard
+Table~\ref{tab:staged}): the first stage is not necessary for the local margin; that comparison,
+which also changes affinities and budget, does not isolate the graph as its cause, and the margin is
+budget dependent (the pass reaches 0.367 at 3000 iterations). The difference with Barnes--Hut $t$-SNE (0.003 on MNIST, 0.001 on Fashion-MNIST, against a standard
 deviation of 0.001 on our side) is small and panel dependent; among staged alternatives the UMAP start
 refined by the same pass reaches 0.331 $\pm$ 0.001 on Fashion-MNIST, above the hybrid's 0.328. ``Matches
 the full-batch 15-NN'' is the defensible statement. The hybrid's trustworthiness is below openTSNE's
@@ -536,7 +546,8 @@ and by tercile of the input distance, and reduces it to the 45 distances between
 is ahead on every pairwise stratum; the hybrid ties it on the intermediate tercile (0.132 against
 0.131) and is second elsewhere. On the centroids the order reverses: UMAP 0.728 $\pm$ 0.014, PaCMAP
 0.682, full-batch 0.658, our sampled mode 0.635 $\pm$ 0.002, openTSNE 0.605, and the hybrid 0.509
-$\pm$ 0.075, last of the neighbour embeddings and the one unstable value of Table~\ref{tab:seeds}. The
+$\pm$ 0.075, last among the methods with centroid measurements and the one unstable value of
+Table~\ref{tab:seeds}. The
 pass itself moves the centroids by $-0.07$ to $+0.01$ (Table~\ref{tab:staged}); the stiff first stage
 starts at 0.52 against 0.635 for the default stiffness. The stiff attraction buys pairwise Spearman at
 the expense of the class-level geometry on MNIST; on Fashion-MNIST the hybrid's centroids (0.933 $\pm$
@@ -637,11 +648,12 @@ repulsion estimator of our full-batch mode; openTSNE is its reference implementa
 \section{Limitations}
 The result is for two image data sets at 70k points; on text the sequence trails Barnes--Hut $t$-SNE on
 pairwise Spearman and the hand-over rule has not been validated at other sizes. The staged baselines of
-Table~\ref{tab:staged} are single runs; the seeded $2 \times 2$ design repeats its decisive rows. The
-pass drifts: the full-batch objective does not preserve the start's Spearman at convergence
-(Sec.~\ref{sec:persist}). PCA keeps the lead on pairwise
+Table~\ref{tab:staged} are single runs; the repeated tuned-start comparison repeats its decisive rows.
+The start's Spearman continues to drift through 3000 iterations of the pass; convergence and the
+limiting value are unknown (Sec.~\ref{sec:persist}). PCA keeps the lead on pairwise
 Spearman on every real data set, and the stiff attraction that gives the hybrid its pairwise Spearman
-makes the class-centroid geometry of MNIST the worst and the most variable of the panel. The hybrid's
+makes the class-centroid geometry of MNIST the worst and the most variable among the methods with
+centroid measurements. The hybrid's
 local advantage holds at $k = 15$, the scale of its graph, and not at $k = 5$ or $k \ge 50$; its 15-NN
 margin over openTSNE is what the pass adds to openTSNE's own layout. The shipped operating point is a
 compromise ($\kappa = 1.0$ and the scale-62 preset score higher on pairwise Spearman). The
@@ -655,8 +667,8 @@ scale.
 A sampled first stage under a transient mid-range attraction, then a short full-batch $t$-SNE
 refinement started at that optimiser's own scale without exaggeration, gives a layout with the
 full-batch mode's 15-NN preservation and most of the first stage's pairwise-distance Spearman. The
-refinement does the same to the tested neighbour-embedding starts, and openTSNE's optimiser returns the
-same layout from the same affinities; the pairwise Spearman after it is predominantly inherited from the start, and in
+refinement does the same to the tested neighbour-embedding starts, and openTSNE's optimiser returns
+nearly the same fidelity scores from the same affinities; the pairwise Spearman after it is predominantly inherited from the start, and in
 this pipeline adding the mid-range attraction is what supplies the start's advantage. The price is paid
 in class-centroid geometry and at neighbourhood sizes other than the graph's. The implementation runs
 the whole sequence in 1.3 times the time of a UMAP layout.
@@ -724,8 +736,8 @@ $1/2$, text is the open case. Single runs.}
 \end{figure}
 
 \subsection{Per-point exponent}
-An oracle that knows the true $q$ of each point gains 5--10\% of 15-NN over the best fixed exponent on
-mixed-dimension data (0.498 $\to$ 0.540, 0.417 $\to$ 0.441 against $b = 0.6$). Two estimators ship:
+An oracle that knows the true $q$ of each point gains 5--10\% of 15-NN over the default $b = 0.6$ on
+mixed-dimension data (0.498 $\to$ 0.540, 0.417 $\to$ 0.441). Two estimators ship:
 \texttt{kernel\_b="local"} (a local intrinsic dimension, graph-smoothed, with a step at $m + 0.5$) and
 \texttt{kernel\_b="adaptive"} (crowding read off the layout at three quarters of the run as the share of
 a point's edges longer than twice the median; the point switches to $L_2$ when none and its degree is
