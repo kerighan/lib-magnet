@@ -31,6 +31,7 @@ def methods(X, P_getter):
     M = {"MAGNET SGD": lambda: MAGNET(random_state=0, n_threads=T).fit_transform(X),
          "MAGNET full-batch": lambda: MAGNET(loss="tsne", random_state=0, n_threads=T).fit_transform(X),
          "MAGNET hybrid": lambda: MAGNET(loss="hybrid", random_state=0, n_threads=T).fit_transform(X),
+         "MAGNET full-batch (quality)": lambda: MAGNET(loss="tsne", n_epochs=900, hybrid_tail=(100, 1.5), random_state=0, n_threads=T).fit_transform(X),
          "UMAP": lambda: umap.UMAP().fit_transform(X),
          "PaCMAP": lambda: pacmap.PaCMAP(random_state=0).fit_transform(X),
          "openTSNE": lambda: np.asarray(__import__("openTSNE").TSNE(n_jobs=T, random_state=0).fit(X)),
