@@ -404,6 +404,17 @@ same pass wins on letter (nearly linear data), and spring 0.1 transfers at least
 better on covertype's class centroids): the hybrid's 0.5 is an MNIST choice. At 250k the sequence takes
 40 s at 8 threads (UMAP 107 s, PaCMAP 146-265 s).
 
+**Separability, the third axis** (`benchmarks/separability.py`, docs section 6.9). Cluster recovery on the
+layout (labels used only to score: silhouette, ARI of k-means with k = number of classes, ARI and noise of
+HDBSCAN) reverses the podium of the two fidelity metrics: on MNIST PaCMAP 0.914 / UMAP 0.778 of k-means
+ARI, MAGNET SGD 0.748, full-batch 0.802, openTSNE 0.726, and the hybrid last at 0.509 (HDBSCAN finds 2
+clusters and discards 77 % of the points). On a composite (each of 15-NN, Spearman, ARI divided by the
+panel's best, geometric mean) the all-round row is `loss="tsne"`: 0.848 on MNIST (openTSNE 0.810, hybrid
+0.807), 0.816 on Fashion-MNIST (openTSNE 0.824). The hybrid's pass has a knob for this axis,
+`hybrid_tail=(100, 2.0)` (the "clusters" preset: 100 final iterations at exaggeration 2): on MNIST 15-NN
+0.305, Spearman 0.432, k-means ARI 0.707, HDBSCAN ARI 0.764 against 0.355 / 0.452 / 0.615 / 0.097 without
+it, same time (`benchmarks/theory/k28_exaggeration_tail.py`). Not the default.
+
 **Timing protocol.** Every method runs with its defaults and all cores; UMAP and densMAP run without
 `random_state` (setting it makes their layout single-threaded: 49 s instead of 10 s on MNIST), MAGNET
 with a seed (its threads do not depend on it). The numba methods are warmed up before the clock on

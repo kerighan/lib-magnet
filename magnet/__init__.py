@@ -110,6 +110,10 @@ class MAGNET:
         attraction multiplier of the final phase: 1 = t-SNE, ~4 looks like UMAP).
     exaggeration : multiplier on the attractive gradient (UMAP ~ t-SNE with exaggeration 4).
     hybrid_iter : iterations of the exact pass of loss="hybrid" (default 300; 150 keeps most of the gain).
+    hybrid_tail : (iterations, exaggeration) of an optional exaggerated tail at the end of the hybrid's pass
+        (default (0, 1.0): none). (100, 2.0) is the "clusters" preset: on MNIST 70k it trades 0.05 of 15-NN
+        and 0.02 of distance Spearman for cluster recovery (HDBSCAN ARI 0.10 -> 0.76, k-means ARI 0.62 ->
+        0.71; benchmarks/theory/k28_exaggeration_tail.py).
     tsne_init_scale, tsne_learning_rate, tsne_far, tsne_mid : research knobs of the exact mode (warm start
         scale and learning rate, constant far-field repulsion, bounded mid-range springs; docs/kernel_exponents.md).
     tsne_dof : degrees of freedom of the Student-t kernel of loss="tsne" (1 = Cauchy, the t-SNE kernel;
@@ -190,7 +194,7 @@ class MAGNET:
                  init="auto", pca=None, knn="nndescent", ef_construction=80, M=16, ef=None,
                  set_op_mix_ratio=1.0, neighbor_power=1.0, neighbor_rank_exponent=0.0,
                  samples_per_node=5.0, graph_norm="sym", input="auto",
-                 adaptive=(0.5, 1.0, 0.75, 0.0, 2.0, 2), tsne_init_scale=None, tsne_learning_rate=None, tsne_far=(0.0, 0.1), tsne_mid=("mean", 0.3), hybrid_iter=300,
+                 adaptive=(0.5, 1.0, 0.75, 0.0, 2.0, 2), tsne_init_scale=None, tsne_learning_rate=None, tsne_far=(0.0, 0.1), tsne_mid=("mean", 0.3), hybrid_iter=300, hybrid_tail=(0, 1.0),
                  transform_epochs=None, parallel="hogwild", n_threads=-1, random_state=None, verbose=False):
         self.n_components = n_components
         self.parallel = parallel
@@ -200,6 +204,7 @@ class MAGNET:
         self.tsne_far = tsne_far
         self.tsne_mid = tsne_mid
         self.hybrid_iter = hybrid_iter
+        self.hybrid_tail = hybrid_tail
         self.n_neighbors = n_neighbors
         self.metric = metric
         self.min_dist = min_dist
@@ -472,8 +477,14 @@ class MAGNET:
                                   learning_rate=self.tsne_learning_rate, n_interp=int(self.fft_interp),
                                   box_width=float(self.fft_box), n_threads=self.n_threads, dof=float(self.tsne_dof),
                                   verbose=self.verbose)
+                tail_iter, tail_exag = int(self.hybrid_tail[0]), float(self.hybrid_tail[1])
+                if tail_iter > 0 and tail_exag != 1.0:   # "clusters" preset: a short exaggerated tail compacts the clusters
+                    Y = optimize_tsne(P, Y, n_iter=tail_iter, early_iter=0, exaggeration=tail_exag,
+                                      learning_rate=self.tsne_learning_rate, n_interp=int(self.fft_interp),
+                                      box_width=float(self.fft_box), n_threads=self.n_threads, dof=float(self.tsne_dof),
+                                      verbose=self.verbose)
                 if self.verbose:
-                    print(f"Hybrid: exact pass ({self.hybrid_iter} iterations) - T={time.time() - t_h:.2f}s")
+                    print(f"Hybrid: exact pass ({self.hybrid_iter} + {tail_iter} iterations) - T={time.time() - t_h:.2f}s")
         if self.verbose:
             print(f"Layout ({self.n_epochs_} epochs, {len(head)} edges) - T={time.time() - t:.2f}s"
                   f" | total {time.time() - t0:.2f}s")

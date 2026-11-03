@@ -544,6 +544,25 @@ everywhere here and far better on covertype's centroids (0.76 / 0.87 / 0.82 agai
 0.5 of the shipped hybrid is an MNIST choice. At 250k the hybrid takes 40 s (8 threads) against 107 s for UMAP
 and 146-265 s for PaCMAP; the hand-over rule holds (15-NN 0.63 at scale 59).
 
+### 6.9 Separability (`benchmarks/separability.py`, `k28_exaggeration_tail.py`)
+
+Maixent's question after the PCA + pass figure: nobody would use that layout, so the two fidelity metrics
+miss what the eye sees. Cluster recovery on 10k points of each layout (labels only to score): silhouette,
+ARI of k-means (k = classes), ARI / noise of HDBSCAN (min_cluster_size 200). MNIST k-means ARI: PaCMAP
+0.914, full-batch 0.802, UMAP 0.778, SGD 0.748, openTSNE 0.726, hybrid 0.509, PCA + pass 0.366; HDBSCAN:
+SGD 0.789 (8 clusters, 19 % noise), PaCMAP 0.657, UMAP 0.553, full-batch 0.330, hybrid 0.193 (2 clusters,
+77 % noise). Composite (shares of the panel best on 15-NN / Spearman / k-means ARI, geometric mean):
+full-batch 0.848, openTSNE 0.810, hybrid 0.807, SGD 0.728, PCA + pass 0.665, UMAP 0.556, PaCMAP 0.552
+(Fashion: openTSNE 0.824, full-batch 0.816, PCA + pass 0.813, hybrid 0.802). The hybrid is the worst
+neighbour embedding for clustering; the standalone full-batch mode is the all-round row.
+
+Exaggeration tail in the pass (k28, stiff start, seed 0): 300 - L iterations at 1 then L at rho. L = 100,
+rho = 2: 0.305 / 0.432 / k-means 0.707 / HDBSCAN 0.764 (10 clusters, 11 % noise); L = 50, rho = 4: 0.269 /
+0.432 / 0.705 / 0.876; whole pass at rho 1.5: 0.323 / 0.432 / 0.722 / 0.050 (2 clusters: k-means-friendly,
+HDBSCAN-hostile); plain pass 0.355 / 0.452 / 0.615 / 0.097. A relaxation after the tail undoes the HDBSCAN
+separation (0.31); the SGD compact preset + plain pass does not do it (0.476). Shipped as
+`hybrid_tail=(iterations, exaggeration)`, default (0, 1.0); (100, 2.0) is the "clusters" preset.
+
 ## Scripts (`benchmarks/theory/`)
 
 `e1_force_spectrum.py` (per-octave repulsive force on MAGNET's own embeddings), `k13_tail_crossover.py` (the same binned by the kernel crossover, with the shell-count-adjusted prediction), `e1b_powerlaw.py`
