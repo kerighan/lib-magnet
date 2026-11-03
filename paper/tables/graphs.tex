@@ -1,0 +1,12 @@
+\begin{tabular}{lrrrrrr}
+\toprule
+graph & \multicolumn{2}{c}{time (s)} & \multicolumn{2}{c}{edge preservation} & \multicolumn{2}{c}{10-NN acc.} \\
+ & \magnet{} & UMAP & \magnet{} & UMAP & \magnet{} & UMAP \\
+\midrule
+Cora (2.7k, 5.3k edges) & \textbf{0.4} & 0.4 & \textbf{0.509} & 0.469 & 0.771 & 0.772 \\
+US airports (1.2k, 13.6k) & \textbf{0.1} & 0.9 & \textbf{0.349} & 0.232 & 0.482 & \textbf{0.619} \\
+Europe airports (0.4k, 6k) & \textbf{0.1} & 0.7 & \textbf{0.328} & 0.271 & 0.189 & \textbf{0.340} \\
+SBM + chains (3k) & \textbf{0.3} & 1.3 & 0.483 & \textbf{0.535} & \textbf{0.849} & 0.810 \\
+SBM 30k (782k edges) & \textbf{1.5} & 10.4 & \textbf{0.017} & 0.013 & 1.000 & 1.000 \\
+\bottomrule
+\end{tabular}

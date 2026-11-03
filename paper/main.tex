@@ -1,6 +1,7 @@
-% MAGNET -- arXiv outline. Compile: latexmk -pdf main.tex (figures: python paper/make_fig_layouts.py mnist ;
-% python paper/make_fig_ablations.py ; tables: python paper/make_tables.py, from benchmarks/BENCHMARK.md).
-% Status: OUTLINE. Section bodies are bullet lists of the claims to write up, with the numbers that back them.
+% MAGNET -- arXiv draft. Compile: ~/miniconda3/envs/tex/bin/tectonic -X compile main.tex (from paper/).
+% Figures: python paper/make_fig_layouts.py mnist|fmnist ; python paper/make_fig_ablations.py ; python paper/make_fig_tail.py
+% Tables: python paper/make_tables.py (from benchmarks/BENCHMARK.md), benchmarks/seeds_summary.py, benchmarks/global_strata.py,
+% benchmarks/graph_table.py.
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amssymb,booktabs,graphicx,xcolor,hyperref,natbib,enumitem,microtype}
@@ -10,8 +11,8 @@
 \newcommand{\magnet}{\textsc{magnet}}
 \setlist{nosep}
 
-\title{\magnet: two exponents, two regimes, one layout\\
-\large Fast dimensionality reduction and graph layout from the split of the attraction--repulsion kernel}
+\title{\magnet: a sampled pass for the global structure,\\ a full-batch pass for the local one\\
+\large Staged neighbour embedding with a split attraction--repulsion kernel}
 \author{Maixent Chenebaux\thanks{\texttt{github.com/kerighan/lib-magnet}, package \texttt{magnet-learn}.}}
 \date{Draft, \today}
 
@@ -19,273 +20,236 @@
 \maketitle
 
 \begin{abstract}
-\todo{Write last.} Claims, in order:
-(1) The kernel $w(d) = 1/(1 + a d^{2b})$ shared by UMAP, LargeVis and $t$-SNE fixes two unrelated things
-with one exponent: the near field of the attraction and the far field of the repulsion.
-(2) The two regimes prefer different exponents. A robust-location argument on the near-field
-attraction favours a sub-quadratic exponent under crowding and a quadratic one without; the measured
-optima are 0.4--0.5 under crowding and 1 without, with a step at intrinsic dimension $q = m$ on
-synthetic clusters, and 0.6--0.7 on text, which the argument does not explain. A power-counting
-argument makes the far-field repulsion scale-free at $b_r = m/2$ on a homogeneous cloud; on real layouts
-the asymptotic window is narrow and the measured fidelity optimum sits at or above that value.
-(3) Splitting the exponent, a native neighbour search and a lock-free SGD give a layout of MNIST 70k in
-4.4~s (UMAP 0.5.12: 11~s) with the best global structure of ten neighbour embeddings (PCA stays ahead on distance Spearman); a full-batch FFT-interpolated repulsion gives $t$-SNE's local
-structure in 9~s; their sequence (\texttt{loss="hybrid"}) leads both axes at once: 15-NN preservation
-0.353 (scikit-learn $t$-SNE 0.350, 196~s) with distance Spearman 0.444 (SGD 0.413) in 12.5~s.
-(4) The fade between local and global structure exists across the optimiser's scales, not inside one loss.
+Neighbour embeddings trade local against global structure through the balance of attraction and
+repulsion, and the estimator of the repulsion fixes which side wins: negative sampling (UMAP, LargeVis)
+gives global arrangement and loose neighbourhoods, the all-pairs gradient of $t$-SNE gives tight
+neighbourhoods and no arrangement. We show that the two can be had in sequence rather than in
+compromise. A sampled SGD pass with a stiff mid-range spring places the clusters; a short full-batch
+pass (300 FFT-interpolated iterations, no early exaggeration, no spring) started at the full-batch
+optimiser's own scale then rebuilds the neighbourhoods and keeps the arrangement. The pass is
+generic: applied to UMAP, PaCMAP, openTSNE or our own SGD layouts of MNIST 70k it brings every one
+of them to $t$-SNE's 15-NN preservation (0.353--0.356) while moving their distance Spearman by less
+than 0.03, and openTSNE's optimiser does the same job four times slower. What is specific is the
+start: our SGD layout has the best global structure among the neighbour embeddings of a twelve-method
+panel, so the sequence (\texttt{loss="hybrid"}) leads both axes at once, 15-NN 0.353 and Spearman
+0.455 on MNIST (scikit-learn $t$-SNE 0.350 / 0.338, UMAP 0.117 / 0.299, openTSNE 0.347 / 0.331; 5
+seeds, standard deviations 0.001 / 0.014) and 0.328 / 0.750 on Fashion-MNIST, in 1.3 times UMAP's
+time and a ninth of openTSNE's on 20 threads. The implementation (C++ NN-descent, lock-free SGD, split
+attraction and repulsion exponents, FFT repulsion) is the fastest CPU method on the panel on every data
+set; the timing of each baseline is audited. The split of the kernel exponent into an attraction and a
+repulsion exponent is argued asymptotically (a robust-location argument for the near field, a
+power-counting one for the far field), and the arguments are tested against measured optima, with the
+cases they do not account for stated. PCA stays ahead of every neighbour embedding on distance
+Spearman on the real data sets; ``best global structure'' here means best among neighbour embeddings.
 \end{abstract}
 
 \section{Introduction}
-\begin{itemize}
-\item Neighbour-embedding methods = attraction on a kNN graph + repulsion on everything else; the
-  attraction--repulsion balance is the one axis that separates $t$-SNE, UMAP, LargeVis
-  \citep{boehm2022attraction}; negative sampling is biased towards weak repulsion \citep{damrich2021umap}.
-\item What this paper adds: (i) the exponent of the kernel is two parameters wearing one name
-  (Sec.~\ref{sec:theory}); (ii) an asymptotic argument for each regime, stated with its assumptions, and the measured optima it does and does not account for; (iii) an
-  implementation that is the fastest CPU method on the panel and the first row of the benchmark to lead
-  local and global columns at once (Sec.~\ref{sec:exp}); (iv) negative results on blending the two
-  regimes inside one loss, with the reason (Sec.~\ref{sec:hybrid}).
-\item Figure~\ref{fig:layouts}: the six layouts of MNIST 70k. Figure~\ref{fig:tradeoff}: quality against time.
-\end{itemize}
+A neighbour embedding attracts the ends of the edges of a kNN graph and repels everything else. Which
+estimator computes the repulsion matters as much as the loss: with negative sampling the layout keeps
+the arrangement of the clusters and loses the neighbourhoods, with the full gradient it is the other
+way round \citep{boehm2022attraction, damrich2021umap}. The usual remedy is a knob inside one
+optimiser (exaggeration, a mid-range term, a heavier tail), and every such knob buys one side with the
+other. This paper takes the two optimisers as they are and runs them in sequence.
+
+The contributions, in the order the paper makes them:
+\begin{enumerate}[leftmargin=2em]
+\item \textbf{A staged optimisation with explicit hand-over conditions} (Sec.~\ref{sec:staged}).
+  A sampled pass tuned for global structure, then a full-batch pass that refines the neighbourhoods
+  without touching the arrangement. The sequence works under three conditions (scale of the hand-over,
+  no early exaggeration, no spring in the second pass) and fails outside them, and the reverse order
+  fails. We show with staged baselines that the second pass is generic (it does the same to UMAP,
+  PaCMAP and openTSNE layouts, and openTSNE's optimiser can replace ours) and that the gain on the
+  global axis is entirely the first pass's.
+\item \textbf{An implementation that is the fastest CPU method on the panel} (Sec.~\ref{sec:algo},
+  \ref{sec:exp}): MNIST 70k in 4.4~s for the SGD mode, 9~s for the full-batch mode, 12.5~s for the
+  sequence, against 11~s for UMAP and 102~s for openTSNE. The baselines' timings are audited
+  (numba warm-up, UMAP's single-threaded seeded path, a per-phase breakdown of openTSNE, the protocol
+  for graph inputs).
+\item \textbf{A split of the kernel exponent} (Sec.~\ref{sec:theory}): the exponent $b$ of the kernel
+  $1/(1 + a d^{2b})$ sets the near field of the attraction and the far field of the repulsion, two
+  unrelated things. \magnet{} gives each its own exponent. An asymptotic argument for each side is
+  stated with its assumptions and compared with measured optima; the cases it does not explain (text,
+  the working scale of real layouts) are reported as such.
+\item \textbf{Negative results} on blending the two regimes inside one loss, with the reason
+  (Sec.~\ref{sec:staged}), and a stratified reading of the global metric that shows where a neighbour
+  embedding's global score comes from and that PCA keeps the lead on it (Sec.~\ref{sec:global}).
+\end{enumerate}
+Figure~\ref{fig:layouts} shows the six layouts of MNIST 70k that the paper returns to;
+Fig.~\ref{fig:tradeoff} places the twelve methods on quality against time.
 
 \begin{figure}[t]
 \centering\includegraphics[width=\textwidth]{layouts_mnist.png}
 \caption{MNIST 70k under six methods, same seed. Top: UMAP, openTSNE (FIt-SNE), PaCMAP. Bottom:
-\magnet{} sampled (SGD), full-batch (FFT repulsion), hybrid (SGD layout refined by the full-batch pass). Time,
-15-NN preservation and distance Spearman in the panel titles (single runs, numba compilation excluded).
-\todo{Fashion-MNIST version in the appendix.}}
+\magnet{} sampled (SGD), full-batch (FFT repulsion), hybrid (SGD layout refined by the full-batch pass).
+Time, 15-NN preservation and distance Spearman in the panel titles (single runs, 20 threads, numba
+compilation excluded). The Fashion-MNIST panel is Fig.~\ref{fig:layouts_fmnist} in the appendix.}
 \label{fig:layouts}
 \end{figure}
 
 \section{Background and notation}
-\begin{itemize}
-\item kNN graph with fuzzy-union weights (UMAP's), symmetric; embedding $Y \in \mathbb{R}^{n\times m}$.
-\item Kernel $w(d) = 1 / (1 + a d^{2b})$; attraction $-\log w$, repulsion $-\log(1 - w)$;
-  $t$-SNE's Cauchy is $b = 1$; kernel scale $d_k = a^{-1/2b} \approx 0.62$ at UMAP's defaults.
-\item Forces: $F_{\mathrm{att}}(d) = 2ab\,d^{2b-1}/(1 + a d^{2b})$, $F_{\mathrm{rep}}(d) = 2b/(d(1 + a d^{2b}))$.
-\item Estimators of the repulsion: negative sampling (UMAP, LargeVis), Barnes--Hut, FFT interpolation
-  \citep{linderman2019fitsne}; the optimiser's choice fixes the regime (compact / faithful). We write
-  \emph{full-batch}, not exact, for the all-pairs FFT-interpolated repulsion: it is accurate to its grid.
+The input is a symmetric kNN graph with UMAP's fuzzy-union weights, $P \in \mathbb{R}^{n \times n}$;
+the output is $Y \in \mathbb{R}^{n \times m}$, $m = 2$ unless said otherwise. The kernel
+$w(d) = 1/(1 + a d^{2b})$ turns a layout distance into a similarity; the attraction on an edge is
+$-\log w$ and the repulsion on a non-edge is $-\log(1 - w)$. $t$-SNE's Cauchy kernel is $b = 1$; UMAP's
+defaults give $a \approx 1.58$, $b \approx 0.9$ and a kernel scale $d_k = a^{-1/2b} \approx 0.62$. The
+forces are
+\[
+F_{\mathrm{att}}(d) = \frac{2ab\,d^{2b-1}}{1 + a d^{2b}}, \qquad
+F_{\mathrm{rep}}(d) = \frac{2b}{d\,(1 + a d^{2b})}.
+\]
+The repulsion is summed over all pairs, and the estimator used for that sum fixes the regime: negative
+sampling (UMAP, LargeVis) under-weights it and gives compact layouts, Barnes--Hut and FFT interpolation
+\citep{linderman2019fitsne} compute it in full. We write \emph{full-batch}, not exact, for the all-pairs
+FFT-interpolated gradient: it is accurate to its grid.
+
+\section{The algorithm}\label{sec:algo}
+\paragraph{Pipeline.} A C++ NN-descent (1.2~s for $70\mathrm{k} \times 784$; HNSW optional) or a
+scatter/gather NN-descent for sparse rows; UMAP's fuzzy-union graph; a spectral initialisation by
+Chebyshev-filtered subspace iteration; then one of three optimisers. The SGD mode samples edges with
+UMAP's schedule, five negatives per positive, lock-free across threads; the attraction and repulsion
+kernels carry separate exponents $b$ and $b_r$ (Sec.~\ref{sec:theory}), which also removes the
+\texttt{pow} from the inner loop. The full-batch mode (\texttt{loss="tsne"}) is a $t$-SNE gradient on
+the same graph with the FFT-interpolated repulsion of \citet{linderman2019fitsne}, early exaggeration,
+600 iterations (200 + 400). The hybrid (\texttt{loss="hybrid"}) runs the first then the second
+(Sec.~\ref{sec:staged}). Graphs and sparse matrices are accepted directly; \texttt{transform()} places
+new points (0.6~s for 10k MNIST test points at 0.96 of 10-NN accuracy; UMAP 14.8~s).
+
+\paragraph{Mid-range term.} With probability \texttt{mid\_rate} a positive sample is followed by a
+partner: PaCMAP-style mid-near pairs from the data \citep{wang2021pacmap} (the second closest of six
+random rows, five per point), or short random walks on graphs. The point is pulled towards the partner
+by a spring of stiffness \texttt{mid\_weight}, annealed to zero over the first half of the epochs. This
+term is \emph{all} of the SGD mode's global structure: on MNIST the distance Spearman is 0.285 without
+it, 0.413 / 0.427 / 0.478 at stiffness 0.1 / 0.3 / 1.0, at 15-NN preservation 0.193 / 0.187 / 0.168
+(Fig.~\ref{fig:hybrid}a). The default is 0.1; the hybrid uses 0.5, for the reason given in
+Sec.~\ref{sec:staged}.
+
+\paragraph{Where the SGD time goes.} On MNIST 70k the default fit is 1.1~s of kNN graph, 0.9~s of graph
+construction and spectral initialisation, and 2--3~s of SGD. One thread runs the SGD at 39 core-cycles
+per force evaluation, but 10 cores give only $3.7\times$: with lock-free updates every sampled edge
+writes cache lines owned by other cores and the slowest thread paces each epoch. An alternative
+\texttt{parallel="owner"} mode gives each thread a chunk of nodes to write and a per-epoch snapshot to
+read; it halves the SGD time (1.45~s against 2.98~s), is bit-reproducible for any thread count, and
+shifts the balance slightly towards global structure (Spearman 0.451 against 0.415, 15-NN 0.189 against
+0.193). It is not the default because the hybrid's spring is tuned for the lock-free mode.
+
+\paragraph{Sparse inputs.} The sparse NN-descent scatters the row about to be compared against many
+partners into a dense per-thread buffer once; every partner's dot product is then a branch-free gather
+over its own non-zeros. The kNN graph of 20 newsgroups TF-IDF ($18.8\mathrm{k} \times 24\mathrm{k}$, 57
+non-zeros per row) takes 0.67~s instead of 2.3~s at the same recall (0.86 of the exact 15-NN), the fit
+1.6~s (UMAP 4.5~s). Dense projections of the rows (Gaussian 128--512, SVD 128--256) followed by a dense
+search keep 12--37\% of the true neighbours: text neighbourhoods hang on a few shared rare terms that any
+projection flattens.
+
+\paragraph{Cost.} 1M points (50 anisotropic clusters in 50-D) in 44~s and 3.3~GB on 20 threads
+(Fig.~\ref{fig:scaling}); the full-batch mode takes 17~s at 250k and 56~s at 1M.
+
+\section{Staged optimisation}\label{sec:staged}
+\subsection{Nothing blends inside one loss}
+The SGD mode has the best global structure among the neighbour embeddings of the benchmark
+(Sec.~\ref{sec:exp}) and the full-batch mode the best local structure, and each is mediocre on the other
+axis (15-NN 0.19 against 0.35, Spearman 0.41 against 0.35 on MNIST). Can one loss fade from one regime
+to the other? We tried the obvious devices inside the full-batch mode, each on MNIST 70k:
+\begin{itemize}[leftmargin=1.5em]
+\item The mid-range spring that gives the SGD mode its global structure does nothing for the full-batch
+  mode: stronger (0.3, 1.0, 3.0) or kept on through the late phase, it lowers 15-NN preservation (to
+  0.13, 0.08, 0.01) before the Spearman moves; as a bounded-influence spring (PaCMAP's form) the picture
+  is the same. The late phase tolerates no extra force: its local structure is the balance of the
+  normalised repulsion and the attraction, and at the full-batch layout's scale (standard deviation 31
+  against 4 for the SGD layout) any linear spring is a strong contraction.
+\item A constant-strength far-field repulsion added to the normalised one is a $t$-SNE with another
+  attraction--repulsion ratio: in 2-D the $t$-SNE and UMAP repulsions share the Cauchy tail and differ by
+  the $1/Z$ normalisation. Its useful window spans a factor ten from ``nothing'' to ``layout destroyed''.
+\item Exaggeration (1.5 / 2 / 4) trades local structure for compactness (15-NN 0.278 / 0.195 / 0.121,
+  silhouette 0.44 / 0.52 / 0.57) and leaves the Spearman at 0.335.
+\item The reverse sequence, full-batch layout then 60--150 SGD epochs, reaches Spearman 0.436 but the
+  local structure falls back to the SGD level (0.13--0.17): the sampled forces rewrite the layout at
+  their own noise floor.
 \end{itemize}
 
-\section{Two exponents, two regimes}\label{sec:theory}
-\subsection{One exponent fixes two unrelated things}
-\begin{itemize}
-\item Near field $d \ll d_k$: attraction $2ab\,d^{2b-1}$ (shape set by $b$), repulsion $2b/d$ (same for every $b$).
-\item Far field $d \gg d_k$: attraction $2b/d$ (redescending, same for every $b$), repulsion $2b/(a d^{2b+1})$ (tail set by $b$).
-\item Hence attraction exponent $b$ and repulsion exponent $b_r$ are decoupled in \magnet{}
-  (\texttt{kernel\_b}, \texttt{repulsion\_b}); the coupled optimum ($\approx 0.3m$: 0.52 / 0.59 / 0.76 / 1.2
-  for $m = 1..4$) is the compromise between the two.
-\end{itemize}
-\subsection{Attraction: a robust location problem}
-\begin{itemize}
-\item Every satisfiable neighbour sits on a shell at $d_{\mathrm{eq}} = (b_r g / ab)^{1/2b}$, stiffness
-  $4 b b_r g / d_{\mathrm{eq}}^2 > 0$ for every $b$: the exponent does not act through stability.
-\item Crowding: when $q > m$ a share of the $k$ neighbours cannot sit on the shell and ends in the far
-  field, where every kernel pulls with $2b/d$. Near-field loss $\rho(d) = a d^{2b}$ is a location problem
-  in the family $|d|^p$, $p = 2b$: bounded influence iff $p \le 1$, convex iff $p \ge 1$. $p = 1$ (the
-  geometric median) is the only exponent with both. Huber's minimax loss says the same: the quadratic
-  threshold shrinks to zero as the contamination grows. This is an argument on the near-field
-  surrogate $a d^{2b}$, not on the loss $\log(1 + a d^{2b})$, which is redescending for every $b$ and
-  has a bounded score for every $b \ge 1/2$: it gives a direction (sub-quadratic under crowding), not an
-  optimum, and it says nothing about a jointly moving, repelling configuration.
-\item Heuristic prediction: optimum $1/2$ under crowding, $1$ without, a step at $q = m$. Measured
-  (Fig.~\ref{fig:exponents}a): $1.0/0.5/0.5/0.4/0.4$ for $q = 2/3/5/10/20$ in 2-D, $1.0/0.5/0.4$ for
-  $q = 3/5/10$ in 3-D; MNIST and Fashion-MNIST at 0.5 (contamination 0.24).
-\item Huber kernel as a check: no universal transition scale (best $c$ 0.02 on MNIST, 0.2--0.5 on 2-D
-  clusters), as Huber's argument suggests; the per-point exponent is the right form of the idea.
-\item Open: text (20 newsgroups) at 0.6--0.7; hubs and in-degree ruled out (Fig.~\ref{fig:exponents}c).
-\end{itemize}
-\subsection{Repulsion: which scale carries the loss}
-\begin{itemize}
-\item Far-field loss per octave $L[d, 2d] \propto d^{\,m - 2b_r}$ (homogeneous $m$-dimensional occupancy,
-  $a d^{2b_r} \gg 1$): scale-free at $b_r = m/2$, Cauchy in 2-D,
-  van der Maaten's $\nu = m-1$ heuristic recovered. Below $m/2$ the budget inflates the cloud (compact
-  clusters, squeezed local structure); above, the arrangement is free ($t$-SNE regime).
-\item Force per octave measured on smooth clouds: slopes $+0.07/-0.97/-2.01/-3.06$ for
-  $b_r = 0.5/1/1.5/2$ against $0/-1/-2/-3$ predicted (Fig.~\ref{fig:exponents}b).
-\item On fixed layouts binned by the kernel crossover $d_{k,r} = a^{-1/2b_r}$ (Fig.~\ref{fig:tail},
-  \texttt{k13}): at \magnet{}'s working scale no octave satisfies $a d^{2b_r} > 100$ below $R/2$, so the
-  asymptotic regime is not reached on the layout itself; binned by the 1-NN distance instead, the fitted
-  octaves sit below the crossover and the slope is $+0.1$ to $+0.2$ whatever $b_r$ (the apparent
-  mismatch of an earlier version of this analysis). Rescaled by 16--64 to open a 4--5 octave window, the
-  measured slope follows $\alpha - 1 - 2b_r$ within 0.05, with $\alpha$ the occupancy exponent of the
-  layout in the window: 1.6--1.7 for MNIST in 2-D \emph{and} in 3-D (clustered, not space-filling),
-  1.8 / 2.7 for Gaussian clouds. The law is a trend for homogeneous clouds; on a layout it holds with
-  $\alpha < m$, and at the working scale there is no window for it to act in, which is why it cannot by
-  itself fix the fidelity optimum.
-\item Measured fidelity optima: 1.0 in 2-D, 1.0--1.5 in 3-D, 2--4 in 4-D, 3--4 in 6-D: at or above $\alpha/2$ and $m/2$.
-\end{itemize}
-\begin{figure}[t]
-\centering\includegraphics[width=\textwidth]{tail_crossover.png}
-\caption{Per-octave repulsive force on fixed layouts against $d / d_{k,r}$ for $b_r = 0.5, 1, 1.5, 2$
-(same coordinates for every $b_r$; 256 anchors against all points). (a) MNIST 20k in 2-D at the
-layout's own scale: no octave above the crossover window. (b) The same layout rescaled by 64: slopes
-$-1.37 / -2.46 / -3.46$ for $b_r = 1 / 1.5 / 2$ against $\alpha - 1 - 2b_r = -1.34 / -2.42 / -3.41$ with
-$\alpha = 1.6$. (c) MNIST in 3-D, $\alpha = 1.7$. (d) Gaussian 2-D cloud, $\alpha = 1.8$ (finite cloud).}
-\label{fig:tail}
-\end{figure}
+\subsection{The sequence, and its hand-over conditions}
+The SGD layout refined by the full-batch optimiser works, under three conditions.
+\begin{enumerate}[leftmargin=1.5em]
+\item \emph{Scale.} The full-batch pass is started at that optimiser's own scale
+  ($\sigma = 31\sqrt{n / 70000}$ on MNIST-sized problems; the layout is rescaled, not re-initialised).
+  Started from $t$-SNE's tiny initialisation the layout re-expands and loses the arrangement (Spearman
+  0.29--0.39); started at the SGD layout's natural scale the normalised repulsion collapses it.
+\item \emph{No early exaggeration.} The exaggerated phase is where $t$-SNE forms its arrangement; here
+  the arrangement exists and the phase would overwrite it.
+\item \emph{No spring.} With the mid-range spring on in the second pass the layout collapses
+  ($\sigma = 3.5$, 15-NN 0.06 at stiffness 0.5; 0.12 at 0.1).
+\end{enumerate}
+With these, 300 iterations at learning rate $n/12$ give 15-NN 0.353--0.356 and Spearman 0.411--0.416
+from the default SGD layout (two seeds); 150 iterations give 0.343, 600 give 0.352. The pass costs the
+SGD layout 0.015 of Spearman at the hand-over scale 31 and 0.004 at scale 62, where it also gains 0.004 of
+15-NN, for three times the time: the FFT grid follows the layout's extent, so an iteration's cost grows
+with the square of the hand-over scale (10 / 30 / 121~s for scales 31 / 62 / 124). Scale 62 with 150
+iterations keeps the whole Spearman of the SGD layout at 15-NN 0.349 in 17~s; the default stays at 31 and
+300. The learning rate (1000, 20000) and the degrees of freedom of the kernel (0.5) buy nothing.
 
-\subsection{Per-point exponent}
-\begin{itemize}
-\item Oracle (true $q$ per point, Cauchy repulsion): $+7$--$12\%$ 15-NN on mixed-dimension data.
-\item Shipped: \texttt{kernel\_b="local"} (local intrinsic dimension, dimprint, graph-smoothed, step at
-  $m + 0.5$) and \texttt{kernel\_b="adaptive"} (crowding read off the layout at 3/4 of the run: share of
-  a point's edges longer than $2\times$ the median; switch to $L_2$ when none and degree $\ge 2$).
-  Within 0.005 of the base exponent on homogeneous data (MNIST / Fashion / news20 / Paul15; airports at
-  base 0.6: 0.344 to 0.339), $+0.01$ to $+0.06$ on heterogeneous data (COIL-20, Cora, SBM + chains);
-  the best fixed exponent stays ahead when every point is uncrowded (COIL-20: 0.772 at $b = 1$ against
-  0.72--0.73 adaptive). \todo{Table~\ref{tab:adaptive} from
-  docs/kernel\_exponents.md section 4.}
-\end{itemize}
+\paragraph{The first pass can be tuned for global structure alone.} Since the second pass rebuilds the
+neighbourhoods, the local cost of a stiffer spring in the first pass is erased and its global gain kept
+(Fig.~\ref{fig:hybrid}b): at stiffness 0.5 the SGD layout alone scores 0.178 / 0.459, the sequence 0.356
+/ 0.442, against 0.356 / 0.414 from the default stiffness 0.1 (single runs; over 5 seeds the hybrid
+is at 0.353 $\pm$ 0.001 / 0.455 $\pm$ 0.014, Table~\ref{tab:seeds}). Stiffness 0.5 is never below 0.1 on any
+column of any data set; 1.0 loses 0.04 on the blobs. A shorter first pass does not work (100 epochs:
+0.276 after the second pass): the full-batch pass refines, it does not repair.
 
-\begin{figure}[t]
-\centering\includegraphics[width=\textwidth]{exponents.png}
-\caption{The two exponents. (a) Best attraction exponent against the intrinsic dimension of synthetic
-clusters: a step at $q = m$, not a slope. (b) Per-octave repulsive force on a uniform 2-D cloud: the
-measured slope follows $m - 1 - 2b_r$. (c) Measured attraction optimum against the share of kNN edges
-beyond the kernel scale; image data sit at $1/2$, text is the open case. \todo{Preliminary: drawn from
-the logs of benchmarks/theory; re-run with error bars.}}
-\label{fig:exponents}
-\end{figure}
+\subsection{Staged baselines: the pass is generic, the start is \magnet{}'s}\label{sec:stagedbase}
+Is the gain the staging or the start? Table~\ref{tab:staged} applies the same pass (300 iterations, no
+exaggeration, no spring, scale 31, \magnet{}'s 15-NN graph) to seven starts on MNIST and Fashion-MNIST
+70k, the UMAP, PaCMAP and openTSNE starts being the seed-0 layouts of Fig.~\ref{fig:layouts}. Three
+facts. (i) The pass is generic: every neighbour-embedding start lands at 0.353--0.356 of 15-NN on MNIST
+and 0.327--0.330 on Fashion-MNIST, the full-batch mode's own level, in 8--13~s. (ii) It keeps the start's
+global structure: the Spearman moves by $-0.02$ to $+0.03$ (it rises for UMAP and PaCMAP on
+Fashion-MNIST), the centroid arrangement (Sec.~\ref{sec:global}) by $-0.07$ to $+0.01$. The global
+column after the pass is the global column of the start. (iii) It refines, it does not repair: PCA-2
+reaches 0.315 only and loses 0.07--0.09 of Spearman, a random start reaches 0.065. The converse also
+holds: handed \magnet{}'s SGD layout at the same scale, openTSNE's optimiser (its own perplexity-30
+affinities, 300 iterations at momentum 0.8, no exaggeration) reaches 0.346 / 0.428 on MNIST and 0.322 /
+0.743 on Fashion-MNIST, four to five times slower (55 / 44~s against 12 / 8~s at 4 threads).
 
-\section{The algorithm}
-\begin{itemize}
-\item Pipeline: NN-descent in C++ (1.2~s for 70k $\times$ 784) or HNSW; fuzzy-union graph; spectral init
-  by Chebyshev-filtered subspace iteration; per-edge SGD with negative sampling, lock-free, multithreaded;
-  edge schedule as in UMAP; \texttt{transform()} for new points; sparse and graph inputs.
-\item Mid-range term: with probability \texttt{mid\_rate} a positive sample is followed by a partner
-  (PaCMAP-style mid-near pairs from the data, or short random walks on graphs) pulled with a spring
-  \texttt{mid\_weight} annealed to zero over the first half. This term is \emph{all} of the SGD mode's
-  global structure: Spearman 0.285 without it, 0.413 / 0.427 / 0.478 at 0.1 / 0.3 / 1.0
-  (Fig.~\ref{fig:hybrid}a).
-\item Full-batch mode (\texttt{loss="tsne"}): the same graph, full-batch gradient, FFT-interpolated
-  repulsion in 2-D, early exaggeration; 600 iterations (200 + 400) in 9~s on MNIST 70k against 102~s
-  for openTSNE's 750. Audit of openTSNE 1.0.4 (\texttt{opentsne\_audit.py}, defaults: perplexity 30, 90
-  neighbours, Annoy, PCA init, FFT, lr $n/12$): 24~s of affinities, 2~s of init, 12~s of early
-  exaggeration, 76~s of main phase (0.15~s per iteration); \texttt{n\_jobs} 10 or 20 and the
-  pynndescent index change nothing; 125 + 250 iterations give 0.329 of 15-NN in 56~s; uniform $k = 15$
-  affinities (\magnet{}'s graph size) 0.330 in 100~s. openTSNE is not misconfigured: the gap is 20$\times$
-  on the neighbour search (90 neighbours with Annoy against 15 with NN-descent) and 10$\times$ per FFT
-  iteration, at the same 15-NN (0.347--0.349).
-\item Hybrid (\texttt{loss="hybrid"}): SGD layout, rescaled to the full-batch mode's scale
-  ($\sigma = 31\sqrt{n/70000}$), then 300 full-batch iterations with no early exaggeration and no mid spring.
-\item Defaults: $b = 0.6$ (0.5 for images, 0.6--0.7 for text), $b_r = 1$, repulsion strength 2,
-  \texttt{mid\_weight} 0.1 (0.5 under hybrid), 5 negatives.
-\item Cost: 1M points in 44~s and 3.3~GB (Fig.~\ref{fig:scaling}); sparse inputs through a scatter/gather NN-descent
-  (20 newsgroups TF-IDF 18.8k $\times$ 24k in 1.6~s, UMAP 4.5~s).
-\end{itemize}
-
-\section{Experiments}\label{sec:exp}
-\subsection{Setup}
-\begin{itemize}
-\item Data: MNIST 70k, Fashion-MNIST 70k, 20 newsgroups (18.8k $\times$ 300 SVD, cosine), 15 Gaussian
-  blobs (10k $\times$ 200); graphs: SBM 30k nodes, Cora, US airports \todo{add graph table}.
-\item Methods (defaults): UMAP 0.5.12, densMAP, openTSNE 1.0.4, PaCMAP, TriMap, PHATE 2.0, h-NNE,
-  scikit-learn $t$-SNE (Barnes--Hut), $t$-SNE-CUDA 3.0.1 (GPU, RTX 2070); NCVis could not be built.
-\item Metrics: 15-NN preservation and trustworthiness (local); Spearman correlation of pairwise distances
-  and random-triplet accuracy on 2000 points (global); 10-NN label accuracy; silhouette reported as
-  \emph{compactness}, a look rather than a fidelity (it rises when neighbourhoods are squeezed).
-\item 10-core (20-thread) i9-9900X, 54~GB; 2 seeds (1 on Fashion-MNIST); seed noise on MNIST: 0.003 on both axes.
-  numba methods warmed up on the data's dtype and on 6000 points (NN-descent path) before the clock; UMAP
-  without \texttt{random\_state} (which would make its layout single-threaded, 49~s on MNIST).
-\end{itemize}
-
-\subsection{Main results}
-\begin{table}[t]
-\centering\small
-\caption{MNIST 70k $\times$ 784, mean over 2 seeds, defaults for every method, best per column in bold.}
-\label{tab:mnist}
-\input{tables/mnist.tex}
-\end{table}
-\begin{table}[t]
-\centering\small
-\caption{Fashion-MNIST 70k (1 seed).}\label{tab:fmnist}
-\input{tables/fmnist.tex}
-\end{table}
-\begin{table}[t]
-\centering\small
-\caption{20 newsgroups (18.8k $\times$ 300, cosine, 2 seeds).}\label{tab:news20}
-\input{tables/news20.tex}
-\end{table}
-\begin{table}[t]
-\centering\small
-\caption{15 Gaussian blobs (10k $\times$ 200, 2 seeds).}\label{tab:blobs}
-\input{tables/blobs.tex}
-\end{table}
-\begin{itemize}
-\item SGD mode: fastest on every set (4.4~s MNIST; UMAP 11.2~s; h-NNE 9.1~s), best global structure of
-  the panel on MNIST, Fashion-MNIST, blobs; local structure above UMAP by 60--70\%; h-NNE is the one
-  fast method above it on 15-NN (0.233 vs 0.193) and pays on every other column.
-\item Full-batch (FFT-interpolated) mode: $t$-SNE's local structure (0.349 vs 0.350 / 0.347) in 9~s vs
-  196 / 102~s on the CPU; $t$-SNE-CUDA on the GPU takes 13.8~s and is behind on 15-NN and global
-  structure (0.169 / 0.169), level on trustworthiness (0.967 vs 0.966).
-\item Linear reference for the global column (PCA / SVD to 2-D, same subsamples,
-  \texttt{baselines\_linear.py}): distance Spearman 0.488 on MNIST, 0.873 on Fashion-MNIST,
-  0.319 on 20 newsgroups, 0.588 on the blobs. Every neighbour embedding is below PCA on the three real
-  sets (hybrid 0.444 / 0.752 / 0.09; Barnes--Hut $t$-SNE 0.232 on news20) and above it only on the blobs
-  (0.682). ``Best global structure'' in this paper means best among neighbour embeddings; PCA keeps
-  15-NN at 0.01--0.03.
-\item Where the global score comes from (MNIST, same layouts, Table~\ref{tab:strata},
-  \texttt{global\_strata.py}): split by class, by tercile of the input distance, and reduced to the
-  45 distances between class centroids. PCA is ahead on every stratum; the hybrid ties it on the
-  intermediate tercile (0.132 vs 0.131) and is second everywhere else on pairwise distances, but its
-  arrangement of the ten class centroids is the worst of the panel (0.421 against PCA 0.814, UMAP 0.752,
-  SGD 0.635, full-batch 0.669). \magnet{}'s global advantage over the other neighbour embeddings is in
-  pairwise distances within and between classes, not in the placement of the classes relative to each
-  other; the refinement pass costs centroid arrangement (0.635 to 0.421). One layout per method;
-  45 centroid pairs. \todo{Seeds; Fashion-MNIST; a global metric that PCA does not win is still missing.}
-\item Neighbourhood scale (MNIST, same layouts, Table~\ref{tab:kscale}): the hybrid leads at $k = 5$ and
-  15 (0.351 / 0.351), openTSNE at $k = 50$ and 100 (0.327 / 0.329 against 0.319 / 0.313); continuity is
-  0.944--0.953 for every method; \magnet{} SGD has the best continuity (0.953 / 0.927 at $k = 15$ / 50),
-  the hybrid the lowest trustworthiness at $k = 50$ (0.928).
-\item Hybrid: first row among neighbour embeddings on local and global at once on MNIST (0.353 / 0.444) and Fashion-MNIST
-  (0.328 / 0.752); on 20 newsgroups Barnes--Hut $t$-SNE keeps the global lead (0.232), the hybrid's
-  global column there moves by 0.02 between seeds.
-\end{itemize}
+So the hybrid's lead on both axes decomposes into a general recipe, a short full-batch pass at the right
+scale on top of any layout that already has neighbourhoods, and a specific start: \magnet{}'s SGD layout
+with a stiff spring has the best global structure among the neighbour embeddings (0.459 / 0.774 against
+UMAP 0.296 / 0.572, PaCMAP 0.306 / 0.582, openTSNE 0.329 / 0.617 on MNIST / Fashion-MNIST), and the
+pass erases the local cost of that stiffness. The claim of this section is the hand-over conditions and
+this decomposition, not the fact that a warm start helps, which is known \citep{kobak2021init,
+wang2021pacmap}.
 
 \begin{table}[t]
 \centering\small
-\caption{Neighbourhood scale on MNIST 70k, same layouts as Table~\ref{tab:mnist} and Fig.~\ref{fig:layouts}:
-kNN preservation at $k = 5$ to 100, trustworthiness and continuity at $k = 15$ and 50
-(\texttt{benchmarks/extra\_metrics.py}).}
-\input{tables/kscale.tex}
-\label{tab:kscale}
+\caption{Staged baselines (\texttt{benchmarks/staged\_baselines.py}, 4 threads). The same full-batch
+pass (300 iterations, no exaggeration, no spring, hand-over scale 31) applied to seven starts; 15-NN
+preservation, distance Spearman and centroid Spearman before $\to$ after, and the time of the pass. Last
+rows: the same starts handed to openTSNE's optimiser for 300 iterations.}
+\label{tab:staged}
+\footnotesize
+\begin{tabular}{llrrrr}
+\toprule
+data & start & 15-NN & Spearman & centroids & pass (s) \\
+\midrule
+MNIST & PCA-2 & 0.010 $\to$ 0.315 & 0.488 $\to$ 0.399 & 0.814 $\to$ 0.811 & 15.9 \\
+ & random & 0.000 $\to$ 0.065 & 0.000 $\to$ 0.008 & 0.31 $\to$ 0.33 & 29.0 \\
+ & UMAP & 0.117 $\to$ 0.353 & 0.296 $\to$ 0.299 & 0.752 $\to$ 0.681 & 9.9 \\
+ & PaCMAP & 0.094 $\to$ 0.354 & 0.306 $\to$ 0.311 & 0.684 $\to$ 0.633 & 11.4 \\
+ & openTSNE & 0.348 $\to$ 0.354 & 0.329 $\to$ 0.326 & 0.607 $\to$ 0.614 & 11.8 \\
+ & \magnet{} SGD, spring 0.1 & 0.193 $\to$ 0.356 & 0.418 $\to$ 0.414 & 0.635 $\to$ 0.617 & 13.1 \\
+ & \magnet{} SGD, 0.5 (hybrid) & 0.178 $\to$ \textbf{0.356} & 0.459 $\to$ \textbf{0.442} & 0.524 $\to$ 0.492 & 11.8 \\
+ & \magnet{} SGD, 0.5 $\to$ openTSNE & 0.178 $\to$ 0.346 & 0.459 $\to$ 0.428 & 0.524 $\to$ 0.507 & 55.2 \\
+ & PCA-2 $\to$ openTSNE & 0.010 $\to$ 0.333 & 0.488 $\to$ 0.376 & 0.814 $\to$ 0.756 & 60.2 \\
+\midrule
+Fashion & PCA-2 & 0.018 $\to$ 0.315 & 0.873 $\to$ 0.799 & 0.971 $\to$ 0.962 & 9.1 \\
+ & random & 0.000 $\to$ 0.062 & 0.007 $\to$ 0.028 & 0.11 $\to$ 0.21 & 28.2 \\
+ & UMAP & 0.133 $\to$ \textbf{0.330} & 0.572 $\to$ 0.607 & 0.879 $\to$ 0.879 & 8.2 \\
+ & PaCMAP & 0.098 $\to$ 0.327 & 0.582 $\to$ 0.599 & 0.885 $\to$ 0.882 & 7.5 \\
+ & openTSNE & 0.323 $\to$ 0.329 & 0.617 $\to$ 0.614 & 0.882 $\to$ 0.876 & 8.7 \\
+ & \magnet{} SGD, spring 0.1 & 0.203 $\to$ 0.328 & 0.729 $\to$ 0.716 & 0.939 $\to$ 0.908 & 8.3 \\
+ & \magnet{} SGD, 0.5 (hybrid) & 0.193 $\to$ 0.329 & 0.774 $\to$ \textbf{0.753} & 0.958 $\to$ 0.931 & 7.7 \\
+ & \magnet{} SGD, 0.5 $\to$ openTSNE & 0.193 $\to$ 0.322 & 0.774 $\to$ 0.743 & 0.958 $\to$ 0.924 & 44.1 \\
+ & PCA-2 $\to$ openTSNE & 0.018 $\to$ 0.316 & 0.873 $\to$ 0.770 & 0.971 $\to$ 0.956 & 40.9 \\
+\bottomrule
+\end{tabular}
 \end{table}
-
-\begin{table}[t]
-\centering\small
-\caption{Where the global score comes from, MNIST 70k, same layouts: distance Spearman on the 2000-point
-sample split by class membership and by tercile of the input distance (terciles at 9.64 / 10.81), and
-Spearman of the 45 inter-centroid distances of the ten classes (\texttt{benchmarks/global\_strata.py}).}
-\input{tables/strata.tex}
-\label{tab:strata}
-\end{table}
-
-\begin{figure}[t]
-\centering\includegraphics[width=\textwidth]{tradeoff.png}
-\caption{Quality against wall-clock time, four data sets, log time; top-left is best. Top: local
-structure; bottom: global structure. \todo{Re-render with the paper palette, label only the leaders.}}
-\label{fig:tradeoff}
-\end{figure}
-
-\subsection{Local against global: the fade is across scales, not inside the loss}\label{sec:hybrid}
-\begin{itemize}
-\item Inside the full-batch loss nothing blends: a constant far-field repulsion is a $t$-SNE with another
-  normalisation (in 2-D UMAP's and $t$-SNE's repulsions share the Cauchy tail, differ by $1/Z$), its
-  useful window spans a factor 10 from "nothing" to "destroyed"; a linear or bounded (PaCMAP-style)
-  mid-range spring in the late phase costs local structure (0.13, 0.08) before buying any global;
-  exaggeration trades local for compactness, not for global; the late phase tolerates no extra force.
-\item The sequence works, with three conditions: start the full-batch pass at \emph{its} scale
-  ($t$-SNE's tiny init re-expands and loses the arrangement, 0.29--0.39; the SGD scale collapses under the
-  normalised repulsion), no early exaggeration, no mid spring (with it: collapse to $\sigma = 3.5$,
-  15-NN 0.06). Reverse order (full-batch then SGD): 0.436 global but 0.13--0.17 local.
-\item The SGD pass can then be tuned for global structure alone (Fig.~\ref{fig:hybrid}b): its local
-  cost at \texttt{mid\_weight} 0.5--2 is erased by the full-batch pass, its global gain ($+0.04$) kept. A
-  shorter SGD pass does not work (100 epochs: 0.276): the full-batch pass refines, it does not repair. The
-  knobs of the full-batch pass buy little: scale 40 or 450 iterations give $+0.005$ 15-NN and $+0.015$
-  Spearman for 5--6~s more; dof below 1 and late exaggeration cost local structure.
-\end{itemize}
 
 \begin{figure}[t]
 \centering\includegraphics[width=\textwidth]{hybrid.png}
@@ -296,21 +260,94 @@ spring stiffness of the SGD pass.}
 \label{fig:hybrid}
 \end{figure}
 
-\subsection{Ablations}
-\begin{itemize}
-\item Exponent split vs coupled kernel: 4.3 vs 5.3~s, 0.192 vs 0.189 15-NN, \texttt{pow}-free loop.
-\item $b$ sweep per data family (images 0.5, text 0.6--0.7, synthetic step); $b_r$ sweep per target
-  dimension ($m = 2, 3, 4, 6$). \todo{figure from benchmarks/sweep.py logs.}
-\item Repulsion strength (2 vs UMAP's 1: $+8\%$ 15-NN), late exaggeration (compact preset, silhouette
-  0.51 vs UMAP 0.52 at 15-NN 0.181), mid-range source (data pairs vs walks vs spectral).
-\item Adaptive / local exponent on heterogeneous data (Table~\ref{tab:adaptive}).
-\item Scaling to 1M (Fig.~\ref{fig:scaling}); \texttt{transform()} 0.6~s vs 14.8~s UMAP at equal accuracy.
-\end{itemize}
+\section{Two exponents, two regimes}\label{sec:theory}
+\subsection{One exponent fixes two unrelated things}
+In the near field, $d \ll d_k$, the attraction is $2ab\,d^{2b-1}$, its shape set by $b$, while the
+repulsion is $2b/d$ for every $b$. In the far field, $d \gg d_k$, the attraction is $2b/d$ for every $b$
+(redescending) while the repulsion is $2b/(a d^{2b+1})$, its tail set by $b$. The one exponent therefore
+fixes the near field of the attraction and the far field of the repulsion, and nothing couples the two
+except the name. \magnet{} gives them separate values, \texttt{kernel\_b} $= b$ and
+\texttt{repulsion\_b} $= b_r$. The optimum of the coupled kernel ($\approx 0.3m$: 0.52 / 0.59 / 0.76 /
+1.2 for $m = 1..4$) is the compromise between the two. Independent attraction and repulsion kernels are
+the rule in force-directed graph drawing \citep{fruchterman1991, noack2007energy, jacomy2014forceatlas2};
+what is specific to neighbour embeddings is that the kernel $1/(1 + a d^{2b})$ couples the two until it
+is split.
+
+\subsection{Attraction: a robust location problem}
+Every satisfiable neighbour sits on a shell at $d_{\mathrm{eq}} = (b_r g / ab)^{1/2b}$ with stiffness
+$4 b b_r g / d_{\mathrm{eq}}^2 > 0$ for every $b$: the exponent does not act through stability. It acts
+through crowding. When the intrinsic dimension $q$ exceeds $m$, a share of the $k$ neighbours cannot sit
+on the shell and ends in the far field, where every kernel pulls with $2b/d$. The near-field surrogate
+$\rho(d) = a d^{2b}$ is then a location problem in the family $|d|^p$, $p = 2b$: bounded influence iff
+$p \le 1$, convex iff $p \ge 1$, and $p = 1$ (the geometric median) is the only exponent with both.
+Huber's minimax loss says the same: the quadratic threshold shrinks to zero as the contamination grows.
+
+This is an argument on the surrogate $a d^{2b}$, not on the loss $\log(1 + a d^{2b})$, which is
+redescending for every $b$ and has a bounded score for every $b \ge 1/2$, and it says nothing about a
+jointly moving, repelling configuration. It gives a direction (sub-quadratic under crowding, quadratic
+without), not an optimum. The heuristic prediction is an optimum of $1/2$ under crowding, $1$ without,
+with a step at $q = m$. Measured (Fig.~\ref{fig:exponents}a): $1.0 / 0.5 / 0.5 / 0.4 / 0.4$ for
+$q = 2 / 3 / 5 / 10 / 20$ in 2-D, $1.0 / 0.5 / 0.4$ for $q = 3 / 5 / 10$ in 3-D; MNIST and Fashion-MNIST
+at 0.5 (contamination 0.24). A Huber kernel as a check has no universal transition scale (best $c$ 0.02
+on MNIST, 0.2--0.5 on 2-D clusters), as Huber's argument suggests. Text (20 newsgroups) sits at 0.6--0.7,
+which the argument does not explain; hubs and in-degree are ruled out (Fig.~\ref{fig:exponents}c).
+
+\subsection{Repulsion: which scale carries the loss}
+On a homogeneous $m$-dimensional occupancy with $a d^{2b_r} \gg 1$, the far-field loss per octave is
+$L[d, 2d] \propto d^{\,m - 2b_r}$: scale-free at $b_r = m/2$, the Cauchy kernel in 2-D, and van der
+Maaten's $\nu = m - 1$ heuristic recovered. Below $m/2$ the budget inflates the cloud (compact clusters,
+squeezed local structure); above, the arrangement is free. On smooth clouds the per-octave force slopes
+are $+0.07 / -0.97 / -2.01 / -3.06$ for $b_r = 0.5 / 1 / 1.5 / 2$ against $0 / -1 / -2 / -3$ predicted
+(Fig.~\ref{fig:exponents}b).
+
+On real layouts the law needs a window. Binned by the kernel crossover $d_{k,r} = a^{-1/2b_r}$
+(Fig.~\ref{fig:tail}), at \magnet{}'s working scale no octave satisfies $a d^{2b_r} > 100$ below half
+the layout's radius, so the asymptotic regime is not reached on the layout itself; binned by the 1-NN
+distance instead, the fitted octaves sit below the crossover and the slope is $+0.1$ to $+0.2$ whatever
+$b_r$ (the mismatch of an earlier version of this analysis). Rescaled by 16--64 to open a 4--5 octave
+window, the measured slope follows $\alpha - 1 - 2b_r$ within 0.05, with $\alpha$ the occupancy exponent
+of the layout in the window: 1.6--1.7 for MNIST in 2-D \emph{and} in 3-D (clustered, not space-filling),
+1.8 / 2.7 for Gaussian clouds. The law is a trend for homogeneous clouds; on a layout it holds with
+$\alpha < m$, and at the working scale there is no window for it to act in, which is why it cannot by
+itself fix the fidelity optimum. The measured fidelity optima (1.0 in 2-D, 1.0--1.5 in 3-D, 2--4 in 4-D,
+3--4 in 6-D) sit at or above $\alpha/2$ and $m/2$.
+
+\begin{figure}[t]
+\centering\includegraphics[width=\textwidth]{tail_crossover.png}
+\caption{Per-octave repulsive force on fixed layouts against $d / d_{k,r}$ for $b_r = 0.5, 1, 1.5, 2$
+(same coordinates for every $b_r$; 256 anchors against all points). (a) MNIST 20k in 2-D at the
+layout's own scale: no octave above the crossover window. (b) The same layout rescaled by 64: slopes
+$-1.37 / -2.46 / -3.46$ for $b_r = 1 / 1.5 / 2$ against $\alpha - 1 - 2b_r = -1.34 / -2.42 / -3.41$ with
+$\alpha = 1.6$. (c) MNIST in 3-D, $\alpha = 1.7$. (d) Gaussian 2-D cloud, $\alpha = 1.8$ (finite cloud).}
+\label{fig:tail}
+\end{figure}
+
+\begin{figure}[t]
+\centering\includegraphics[width=\textwidth]{exponents.png}
+\caption{The two exponents. (a) Best attraction exponent against the intrinsic dimension of synthetic
+clusters: a step at $q = m$, not a slope. (b) Per-octave repulsive force on a uniform 2-D cloud: the
+measured slope follows $m - 1 - 2b_r$. (c) Measured attraction optimum against the share of kNN edges
+beyond the kernel scale; image data sit at $1/2$, text is the open case. Drawn from the logs of
+\texttt{benchmarks/theory}; single runs.}
+\label{fig:exponents}
+\end{figure}
+
+\subsection{Per-point exponent}
+The crowding argument is per point, and an oracle that knows the true $q$ of each point (Cauchy
+repulsion) gains 7--12\% of 15-NN on mixed-dimension data. Two estimators ship: \texttt{kernel\_b="local"}
+(a local intrinsic dimension, graph-smoothed, with a step at $m + 0.5$) and \texttt{kernel\_b="adaptive"}
+(crowding read off the layout at three quarters of the run: the share of a point's edges longer than
+twice the median; the point switches to $L_2$ when none and its degree is at least 2). Both stay within
+0.005 of the base exponent on homogeneous data (MNIST, Fashion-MNIST, 20 newsgroups, Paul15; the US
+airports graph at base 0.6 moves from 0.344 to 0.339) and gain 0.01--0.06 on heterogeneous data (COIL-20,
+Cora, an SBM with chains attached), Table~\ref{tab:adaptive}. The best fixed exponent stays ahead when
+every point is uncrowded (COIL-20: 0.772 at $b = 1$ against 0.72--0.73 adaptive), and the local-dimension
+estimator misses 1-D manifolds.
 
 \begin{table}[t]
 \centering\small
 \caption{Per-point attraction exponent on heterogeneous data (15-NN kept for data, edge preservation for
-graphs; 2--3 seeds). \todo{Paste from docs/kernel\_exponents.md, section 4.}}
+graphs; 2--3 seeds; \texttt{docs/kernel\_exponents.md}, section 4).}
 \label{tab:adaptive}
 \begin{tabular}{lrrrrrr}
 \toprule
@@ -321,60 +358,231 @@ data & $b=0.5$ & $b=0.6$ & $b=1$ & oracle & local & adaptive \\
 COIL-20 & 0.694 & 0.717 & \textbf{0.772} & & 0.701 & 0.720 \\
 MNIST 20k & 0.292 & 0.282 & 0.200 & & 0.294 & 0.291 \\
 Cora graph & 0.442 & 0.507 & 0.470 & & & \textbf{0.522} \\
-US airports graph & 0.333 & 0.344 & 0.297 & & & 0.344 \\
+US airports graph & 0.333 & 0.344 & 0.297 & & & 0.339 \\
 SBM + chains & 0.449 & 0.484 & 0.532 & 0.571 & & \textbf{0.573} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
+\section{Experiments}\label{sec:exp}
+\subsection{Setup}
+\emph{Data.} MNIST 70k, Fashion-MNIST 70k, 20 newsgroups ($18.8\mathrm{k} \times 300$ SVD, cosine), 15
+Gaussian blobs ($10\mathrm{k} \times 200$); graphs: Cora, the US and Europe airport graphs, an SBM with
+chains, an SBM with 30k nodes and 782k edges. \emph{Methods}, all at their defaults: UMAP 0.5.12,
+densMAP, openTSNE 1.0.4, PaCMAP, TriMap, PHATE 2.0, h-NNE, scikit-learn $t$-SNE (Barnes--Hut),
+$t$-SNE-CUDA 3.0.1 (GPU, RTX 2070); NCVis could not be built. \emph{Metrics.} 15-NN preservation and
+trustworthiness (local); Spearman correlation of pairwise distances and random-triplet accuracy on a
+2000-point sample (global); 10-NN label accuracy. Silhouette is reported in the repository as
+\emph{compactness}, a look rather than a fidelity (it rises when neighbourhoods are squeezed), and
+omitted here. \emph{Machine.} 10-core (20-thread) i9-9900X, 54~GB.
+
+\emph{Timing protocol.} Every method runs with all cores. The numba methods are warmed up before the
+clock on data of the same dtype and on 6000 points, enough to compile the NN-descent path: a float64
+warm-up on 500 points leaves two compilations inside the timed call and had put UMAP at 18~s on MNIST in
+an earlier version of this table. UMAP and densMAP run without \texttt{random\_state}, which makes
+their layout single-threaded (49~s instead of 11~s on MNIST). The main tables are means over 2 seeds
+(1 on Fashion-MNIST) on a machine shared with other jobs; Table~\ref{tab:seeds} gives 5-seed means
+and standard deviations of the decisive rows on MNIST and Fashion-MNIST, run later on an idle machine.
+
+\subsection{Main results}
+\begin{table}[t]
+\centering\small
+\caption{MNIST 70k $\times$ 784, mean over 2 seeds, defaults for every method, best per column in bold.}
+\label{tab:mnist}
+\resizebox{\textwidth}{!}{\input{tables/mnist.tex}}
+\end{table}
+\begin{table}[t]
+\centering\small
+\caption{Fashion-MNIST 70k (1 seed).}\label{tab:fmnist}
+\resizebox{\textwidth}{!}{\input{tables/fmnist.tex}}
+\end{table}
+\begin{table}[t]
+\centering\small
+\caption{20 newsgroups (18.8k $\times$ 300, cosine, 2 seeds).}\label{tab:news20}
+\resizebox{\textwidth}{!}{\input{tables/news20.tex}}
+\end{table}
+\begin{table}[t]
+\centering\small
+\caption{15 Gaussian blobs (10k $\times$ 200, 2 seeds).}\label{tab:blobs}
+\input{tables/blobs.tex}
+\end{table}
+\begin{table}[t]
+\centering\small
+\caption{Seed dispersion of the decisive rows (\texttt{benchmarks/seeds.py}, 5 seeds, all cores; UMAP
+without \texttt{random\_state}, so its seeds are numba's). Mean $\pm$ standard deviation; centroids is
+the Spearman correlation of the 45 inter-centroid distances of the ten classes (Sec.~\ref{sec:global}).}
+\label{tab:seeds}
+\resizebox{\textwidth}{!}{\input{tables/seeds.tex}}
+\end{table}
+
+\paragraph{SGD mode.} Fastest on every data set (4.4~s on MNIST; UMAP 11.2~s, h-NNE 9.1~s), best global
+structure among neighbour embeddings on MNIST, Fashion-MNIST and the blobs, local structure above UMAP by
+60--70\%. h-NNE is the one fast method above it on 15-NN (0.233 against 0.193) and pays on every other
+column.
+
+\paragraph{Full-batch mode.} $t$-SNE's local structure (0.349 against 0.350 for Barnes--Hut and 0.347
+for openTSNE) in 9~s against 196 and 102~s on the CPU. $t$-SNE-CUDA on the GPU takes 13.8~s and is behind
+on 15-NN and global structure (0.169 / 0.169), level on trustworthiness. openTSNE's 102~s was audited
+(\texttt{opentsne\_audit.py}; defaults: perplexity 30, hence 90 neighbours, Annoy index, PCA
+initialisation, FFT gradient, learning rate $n/12$): 24~s of affinities, 2~s of initialisation, 12~s of
+early exaggeration, 76~s of main phase at 0.15~s per iteration; \texttt{n\_jobs} 10 or 20 and the
+pynndescent index change nothing; 125 + 250 iterations give 15-NN 0.329 in 56~s; uniform $k = 15$
+affinities (\magnet{}'s graph size) give 0.330 in 100~s. openTSNE is not misconfigured: the gap is
+$20\times$ on the neighbour search (90 neighbours with Annoy against 15 with NN-descent) and $10\times$
+per FFT iteration, at the same 15-NN.
+
+\paragraph{Hybrid.} First row among neighbour embeddings on local and global at once on MNIST (0.353 /
+0.444 in the 2-seed table, 0.353 / 0.455 over 5 seeds) and Fashion-MNIST (0.328 / 0.752; 0.328 / 0.750
+over 5 seeds). On 20
+newsgroups Barnes--Hut $t$-SNE keeps the global lead (0.232 against 0.073); the hybrid's global column
+there moves by 0.02 between seeds, and the full-batch mode alone (0.184 / 0.110) is the better \magnet{}
+row. On the blobs the full-batch mode has the best local column (0.126) and the SGD mode the best global
+one (0.690); the hybrid is within 0.006 of both.
+
+\paragraph{Seeds.} Table~\ref{tab:seeds} (5 seeds, idle machine, so the times are 10--25\% below
+those of the shared-machine tables above). Standard deviations are 0.001--0.002 on 15-NN for every
+method and 0.001--0.006 on Spearman, except the hybrid's Spearman on MNIST (0.014). The hybrid's leads
+on Spearman over the full-batch mode (0.455 against 0.351 on MNIST, 0.750 against 0.698 on Fashion-MNIST)
+and over openTSNE on 15-NN (0.353 against 0.347) are many standard deviations wide; its lead over the
+full-batch mode on 15-NN (0.353 against 0.347, 0.328 against 0.323) is three to five, and the 2-seed
+difference with scikit-learn $t$-SNE (0.353 against 0.350) is within noise. The one unstable quantity is
+the centroid Spearman of the hybrid on MNIST (0.509 $\pm$ 0.075 against 0.635 $\pm$ 0.002 for the SGD
+mode; on Fashion-MNIST both are at 0.933): the stiff spring that buys the pairwise Spearman makes the
+arrangement of the ten MNIST classes variable. On time, the sequence costs 1.3$\times$ UMAP (10.9
+against 8.4~s on MNIST, 9.5 against 8.1 on Fashion-MNIST) and a ninth of openTSNE.
+
+\subsection{Where the global score comes from}\label{sec:global}
+\paragraph{Linear reference.} PCA (truncated SVD on text) to 2-D, scored with the same metrics and
+subsamples (\texttt{baselines\_linear.py}), reaches a distance Spearman of 0.488 on MNIST, 0.873 on
+Fashion-MNIST, 0.319 on 20 newsgroups and 0.588 on the blobs, with 15-NN preservation at 0.01--0.03.
+Every neighbour embedding is below PCA on the three real sets (hybrid 0.444 / 0.752 / 0.073; Barnes--Hut
+$t$-SNE 0.232 on news20) and above it only on the blobs (0.690). ``Best global structure'' in this paper
+therefore means best among neighbour embeddings; the hybrid keeps 91\% of the linear Spearman on MNIST
+and 86\% on Fashion-MNIST.
+
+\paragraph{Strata.} Table~\ref{tab:strata} splits the MNIST Spearman by class membership and by tercile
+of the input distance, and reduces it to the 45 distances between class centroids. PCA is ahead on every
+pairwise stratum; the hybrid ties it on the intermediate tercile (0.132 against 0.131) and is second
+everywhere else. \magnet{}'s advantage over the other neighbour embeddings is in pairwise distances within
+and between classes. On the arrangement of the ten centroids the picture reverses: UMAP 0.752, the
+full-batch mode 0.669, the SGD mode 0.635 and the hybrid layout of the figure 0.421. The staged baselines
+(Table~\ref{tab:staged}) show that the full-batch pass itself moves the centroids by $-0.07$ to $+0.01$,
+and the seed table that the hybrid lands anywhere between 0.42 and 0.60 on MNIST (0.509 $\pm$ 0.075)
+while the SGD mode with the default spring sits at 0.635 $\pm$ 0.002: the
+stiff spring, not the pass, trades the class-level arrangement for the pairwise one, and a rank
+correlation over 45 pairs is a noisy quantity on one layout.
+
+\paragraph{Neighbourhood scale.} Table~\ref{tab:kscale}: the hybrid leads at $k = 5$ and 15 (0.351 /
+0.351), openTSNE at $k = 50$ and 100 (0.327 / 0.329 against 0.319 / 0.313); continuity is 0.944--0.953 for
+every method, the SGD mode's the highest; the hybrid has the lowest trustworthiness at $k = 50$ (0.928).
+
+\begin{table}[t]
+\centering\small
+\caption{Neighbourhood scale on MNIST 70k, same layouts as Fig.~\ref{fig:layouts}: kNN preservation at
+$k = 5$ to 100, trustworthiness and continuity at $k = 15$ and 50 (\texttt{extra\_metrics.py}).}
+\input{tables/kscale.tex}
+\label{tab:kscale}
+\end{table}
+
+\begin{table}[t]
+\centering\small
+\caption{Where the global score comes from, MNIST 70k, same layouts: distance Spearman on the 2000-point
+sample split by class membership and by tercile of the input distance (terciles at 9.64 / 10.81), and
+Spearman of the 45 inter-centroid distances of the ten classes (\texttt{global\_strata.py}; one layout
+per method, see Table~\ref{tab:seeds} for the dispersion of the last column).}
+\resizebox{\textwidth}{!}{\input{tables/strata.tex}}
+\label{tab:strata}
+\end{table}
+
+\begin{figure}[t]
+\centering\includegraphics[width=\textwidth]{tradeoff.png}
+\caption{Quality against wall-clock time, four data sets, log time; top-left is best. Top: local
+structure; bottom: global structure.}
+\label{fig:tradeoff}
+\end{figure}
+
+\subsection{Graphs}
+The same optimiser takes an adjacency matrix (weights as similarities), with mid-range partners from
+short random walks. Table~\ref{tab:graphs} compares it with UMAP's own layout of the same graph
+(\texttt{simplicial\_set\_embedding} on the adjacency, spectral initialisation, UMAP's defaults; the
+\texttt{metric="precomputed"} route refuses graphs with nodes of degree below \texttt{n\_neighbors}),
+on edge preservation (the share of a node's graph neighbours among its nearest layout neighbours) and
+10-NN label accuracy. \magnet{} is 3--9 times faster on every graph and keeps more edges on Cora
+and the airport graphs (0.51 / 0.35 / 0.33 against 0.47 / 0.23 / 0.27); UMAP keeps more on the SBM with
+chains (0.535 against 0.483; the adaptive exponent reaches 0.573, Table~\ref{tab:adaptive}) and is
+ahead on the label accuracy of the airport graphs (0.62 against 0.48 on the US graph), whose labels
+are activity levels rather than communities. On the 30k-node SBM both separate the six blocks
+perfectly and the difference is the time (1.5~s against 10.4~s on the sparse adjacency; 5.0~s against
+11.7~s in the main benchmark, where \magnet{} is timed from a networkx graph and UMAP runs
+\texttt{metric="precomputed"}, which this graph's minimum degree of 25 allows). An earlier version of
+this comparison fed UMAP the adjacency rows as features, which is not a graph layout and scored
+0.26--0.38; it is withdrawn.
+
+\begin{table}[t]
+\centering\small
+\caption{Graph inputs (\texttt{graph\_table.py}; 3 seeds each, all cores; UMAP through
+\texttt{simplicial\_set\_embedding} on the adjacency, 500 epochs below 10k nodes and 200 above).}
+\label{tab:graphs}
+\input{tables/graphs.tex}
+\end{table}
+
+\subsection{Ablations}
+\begin{itemize}[leftmargin=1.5em]
+\item Exponent split against the coupled kernel on MNIST: 4.3 against 5.3~s (no \texttt{pow} in the
+  loop), 15-NN 0.192 against 0.189. The split's measurable gain is time; the quality gain is within seed
+  noise on homogeneous data and shows on heterogeneous data through the per-point exponent
+  (Table~\ref{tab:adaptive}).
+\item Repulsion strength 2 against UMAP's 1: $+8\%$ 15-NN. Late exaggeration gives a compact preset
+  (silhouette 0.51 against UMAP's 0.52 at 15-NN 0.181).
+\item Scaling to 1M points (Fig.~\ref{fig:scaling}).
+\end{itemize}
+
 \begin{figure}[t]
 \centering\includegraphics[width=0.5\textwidth]{scaling.png}
-\caption{Wall-clock time against the number of points (50 anisotropic clusters in 50-D, 20 threads on 10 cores).
-\todo{Add the 2M--10M points and the per-phase breakdown (kNN, init, SGD).}}
+\caption{Wall-clock time against the number of points (50 anisotropic clusters in 50-D, 20 threads on 10 cores).}
 \label{fig:scaling}
 \end{figure}
 
-\section{Graphs}
-\begin{itemize}
-\item Same optimiser on an adjacency matrix (weights = similarities); mid-range partners from random
-  walks; SBM 30k nodes / 782k edges in 5.0~s vs 11.7~s for UMAP on the same graph as a sparse
-  precomputed distance matrix (15.6~s through its \texttt{simplicial\_set\_embedding}), 10-NN accuracy
-  1.00 for both; an earlier protocol that fed UMAP the adjacency rows as features scored 0.26--0.38 and is
-  withdrawn (\texttt{sbm\_umap\_fair.py}).
-\item \todo{Figure graph\_demo.png; table Cora / airports / SBM with edge preservation.}
-\end{itemize}
-
 \section{Related work}
-\begin{itemize}
-\item $t$-SNE \citep{vandermaaten2008tsne}, Barnes--Hut, FIt-SNE \citep{linderman2019fitsne}, openTSNE;
-  LargeVis; UMAP \citep{mcinnes2018umap}; the attraction--repulsion spectrum \citep{boehm2022attraction};
-  negative sampling bias and the effective UMAP loss \citep{damrich2021umap}; PaCMAP's mid-near pairs
-  \citep{wang2021pacmap}; TriMap; PHATE; h-NNE; densMAP; $t$-SNE-CUDA; contrastive and parametric variants
-  (InfoNCE, \citep{damrich2023contrastive}).
-\item Independent attraction and repulsion kernels are the rule in force-directed graph drawing:
-  Fruchterman--Reingold \citep{fruchterman1991}, Noack's LinLog and $(a, r)$-energy models
-  \citep{noack2007energy}, ForceAtlas2 \citep{jacomy2014forceatlas2}. The split of Sec.~\ref{sec:theory}
-  is not new as a device; what is specific to neighbour embeddings is that the kernel $1/(1 + a d^{2b})$
-  couples the two exponents until it is split, and the crowding argument for the attraction side.
-\item Staged optimisation and informative starts: PaCMAP's three phases \citep{wang2021pacmap}, PCA /
-  spectral initialisation of $t$-SNE and UMAP \citep{kobak2021init}, multiscale affinities
-  \citep{lee2015multiscale}. The hybrid of Sec.~\ref{sec:hybrid} belongs to this family; its claim is
-  the hand-over conditions (scale, order, maturity of the first pass), not the fact that a warm start helps.
-\item Heavy tails and degrees of freedom \citep{kobak2020heavy} vary the tail while keeping the near
-  field quadratic; intrinsic dimension and crowding (Levina--Bickel, TwoNN, dimprint); robust location (Huber).
-\end{itemize}
+$t$-SNE \citep{vandermaaten2008tsne}, Barnes--Hut and FIt-SNE \citep{linderman2019fitsne}, openTSNE;
+LargeVis; UMAP \citep{mcinnes2018umap}; the attraction--repulsion spectrum \citep{boehm2022attraction};
+negative sampling bias and UMAP's effective loss \citep{damrich2021umap}; PaCMAP's mid-near pairs
+\citep{wang2021pacmap}; TriMap, PHATE, h-NNE, densMAP, $t$-SNE-CUDA; contrastive and parametric variants
+\citep{damrich2023contrastive}. Staged optimisation and informative starts: PaCMAP's three phases
+\citep{wang2021pacmap}, PCA and spectral initialisation of $t$-SNE and UMAP \citep{kobak2021init},
+multiscale affinities \citep{lee2015multiscale}. The sequence of Sec.~\ref{sec:staged} belongs to this
+family; its claims are the hand-over conditions and the decomposition of the gain into a generic pass and
+a specific start. Independent attraction and repulsion kernels in graph drawing: Fruchterman--Reingold
+\citep{fruchterman1991}, Noack's energy models \citep{noack2007energy}, ForceAtlas2
+\citep{jacomy2014forceatlas2}. Heavy tails and degrees of freedom \citep{kobak2020heavy} vary the tail
+while keeping the near field quadratic; intrinsic dimension and crowding (Levina--Bickel, TwoNN,
+dimprint); robust location (Huber).
 
 \section{Limitations}
-\begin{itemize}
-\item Full-batch and hybrid modes are 2-D only (FFT interpolation). Lock-free SGD is not bit-reproducible
-  (\texttt{parallel="owner"} is, for any thread count, at a small cost in local structure).
-\item Text: the attraction optimum (0.6--0.7) is not explained by the crowding law; the hybrid does not
-  beat Barnes--Hut on global structure there.
-\item Local-dimension estimators miss 1-D manifolds (COIL-20); the adaptive mode moves a third of the points.
-\end{itemize}
+The full-batch and hybrid modes are 2-D only (FFT interpolation). The lock-free SGD is not
+bit-reproducible (\texttt{parallel="owner"} is, at a small cost in local structure). PCA keeps the lead
+on distance Spearman on every real data set; a global metric that a neighbour embedding wins is still
+missing, and the stiff spring that gives the hybrid its pairwise Spearman makes the arrangement of the
+classes variable. On text the attraction optimum (0.6--0.7) is not explained by the crowding argument and
+the hybrid does not beat Barnes--Hut on global structure. The asymptotic argument for the repulsion
+exponent has no window to act in at the working scale of a layout. The local-dimension estimator misses
+1-D manifolds; the adaptive mode moves a third of the points. uwot (R) is not in the panel.
 
 \section{Conclusion}
-\todo{Three sentences: the split, the two optima, the sequence.}
+The local and global regimes of a neighbour embedding live in different optimisers, and the fade between
+them exists across the scales of the optimisation rather than inside one loss: a sampled pass places the
+clusters, a short full-batch pass at the right scale rebuilds the neighbourhoods and keeps the placement.
+The pass is generic; the start that makes the sequence lead both axes is a sampled layout with a stiff
+mid-range spring, whose local cost the pass erases. The implementation that carries this runs the whole
+sequence in the time UMAP takes for one layout.
+
+\appendix
+\section{Fashion-MNIST layouts}
+\begin{figure}[h]
+\centering\includegraphics[width=\textwidth]{layouts_fmnist.png}
+\caption{Fashion-MNIST 70k under the six methods of Fig.~\ref{fig:layouts}, same protocol.}
+\label{fig:layouts_fmnist}
+\end{figure}
 
 \bibliographystyle{plainnat}
 \begin{thebibliography}{99}\small

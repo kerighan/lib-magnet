@@ -233,9 +233,10 @@ limit, a data set where every point would rather be at L2 and the mode only move
 The sampled optimiser gives the best global structure among the neighbour embeddings of the benchmark
 (MNIST 70k distance Spearman 0.41; PCA to 2-D reaches 0.488 on that metric, 0.873 on Fashion-MNIST,
 `benchmarks/baselines_linear.py`; split by class, by tercile of the input distance or reduced to the 45
-inter-centroid distances, PCA stays ahead on every stratum, the hybrid ties it on intermediate distances
-only and places the ten class centroids worst of the panel, 0.421 against PCA 0.814 and UMAP 0.752,
-`benchmarks/global_strata.py`) and the exact one the best local structure (15-NN kept 0.35); each is mediocre on the other
+inter-centroid distances, PCA stays ahead on every stratum and the hybrid ties it on intermediate distances
+only, `benchmarks/global_strata.py`; the hybrid layout of that table also placed the ten class centroids
+worst of the panel, 0.421 against UMAP 0.752, which section 6.4 traces to the run rather than to the
+pass) and the exact one the best local structure (15-NN kept 0.35); each is mediocre on the other
 axis (0.19 and 0.34). Can one loss fade from one regime to the other? What was tried (`k1`-`k7`, MNIST
 70k unless said otherwise):
 
@@ -342,6 +343,81 @@ exact mode's 600. What buys time:
   earlier figure of 70 counted the 20 hyper-threads as cores), against 47 on one thread (`k11`); a fast `pow` and a cheaper RNG would
   give 10-20 %, not a factor.
 
+### 6.3 Staged baselines: the pass is generic, the start is MAGNET's (`benchmarks/staged_baselines.py`)
+
+Is the hybrid's gain the staging (any global layout, then a full-batch pass) or the SGD layout it starts
+from? The same pass (300 full-batch iterations, no early exaggeration, no mid spring, hand-over scale
+31 sqrt(n / 70000), MAGNET's 15-NN graph) applied to seven starts on MNIST and Fashion-MNIST 70k
+(4 threads; the UMAP, PaCMAP, openTSNE and SGD starts are the seed-0 layouts of the paper's figure):
+
+| start (MNIST 70k) | 15-NN before -> after | Spearman before -> after | centroids before -> after |
+|---|---|---|---|
+| PCA-2 | 0.010 -> 0.315 | 0.488 -> 0.399 | 0.814 -> 0.811 |
+| random | 0.000 -> 0.065 | 0.000 -> 0.008 | 0.31 -> 0.33 |
+| UMAP | 0.117 -> 0.353 | 0.296 -> 0.299 | 0.752 -> 0.681 |
+| PaCMAP | 0.094 -> 0.354 | 0.306 -> 0.311 | 0.684 -> 0.633 |
+| openTSNE | 0.348 -> 0.354 | 0.329 -> 0.326 | 0.607 -> 0.614 |
+| MAGNET SGD, mid 0.5 (= hybrid) | 0.178 -> 0.356 | 0.459 -> 0.442 | 0.524 -> 0.492 |
+| MAGNET SGD, default (mid 0.1) | 0.193 -> 0.356 | 0.418 -> 0.414 | 0.635 -> 0.617 |
+
+| start (Fashion-MNIST 70k) | 15-NN | Spearman | centroids |
+|---|---|---|---|
+| PCA-2 | 0.018 -> 0.315 | 0.873 -> 0.799 | 0.971 -> 0.962 |
+| UMAP | 0.133 -> 0.330 | 0.572 -> 0.607 | 0.879 -> 0.879 |
+| PaCMAP | 0.098 -> 0.327 | 0.582 -> 0.599 | 0.885 -> 0.882 |
+| openTSNE | 0.323 -> 0.329 | 0.617 -> 0.614 | 0.882 -> 0.876 |
+| MAGNET SGD, mid 0.5 (= hybrid) | 0.193 -> 0.329 | 0.774 -> 0.753 | 0.958 -> 0.931 |
+| MAGNET SGD, default | 0.203 -> 0.328 | 0.729 -> 0.716 | 0.939 -> 0.908 |
+
+Three facts. (i) The pass is generic: every neighbour-embedding start lands at 0.353-0.356 of 15-NN on
+MNIST and 0.327-0.330 on Fashion-MNIST, the full-batch mode's own level, in 8-13 s. (ii) It keeps the
+start's global structure: the Spearman moves by -0.02 to +0.03 (it even rises for UMAP and PaCMAP on
+Fashion-MNIST), and the centroid arrangement by -0.07 to +0.01. The global column after the pass is the
+global column of the start. (iii) It refines, it does not repair: PCA-2 reaches 0.315 only and loses
+0.07-0.09 of Spearman, a random start reaches 0.065. So the hybrid's lead on both axes decomposes into a
+general recipe (a short full-batch pass at the right scale, without exaggeration, on top of any layout
+that already has neighbourhoods) and a specific start: MAGNET's SGD layout with a stiff mid spring has
+the best global structure among the neighbour embeddings (0.459 / 0.774 against UMAP 0.296 / 0.572,
+PaCMAP 0.306 / 0.582, openTSNE 0.329 / 0.617), and the pass erases the local cost of that stiffness.
+The converse also holds: handed MAGNET's SGD layout at the same scale, openTSNE's optimiser (its own
+perplexity-30 affinities, 300 iterations at momentum 0.8, no exaggeration) reaches 0.346 / 0.428 on
+MNIST and 0.322 / 0.743 on Fashion-MNIST, 4-5 times slower (55 / 44 s at 4 threads against 12 / 8 s);
+and PCA handed to openTSNE's optimiser does better than PCA handed to ours (0.333 / 0.376 against
+0.315 / 0.399 on MNIST). Log: `benchmarks/cache/staged_baselines.log`, JSON alongside.
+
+### 6.4 The pass's own knobs, and the centroid question (`k14_hybrid_centroids.py`)
+
+One SGD layout (MNIST 70k, mid 0.5, seed 0, 4 threads), the pass re-run from a copy of it under each
+variant. Columns: 15-NN kept, Spearman (all / short / intermediate / long tercile), centroid Spearman,
+time of the pass.
+
+| pass | 15-NN | Spearman | short / mid / long | centroids | time |
+|---|---|---|---|---|---|
+| SGD layout before the pass | 0.178 | 0.428 | 0.366 / 0.111 / 0.157 | 0.594 | |
+| default (scale 31, 300 it) | 0.353 | 0.413 | 0.353 / 0.105 / 0.152 | 0.596 | 10.1 s |
+| 25 / 75 / 150 iterations | 0.277 / 0.328 / 0.343 | 0.428 / 0.427 / 0.423 | | 0.594 / 0.595 / 0.587 | 1.6 / 2.9 / 5.2 s |
+| scale 15 | 0.338 | 0.395 | 0.339 / 0.099 / 0.145 | 0.586 | 5.9 s |
+| scale 62 | 0.357 | 0.424 | 0.363 / 0.110 / 0.155 | 0.595 | 29.6 s |
+| scale 62, 150 it | 0.349 | 0.428 | 0.366 / 0.111 / 0.157 | 0.595 | 17.1 s |
+| scale 124 | 0.338 | 0.427 | | 0.594 | 121 s |
+| mid spring kept on (0.1, not annealed) | 0.118 | 0.310 | | 0.646 | |
+| mid spring 0.5 (annealed / not) | 0.238 / 0.044 | 0.108 / 0.195 | | 0.20 / 0.06 | |
+| learning rate 1000 / 20000 | 0.340 / 0.335 | 0.419 / 0.414 | | | |
+| dof 0.5 | 0.279 | 0.395 | | 0.600 | |
+
+The pass costs 0.015 of Spearman at scale 31 and 0.004 at scale 62, where it also gains 0.004 of 15-NN,
+for three times the time: the FFT grid follows the layout's extent, so the cost of an iteration grows
+with the square of the hand-over scale (10 / 30 / 121 s for 31 / 62 / 124). Scale 62 with 150
+iterations is the one setting that keeps the whole Spearman of the SGD layout (0.428) at 0.349 of
+15-NN, for 17 s; the default stays at 31 and 300 (the paper's "+0.005 15-NN, +0.015 Spearman for 5-6 s"
+knob). The mid spring is confirmed fatal in the pass (0.04-0.24 of 15-NN), the learning rate and the dof
+buy nothing. On the centroids: here the pass leaves them where the SGD put them (0.594 -> 0.596, and
+0.586-0.600 under every sane variant), and the three starts of the staged table move by -0.07 to +0.01.
+The 0.421 of the strata table is the hybrid layout of the figure, one run; the SGD start itself lands at
+0.52-0.59 of centroid Spearman from one Hogwild run to the next with the same seed (0.524 in
+`staged_baselines`, 0.594 here), and that metric is a rank correlation over 45 pairs, so a single layout
+says little about it. The seed table (`benchmarks/seeds.py`) carries the dispersion.
+
 ## Scripts (`benchmarks/theory/`)
 
 `e1_force_spectrum.py` (per-octave repulsive force on MAGNET's own embeddings), `k13_tail_crossover.py` (the same binned by the kernel crossover, with the shell-count-adjusted prediction), `e1b_powerlaw.py`
@@ -349,7 +425,7 @@ exact mode's 600. What buys time:
 data set), `e3_huber.py` (needs the research build with the Huber kernel; the C++ and Python patch is
 described in the script's docstring), `e4_oracle_local.py`, `e5_law.py`, `e6_estimator.py`,
 `e7_embedding_estimator.py` (two-phase version, superseded), `g1_gate.py` (crowding distribution on
-real data), `g2_adaptive.py`, `g3_mindeg.py`, `h1_hubs.py`, `h2_degree.py` (the text question), `k1_hybrid.py` to `k7_hybrid_general.py`, `k8_mid_sweep.py` (parametrisation of the hybrid on MNIST: mid_weight, SGD epochs, seed; exact-pass scale, lr, iterations, dof, exaggeration), `k9_mid_validate.py` (mid_weight of the hybrid on Fashion-MNIST, 20 newsgroups, blobs) and `run_hybrid_rows.py` (section 6); the `.log` files are the runs quoted here (4 threads, 2-3
+real data), `g2_adaptive.py`, `g3_mindeg.py`, `h1_hubs.py`, `h2_degree.py` (the text question), `k1_hybrid.py` to `k7_hybrid_general.py`, `k8_mid_sweep.py` (parametrisation of the hybrid on MNIST: mid_weight, SGD epochs, seed; exact-pass scale, lr, iterations, dof, exaggeration), `k9_mid_validate.py` (mid_weight of the hybrid on Fashion-MNIST, 20 newsgroups, blobs) `run_hybrid_rows.py` (section 6) and `k14_hybrid_centroids.py` (section 6.4; the staged baselines are `benchmarks/staged_baselines.py`); the `.log` files are the runs quoted here (4 threads, 2-3
 seeds). The e3 / e4 / e6 / e7 scripts take the package directory and the repository as arguments; g1 and
 g2 take the repository and a data directory holding `coil20/coil-20-proc/*.png` (Columbia CAVE) and
 `paul15/paul15.h5` (falexwolf.de/data); Cora and the airport graphs are read from local copies.

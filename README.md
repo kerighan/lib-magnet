@@ -315,8 +315,12 @@ distances between class centroids: PCA is ahead on every stratum (same class 0.5
 intermediate tercile (0.132) and is second on the other pairwise strata (0.501 / 0.412 / 0.371 / 0.158),
 but its arrangement of the ten class centroids is the worst of the panel (0.421; UMAP 0.752, SGD 0.635,
 full-batch 0.669). MAGNET's global advantage over the other neighbour embeddings is in pairwise distances
-within and between classes, not in the placement of the classes relative to each other, and the
-refinement pass of the hybrid costs centroid arrangement (0.635 to 0.421). One layout per method.
+within and between classes, not in the placement of the classes relative to each other. One layout per
+method, and the centroid column is a rank correlation over 45 pairs: over 5 seeds the hybrid lands at
+0.51 ± 0.08 on it (SGD 0.635 ± 0.002, full-batch 0.66 ± 0.01), and the staged baselines below show that
+the refinement pass itself moves the centroids by -0.07 to +0.01. It is the stiff mid spring of the
+hybrid's SGD pass (0.5 against 0.1), not the pass, that trades the class-level arrangement for the
+pairwise one.
 
 **Neighbourhood scale.** On the six MNIST layouts of the figure, kNN preservation at k = 5 / 15 / 50 / 100
 (`benchmarks/extra_metrics.py`): hybrid 0.351 / 0.351 / 0.319 / 0.313, full-batch 0.333 / 0.348 / 0.325 /
@@ -324,6 +328,43 @@ refinement pass of the hybrid costs centroid arrangement (0.635 to 0.421). One l
 0.176 / 0.226, PaCMAP 0.052 / 0.094 / 0.158 / 0.211. The hybrid leads at k = 5-15, openTSNE at k = 50-100.
 Continuity (trustworthiness with the two spaces swapped) is 0.944-0.953 for every method at k = 15, the
 SGD mode's 0.953 the highest.
+
+**Staged baselines: the pass is generic, the start is MAGNET's.** Is the hybrid's gain the staging (any
+global layout, then a full-batch pass) or the SGD layout it starts from? `benchmarks/staged_baselines.py`
+applies the same pass (300 full-batch iterations, no early exaggeration, no mid spring, hand-over scale
+31 sqrt(n / 70000), MAGNET's 15-NN graph) to PCA-2, a random layout, UMAP, PaCMAP, openTSNE and MAGNET's
+SGD layouts of MNIST and Fashion-MNIST 70k. Every neighbour-embedding start lands at 0.353-0.356 of
+15-NN on MNIST and 0.327-0.330 on Fashion-MNIST, the full-batch mode's own level, in 8-13 s, and keeps
+its own global structure: the distance Spearman moves by -0.02 to +0.03 (UMAP 0.296 -> 0.299, PaCMAP
+0.306 -> 0.311, openTSNE 0.329 -> 0.326, MAGNET SGD at mid 0.5 0.459 -> 0.442 on MNIST; on Fashion-MNIST
+UMAP and PaCMAP even gain 0.02-0.03). PCA-2 reaches 0.315 only and loses 0.07-0.09 of Spearman, a random
+start 0.065: the pass refines, it does not repair. The hybrid's lead on both axes is therefore a general
+recipe (a short full-batch pass at the right scale on top of any layout that has neighbourhoods) plus a
+specific start: MAGNET's SGD layout with a stiff mid spring has the best global structure among the
+neighbour embeddings (0.459 / 0.774 on MNIST / Fashion-MNIST against UMAP 0.296 / 0.572, PaCMAP 0.306 /
+0.582, openTSNE 0.329 / 0.617), and the pass erases the local cost of that stiffness. openTSNE's
+optimiser can do the pass as well (MAGNET's layout handed to it at the same scale, 300 iterations without
+exaggeration: 0.346 / 0.428 on MNIST), 4-5 times slower. Hand-over scale and iterations of the pass
+(`benchmarks/theory/k14_hybrid_centroids.py`): scale 31 costs the SGD layout 0.015 of Spearman, scale 62
+costs 0.004 and gains 0.004 of 15-NN for three times the time (the FFT grid follows the layout's extent:
+10 / 30 / 121 s per pass at scales 31 / 62 / 124); scale 62 with 150 iterations keeps the whole Spearman
+of the SGD layout at 0.349 of 15-NN in 17 s. The mid spring is confirmed fatal inside the pass
+(15-NN 0.04-0.24), the learning rate and the kernel's degrees of freedom buy nothing.
+
+**Seeds.** `benchmarks/seeds.py threads=all` (5 seeds, idle machine, summary by `seeds_summary.py`):
+MNIST 15-NN / Spearman MAGNET SGD 0.192 ± 0.002 / 0.413 ± 0.002, full-batch 0.347 ± 0.001 / 0.351 ± 0.006,
+hybrid 0.353 ± 0.001 / 0.455 ± 0.014, UMAP 0.117 ± 0.001 / 0.299 ± 0.005, openTSNE 0.347 ± 0.001 /
+0.331 ± 0.002, PaCMAP 0.094 ± 0.001 / 0.310 ± 0.006; Fashion-MNIST hybrid 0.328 ± 0.001 / 0.750 ± 0.001,
+SGD 0.205 / 0.724, full-batch 0.323 / 0.698, openTSNE 0.323 / 0.620, UMAP 0.133 / 0.579, PaCMAP 0.099 /
+0.582 (all ± 0.003 or less). Times on the idle machine: hybrid 10.9 s, UMAP 8.4 s, openTSNE 93 s,
+PaCMAP 30 s on MNIST. The one unstable column is the hybrid's centroid Spearman on MNIST (0.51 ± 0.08).
+
+**Graphs table** (`benchmarks/graph_table.py`, MAGNET against UMAP's `simplicial_set_embedding` on the
+adjacency, 3 seeds, edge preservation = share of a node's graph neighbours among its nearest layout
+neighbours): Cora 0.509 / 0.469 (0.4 s both), US airports 0.349 / 0.232 (0.1 / 0.9 s), Europe airports
+0.328 / 0.271, SBM + chains 0.483 / 0.535 (adaptive exponent 0.573), SBM 30k 0.017 / 0.013 (1.5 / 10.4 s
+on the sparse adjacency). UMAP is ahead on the 10-NN label accuracy of the airport graphs (0.62 against
+0.48 on the US graph), whose labels are activity levels rather than communities.
 
 **Timing protocol.** Every method runs with its defaults and all cores; UMAP and densMAP run without
 `random_state` (setting it makes their layout single-threaded: 49 s instead of 10 s on MNIST), MAGNET
