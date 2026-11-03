@@ -7,8 +7,8 @@ rows = [json.loads(l) for l in open(os.path.join(HERE, "results.jsonl")) if '"ta
 KEYS = [("time", "time (s)"), ("knn15_preservation", "15-NN"), ("trustworthiness", "trust."), ("dist_spearman", "Spearman"), ("triplet_acc", "triplet"),
         ("knn_acc", "10-NN acc."), ("centroid_spearman", "centroids")]
 LABEL = {"magnet_sgd": r"\magnet{} SGD", "magnet_tsne": r"\magnet{} full-batch", "magnet_hybrid": r"\magnet{} hybrid",
-         "umap": "UMAP 0.5.12", "opentsne": "openTSNE 1.0.4", "pacmap": "PaCMAP"}
-ORDER = ["magnet_sgd", "magnet_tsne", "magnet_hybrid", "umap", "opentsne", "pacmap"]
+         "umap": "UMAP 0.5.12", "opentsne": "openTSNE 1.0.4", "pacmap": "PaCMAP", "sktsne": "scikit-learn $t$-SNE (BH)"}
+ORDER = ["magnet_sgd", "magnet_tsne", "magnet_hybrid", "umap", "opentsne", "pacmap", "sktsne"]
 out, L = {}, [r"\begin{tabular}{llrrrrrrrr}", r"\toprule", r"data set & method & $n$ & " + " & ".join(h for _, h in KEYS) + r" \\", r"\midrule"]
 for ds, label in (("mnist70000", "MNIST"), ("fmnist70000", "Fashion-MNIST")):
     print(f"\n{label}")

@@ -366,6 +366,27 @@ neighbours): Cora 0.509 / 0.469 (0.4 s both), US airports 0.349 / 0.232 (0.1 / 0
 on the sparse adjacency). UMAP is ahead on the 10-NN label accuracy of the airport graphs (0.62 against
 0.48 on the US graph), whose labels are activity levels rather than communities.
 
+**Is the start MAGNET's, or just a stiff mid-near term?** `benchmarks/staged_seeds.py` (5 runs per cell,
+MNIST / Fashion-MNIST, same pass for every start): PaCMAP with its mid-near term stiffened by a sweep on
+MNIST (`pacmap_sweep.py`, MN_ratio 4) reaches 0.346 / 0.648 of Spearman after the pass; MAGNET's SGD at
+spring 0.5 reaches 0.449 / 0.750 (1.0: 0.456 / 0.764), UMAP 0.310 / 0.605, openTSNE 0.327 / 0.617, and
+MAGNET's SGD without the spring 0.301 / 0.588. The start matters beyond the attraction's presence, by
+0.10 on both data sets; what it pays is the MNIST centroid column (0.47 ± 0.16 at spring 0.5 against 0.63
+at 0.1 and 0.66-0.69 for UMAP / PaCMAP). The pass drifts slowly at convergence
+(`benchmarks/theory/k15_persistence.py`: Spearman 0.470 at 300 iterations, 0.446 at 3000, 15-NN 0.367,
+KL still decreasing); the FFT repulsion is accurate to 3-4 % RMS on the force and 0.1 % on Z at the
+default grid (`k16_fft_check.py`). Details in `docs/kernel_exponents.md`, section 6.5.
+
+**Scale, drift and a scaffold** (`docs/kernel_exponents.md`, section 6.6). A virial identity for the full-batch
+objective gives the KL-optimal dilation of any start with two FFT evaluations per scale (SGD starts ~90 x
+their std on MNIST 70k, UMAP ~120, PCA 10; s* ~ n^0.42), explains why the pass expands every start handed
+over at 31 and why 62 keeps more of the start's Spearman; the `loss="hybrid"` global preset is scale 62
+with `fft_box=1.5` (0.354 / 0.468 in 14 s against 0.356 / 0.457 in 10 s). Freezing K >= 32 Laplacian modes
+during the pass holds the start's Spearman through 1000 iterations at a 15-NN cost of 0.02; a rest-length
+stress on the barycentres of 64 label-free cells does the same at no local cost beyond 0.005 and no time,
+and with input-derived targets (2-D MDS of the cells' means) lifts the centroid Spearman by 0.06-0.10 for
+0.007-0.013 of 15-NN. In the SGD stage the same scaffold destroys the spring's pairwise Spearman.
+
 **Timing protocol.** Every method runs with its defaults and all cores; UMAP and densMAP run without
 `random_state` (setting it makes their layout single-threaded: 49 s instead of 10 s on MNIST), MAGNET
 with a seed (its threads do not depend on it). The numba methods are warmed up before the clock on

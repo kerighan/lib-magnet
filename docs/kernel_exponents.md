@@ -16,7 +16,7 @@ and the repulsion from a negative sample is the gradient of `-log(1 - w)`:
 
     F_rep(d) = 2 b / (d (1 + a d^(2b)))        (times repulsion_strength and the negative rate)
 
-The kernel scale `d_k = a^(-1/2b)` is 0.62 at the default `min_dist` / `spread` (a ~ 1.8). The two forces
+The kernel scale `d_k = a^(-1/2b)` is 0.66 at MAGNET's defaults (b = 0.6, a = 1.64 for `min_dist` 0.1 and `spread` 1) and 0.78 at UMAP's (b = 0.9, a = 1.58). The two forces
 depend on b in opposite regimes:
 
 | | near field, d << d_k | far field, d >> d_k |
@@ -417,6 +417,81 @@ The 0.421 of the strata table is the hybrid layout of the figure, one run; the S
 0.52-0.59 of centroid Spearman from one Hogwild run to the next with the same seed (0.524 in
 `staged_baselines`, 0.594 here), and that metric is a rank correlation over 45 pairs, so a single layout
 says little about it. The seed table (`benchmarks/seeds.py`) carries the dispersion.
+
+### 6.5 The 2 x 2 with seeds, persistence, and the FFT's accuracy (`benchmarks/staged_seeds.py`, `k15`, `k16`)
+
+The two reviewers of the second draft asked the same question: is the hybrid's global lead MAGNET's
+start or just a stiff mid-near attraction that PaCMAP could supply too? `benchmarks/pacmap_sweep.py`
+sweeps PaCMAP's `MN_ratio` (0.5-4) and phase lengths on MNIST with the same budget as our spring, keeps
+the best Spearman (MN_ratio 4, default phases: 0.334 against 0.308 at the defaults; the other settings
+0.24-0.33), and `staged_seeds.py` sends every start through the same pass, 5 runs each, MNIST and
+Fashion-MNIST (Spearman after the pass, ± std):
+
+| start | MNIST | Fashion |
+|---|---|---|
+| MAGNET SGD, spring 0 | 0.301 ± 0.004 | 0.588 ± 0.013 |
+| MAGNET SGD, spring 0.1 | 0.412 ± 0.004 | 0.709 ± 0.004 |
+| MAGNET SGD, spring 0.5 (hybrid) | 0.449 ± 0.015 | 0.750 ± 0.001 |
+| MAGNET SGD, spring 1.0 | 0.456 ± 0.027 | 0.764 ± 0.003 |
+| PaCMAP default | 0.321 ± 0.013 | 0.600 ± 0.002 |
+| PaCMAP stiff (MN_ratio 4) | 0.346 ± 0.017 | 0.648 ± 0.001 |
+| UMAP | 0.310 ± 0.007 | 0.605 ± 0.004 |
+| openTSNE (2 runs) | 0.327 ± 0.002 | 0.617 ± 0.001 |
+
+Every start lands at 0.352-0.355 / 0.327-0.331 of 15-NN. PaCMAP's stiffened mid-near term gains
+0.03-0.05 and stays 0.10 below our start on both data sets; our start without the spring is below UMAP.
+So the start is MAGNET's beyond the attraction's presence. The price is the centroid column on MNIST:
+0.466 ± 0.158 at spring 0.5 and 0.499 ± 0.080 at 1.0 after the pass, against 0.628 ± 0.016 at 0.1,
+0.664 for UMAP, 0.687 for stiff PaCMAP (on Fashion-MNIST the stiff start is best there too, 0.934 /
+0.943). The pass adds 0.01-0.03 of Spearman to UMAP and PaCMAP starts and takes 0.01-0.02 from ours.
+
+Persistence (`k15_persistence.py`, stiff start, all cores): Spearman 0.480 -> 0.470 (300 it) -> 0.462
+(600) -> 0.455 (1200) -> 0.446 (3000) while 15-NN rises 0.346 -> 0.367, the layout expands (std 31 ->
+55) and the KL is still decreasing at 3000. The pass drifts slowly; it does not preserve the start at
+convergence. From PCA-2: 0.488 -> 0.418 (300) -> 0.377 (1200), 15-NN 0.344 at 1200.
+
+FFT accuracy (`k16_fft_check.py`, exact all-pairs sum in float64 on the hybrid's MNIST layout, 5k / 20k /
+70k points): default grid (3 interpolation points, box width 1) Z to 0.06-0.3 %, per-point force 2.8-4 %
+RMS of the RMS force (worst point 21-32 %), cosine 0.9992-0.9996 with the exact field; 5 interpolation
+points 0.2-0.4 % RMS at 1.7x the cost; box width 1.5 (the speed preset) 10-14 % RMS.
+
+Seeds of the other rows (`seeds.py`, 5 runs, idle machine): scikit-learn's Barnes-Hut t-SNE is
+deterministic given its PCA init (0.350 / 0.338 on MNIST, 0.327 / 0.634 on Fashion, 186 / 204 s).
+
+### 6.6 Two small theorems and a scaffold (`k17`-`k21`)
+
+**Virial identity.** With k_ij = (1 + s^2 d_ij^2)^-1, Z = sum k and u = s^2 d^2 / (1 + s^2 d^2),
+dF(sY) / dlog s = 2 (E_p[u] - E_q[u]) = 2 (sum p u - 1 + sum k^2 / Z): at a stationary point of the full-batch
+objective the edge-weighted mean of d^2/(1+d^2) equals its all-pairs mean. Both sides are one FFT evaluation
+(sum k^2 is the K2 kernel's potential with unit charges). The KL-optimal dilation s* of a start (root along
+the ray s Y0; it depends on P and on the shape of Y0) on MNIST 70k: SGD starts 85-102, UMAP ~120, PCA-2 10,
+and the full-batch layout itself after 600 iterations is far from its equilibrium (derivative -0.05 at four
+times its std: the slow expansion of k15). s* ~ n^0.42 on MNIST subsamples (28 / 54 / 85 at 5k / 20k / 70k;
+Fashion 53 / 81 at 20k / 70k): the sqrt(n) form of the rule is right, the exponent is a little lower. s* is
+not the best hand-over: the stiff start at s* gives 0.349 / 0.460 (31: 0.350 / 0.450; 62: 0.357 / 0.458) at
+5x the cost; PCA at its s* = 10 gives 0.319 / 0.343 against 0.318 / 0.399 at 31. The scale is a local /
+global dial; the identity gives its equilibrium, not its best setting. Preset from k19 (scale x grid x
+iterations): 62 / box 1.5 / 300 = 0.354 / 0.468 in 14 s against 0.356 / 0.457 in 10 s at the default.
+
+**Projected refinement.** Gradient descent on the objective restricted to the complement of the constant
+vector + K leading Laplacian eigenvectors, with exact re-projection after each update: U^T Y is invariant by
+construction (this preserves those coordinates, not any metric). K >= 32 holds the pairwise Spearman at the
+start's value through 1000 iterations (0.461-0.462 against 0.442 unprojected, start 0.464), scale held, at a
+15-NN cost of 0.012 at 300 iterations and 0.022-0.024 at 1000; K = 8 does not hold it (0.438). Cost: an n x K
+product per iteration (the K = 512 basis is too slow to build with the Chebyshev filter).
+
+**Coarse rest-length scaffold** (`k20_coarse_stress.py`, idea 1 of `paper/reviews/openai-gpt-6-astra@high_ideas.md`):
+B label-free cells (k-means on an 8-d spectral embedding), S = mean_ab ((|c_a - c_b| - l_ab) / (l_ab + delta))^2
+on the barycentres, lifted to the points as a block translation of each cell, weight set once by the ratio of
+its lifted gradient to the cell-averaged KL gradient. Target = the start's own coarse distances: a drift-free
+pass at no extra cost (ratio 1: Spearman 0.465 against 0.437 unconstrained and 0.469 at the start, 15-NN
+0.348 against 0.354, 8.5 s), better than the projection. Target = 2-D classical MDS of the cells' input-space
+means (the raw 784-d distances are not realisable in 2-D): centroid Spearman of the default start 0.61-0.62
+-> 0.67-0.68 at ratio 1 (0.71-0.73 at ratio 3) with the pairwise Spearman unchanged and 15-NN -0.007
+(-0.013); on the stiff start +0.02 to +0.08 and the run-to-run spread remains. The same scaffold applied in
+the SGD stage as rigid cell translations between segments (`k21_scaffold_sgd.py`, through the new
+`epoch_callback` research hook of `_optimize`) destroys the spring's pairwise Spearman (0.47 -> 0.31-0.33)
+while raising the centroids (0.68): the spring's arrangement is the one the pairwise metric rewards.
 
 ## Scripts (`benchmarks/theory/`)
 

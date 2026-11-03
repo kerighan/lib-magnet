@@ -573,6 +573,9 @@ class MAGNET:
             mid = (lambda e: mid_weight * max(0.0, 1.0 - e / mid_len)) if use_mid else (lambda e: 0.0)
             late_start = total - int(round(self.late_phase * total)) if self.late_exaggeration != 1.0 else total
             chunk = max(1, total // 20) if self.verbose else total
+            cb = getattr(self, "epoch_callback", None)          # research hook: callable(Y, epoch, total) between segments
+            if cb is not None:
+                chunk = max(1, min(chunk, int(getattr(self, "callback_every", 10))))
             adapt_at = total + 1
             if isinstance(self.kernel_b, str) and self.kernel_b == "adaptive" and P is not None and n_fixed == 0:
                 adapt_at = int(round(float(self.adaptive[2]) * total))
@@ -591,6 +594,8 @@ class MAGNET:
                     self.node_b_ = node_b
                 exag = self.exaggeration * self.late_exaggeration if e0 >= late_start else None
                 run(e0, e1, alpha(e0), alpha(e1), mid(e0), mid(e1), exag)
+                if cb is not None:
+                    cb(Y, e1, total)
             self.n_epochs_ = total
             return
         if isinstance(n_epochs, (tuple, list)):

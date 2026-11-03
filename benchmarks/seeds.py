@@ -39,6 +39,9 @@ def fit(method, X, s):
     if method == "pacmap":
         import pacmap
         return pacmap.PaCMAP(random_state=s).fit_transform(X)
+    if method == "sktsne":
+        from sklearn.manifold import TSNE
+        return TSNE(n_jobs=-1, init="pca", random_state=s).fit_transform(X)
     raise ValueError(method)
 
 for ds in datasets:

@@ -1,0 +1,125 @@
+start                     B target ratio  knn15     sp   trip   cent   S_end   t(s)
+spring 0.5 / seed 0          start        0.179  0.469  0.661  0.464
+spring 0.5 / seed 0      64   none   0.0  0.354  0.437  0.650  0.491     nan    8.7  (cached)
+spring 0.5 / seed 0      64  input   0.1  0.352  0.438  0.650  0.498  0.1862    8.5  (cached)
+spring 0.5 / seed 0      64  input   0.3  0.348  0.437  0.649  0.504  0.1595    8.3  (cached)
+spring 0.5 / seed 0      64  input   1.0  0.343  0.430  0.646  0.522  0.1290    8.6  (cached)
+    lambda = 2 (|P_cell grad KL| 2.86e-05, |grad S| at 1.1 Y0 4.29e-05, S0 = 0.1426)
+spring 0.5 / seed 0      64  input   3.0  0.337  0.442  0.651  0.502  0.1165    9.3
+spring 0.5 / seed 0      64  start   0.1  0.353  0.454  0.655  0.475  0.0190    8.4  (cached)
+spring 0.5 / seed 0      64  start   0.3  0.351  0.460  0.656  0.477  0.0108    8.4  (cached)
+spring 0.5 / seed 0      64  start   1.0  0.348  0.465  0.657  0.483  0.0031    8.5  (cached)
+    lambda = 3.89 (|P_cell grad KL| 2.86e-05, |grad S| at 1.1 Y0 2.2e-05, S0 = 0.0000)
+spring 0.5 / seed 0      64  start   3.0  0.342  0.468  0.661  0.460  0.0007    7.9
+    lambda = 0.00542 (|P_cell grad KL| 2.86e-05, |grad S| at 1.1 Y0 0.000528, S0 = 1.0971)
+spring 0.5 / seed 0      64    mds   0.1  0.352  0.459  0.659  0.454  1.6085    9.2
+    lambda = 0.0163 (|P_cell grad KL| 2.86e-05, |grad S| at 1.1 Y0 0.000528, S0 = 1.0971)
+spring 0.5 / seed 0      64    mds   0.3  0.350  0.463  0.660  0.467  1.3759    8.2
+    lambda = 0.0542 (|P_cell grad KL| 2.86e-05, |grad S| at 1.1 Y0 0.000528, S0 = 1.0971)
+spring 0.5 / seed 0      64    mds   1.0  0.343  0.468  0.661  0.483  0.9278    8.1
+    lambda = 0.163 (|P_cell grad KL| 2.86e-05, |grad S| at 1.1 Y0 0.000528, S0 = 1.0971)
+spring 0.5 / seed 0      64    mds   3.0  0.329  0.444  0.654  0.510  0.4214   11.1
+spring 0.5 / seed 0     128  input   0.1  0.353  0.453  0.654  0.475  0.1916    8.7  (cached)
+spring 0.5 / seed 0     128  input   0.3  0.350  0.457  0.655  0.490  0.1714    8.8  (cached)
+spring 0.5 / seed 0     128  input   1.0  0.347  0.458  0.654  0.516  0.1442   11.6  (cached)
+    lambda = 2.38 (|P_cell grad KL| 4.33e-05, |grad S| at 1.1 Y0 5.45e-05, S0 = 0.1481)
+spring 0.5 / seed 0     128  input   3.0  0.338  0.449  0.652  0.511  0.1190   14.4
+spring 0.5 / seed 0     128  start   0.1  0.352  0.456  0.655  0.475  0.0177    8.7  (cached)
+spring 0.5 / seed 0     128  start   0.3  0.351  0.461  0.657  0.477  0.0089    8.6  (cached)
+spring 0.5 / seed 0     128  start   1.0  0.347  0.466  0.658  0.483  0.0022    8.3  (cached)
+    lambda = 5.65 (|P_cell grad KL| 4.33e-05, |grad S| at 1.1 Y0 2.3e-05, S0 = 0.0000)
+spring 0.5 / seed 0     128  start   3.0  0.340  0.469  0.661  0.466  0.0004    8.0
+    lambda = 0.0046 (|P_cell grad KL| 4.33e-05, |grad S| at 1.1 Y0 0.000942, S0 = 1.7721)
+spring 0.5 / seed 0     128    mds   0.1  0.353  0.457  0.658  0.451  2.3862    8.9
+    lambda = 0.0138 (|P_cell grad KL| 4.33e-05, |grad S| at 1.1 Y0 0.000942, S0 = 1.7721)
+spring 0.5 / seed 0     128    mds   0.3  0.348  0.458  0.658  0.456  1.9789    8.6
+    lambda = 0.046 (|P_cell grad KL| 4.33e-05, |grad S| at 1.1 Y0 0.000942, S0 = 1.7721)
+spring 0.5 / seed 0     128    mds   1.0  0.340  0.455  0.657  0.469  1.2086   13.2
+    lambda = 0.138 (|P_cell grad KL| 4.33e-05, |grad S| at 1.1 Y0 0.000942, S0 = 1.7721)
+spring 0.5 / seed 0     128    mds   3.0  0.326  0.440  0.651  0.512  0.5343   15.8
+spring 0.5 / seed 1          start        0.180  0.462  0.659  0.496
+spring 0.5 / seed 1      64   none   0.0  0.353  0.407  0.642  0.523     nan    7.3  (cached)
+spring 0.5 / seed 1      64  input   0.3  0.350  0.408  0.642  0.545  0.1524    8.2  (cached)
+spring 0.5 / seed 1      64  input   1.0  0.345  0.404  0.641  0.565  0.1244    7.9  (cached)
+spring 0.5 / seed 1     128  input   0.3  0.349  0.408  0.642  0.548  0.1474    8.3  (cached)
+spring 0.5 / seed 1      64  start   0.3  0.349  0.418  0.644  0.540  0.0137    8.2  (cached)
+    lambda = 0.0607 (|P_cell grad KL| 2.92e-05, |grad S| at 1.1 Y0 0.000481, S0 = 1.0788)
+spring 0.5 / seed 1      64    mds   1.0  0.347  0.460  0.657  0.542  0.8783    9.1
+    lambda = 0.182 (|P_cell grad KL| 2.92e-05, |grad S| at 1.1 Y0 0.000481, S0 = 1.0788)
+spring 0.5 / seed 1      64    mds   3.0  0.335  0.445  0.653  0.558  0.4163   11.7
+    lambda = 0.0512 (|P_cell grad KL| 4.46e-05, |grad S| at 1.1 Y0 0.000871, S0 = 1.7893)
+spring 0.5 / seed 1     128    mds   1.0  0.344  0.448  0.654  0.542  1.1498   12.9
+spring 0.5 / seed 2          start        0.179  0.439  0.651  0.660
+spring 0.5 / seed 2      64   none   0.0  0.351  0.426  0.649  0.625     nan    7.1  (cached)
+spring 0.5 / seed 2      64  input   0.3  0.348  0.431  0.650  0.626  0.1470    8.0  (cached)
+spring 0.5 / seed 2      64  input   1.0  0.344  0.430  0.650  0.651  0.1225    7.8  (cached)
+spring 0.5 / seed 2     128  input   0.3  0.348  0.434  0.651  0.629  0.1511    8.0  (cached)
+spring 0.5 / seed 2      64  start   0.3  0.346  0.439  0.653  0.621  0.0121    7.9  (cached)
+    lambda = 0.0413 (|P_cell grad KL| 2.66e-05, |grad S| at 1.1 Y0 0.000642, S0 = 1.2406)
+spring 0.5 / seed 2      64    mds   1.0  0.347  0.434  0.650  0.702  1.0421    9.2
+    lambda = 0.124 (|P_cell grad KL| 2.66e-05, |grad S| at 1.1 Y0 0.000642, S0 = 1.2406)
+spring 0.5 / seed 2      64    mds   3.0  0.337  0.419  0.646  0.697  0.4781   14.3
+    lambda = 0.0511 (|P_cell grad KL| 4.25e-05, |grad S| at 1.1 Y0 0.000832, S0 = 1.6425)
+spring 0.5 / seed 2     128    mds   1.0  0.343  0.420  0.647  0.684  1.0522   13.9
+spring 0.1 / seed 0          start        0.193  0.416  0.645  0.639
+spring 0.1 / seed 0      64   none   0.0  0.355  0.410  0.644  0.608     nan    7.3  (cached)
+spring 0.1 / seed 0      64  input   0.1  0.354  0.409  0.643  0.610  0.1723    8.3  (cached)
+spring 0.1 / seed 0      64  input   0.3  0.352  0.405  0.642  0.619  0.1525    8.2  (cached)
+spring 0.1 / seed 0      64  input   1.0  0.348  0.395  0.640  0.656  0.1261    8.0  (cached)
+    lambda = 1.93 (|P_cell grad KL| 3.11e-05, |grad S| at 1.1 Y0 4.85e-05, S0 = 0.1343)
+spring 0.1 / seed 0      64  input   3.0  0.345  0.382  0.637  0.689  0.1076    9.7
+spring 0.1 / seed 0      64  start   0.1  0.353  0.416  0.645  0.605  0.0245    8.3  (cached)
+spring 0.1 / seed 0      64  start   0.3  0.350  0.420  0.646  0.612  0.0121    8.2  (cached)
+spring 0.1 / seed 0      64  start   1.0  0.345  0.422  0.646  0.626  0.0029    8.0  (cached)
+    lambda = 4.74 (|P_cell grad KL| 3.11e-05, |grad S| at 1.1 Y0 1.97e-05, S0 = 0.0000)
+spring 0.1 / seed 0      64  start   3.0  0.342  0.423  0.647  0.629  0.0006    7.7
+    lambda = 0.00534 (|P_cell grad KL| 3.11e-05, |grad S| at 1.1 Y0 0.000583, S0 = 0.9538)
+spring 0.1 / seed 0      64    mds   0.1  0.354  0.415  0.645  0.613  1.3508    8.0
+    lambda = 0.016 (|P_cell grad KL| 3.11e-05, |grad S| at 1.1 Y0 0.000583, S0 = 0.9538)
+spring 0.1 / seed 0      64    mds   0.3  0.353  0.418  0.645  0.635  1.1507    8.2
+    lambda = 0.0534 (|P_cell grad KL| 3.11e-05, |grad S| at 1.1 Y0 0.000583, S0 = 0.9538)
+spring 0.1 / seed 0      64    mds   1.0  0.347  0.420  0.645  0.670  0.7795    8.0
+    lambda = 0.16 (|P_cell grad KL| 3.11e-05, |grad S| at 1.1 Y0 0.000583, S0 = 0.9538)
+spring 0.1 / seed 0      64    mds   3.0  0.338  0.404  0.642  0.723  0.3684   15.7
+spring 0.1 / seed 0     128  input   0.1  0.353  0.410  0.644  0.610  0.1636    8.5  (cached)
+spring 0.1 / seed 0     128  input   0.3  0.351  0.409  0.643  0.627  0.1430    8.4  (cached)
+spring 0.1 / seed 0     128  input   1.0  0.347  0.405  0.642  0.660  0.1206   10.5  (cached)
+    lambda = 2.76 (|P_cell grad KL| 4.6e-05, |grad S| at 1.1 Y0 4.99e-05, S0 = 0.1297)
+spring 0.1 / seed 0     128  input   3.0  0.346  0.393  0.638  0.693  0.1053   12.4
+spring 0.1 / seed 0     128  start   0.1  0.352  0.416  0.645  0.606  0.0217    8.5  (cached)
+spring 0.1 / seed 0     128  start   0.3  0.349  0.420  0.646  0.612  0.0096    8.3  (cached)
+spring 0.1 / seed 0     128  start   1.0  0.343  0.421  0.646  0.627  0.0022    8.1  (cached)
+    lambda = 6.54 (|P_cell grad KL| 4.6e-05, |grad S| at 1.1 Y0 2.11e-05, S0 = 0.0000)
+spring 0.1 / seed 0     128  start   3.0  0.340  0.422  0.646  0.630  0.0004    8.0
+    lambda = 0.00722 (|P_cell grad KL| 4.6e-05, |grad S| at 1.1 Y0 0.000637, S0 = 0.9990)
+spring 0.1 / seed 0     128    mds   0.1  0.353  0.414  0.645  0.608  1.3745    8.9
+    lambda = 0.0217 (|P_cell grad KL| 4.6e-05, |grad S| at 1.1 Y0 0.000637, S0 = 0.9990)
+spring 0.1 / seed 0     128    mds   0.3  0.350  0.415  0.645  0.625  1.1220    8.6
+    lambda = 0.0722 (|P_cell grad KL| 4.6e-05, |grad S| at 1.1 Y0 0.000637, S0 = 0.9990)
+spring 0.1 / seed 0     128    mds   1.0  0.344  0.410  0.644  0.677  0.6984   29.3
+    lambda = 0.217 (|P_cell grad KL| 4.6e-05, |grad S| at 1.1 Y0 0.000637, S0 = 0.9990)
+spring 0.1 / seed 0     128    mds   3.0  0.335  0.387  0.638  0.733  0.2951   27.9
+spring 0.1 / seed 1          start        0.193  0.411  0.643  0.630
+spring 0.1 / seed 1      64   none   0.0  0.356  0.414  0.644  0.620     nan    7.4  (cached)
+spring 0.1 / seed 1      64  input   0.3  0.354  0.413  0.643  0.627  0.1585    8.2  (cached)
+spring 0.1 / seed 1      64  input   1.0  0.349  0.404  0.642  0.652  0.1304    8.9  (cached)
+spring 0.1 / seed 1     128  input   0.3  0.352  0.415  0.644  0.632  0.1445    8.5  (cached)
+spring 0.1 / seed 1      64  start   0.3  0.352  0.424  0.646  0.621  0.0142    8.2  (cached)
+    lambda = 0.0455 (|P_cell grad KL| 2.68e-05, |grad S| at 1.1 Y0 0.000588, S0 = 0.9586)
+spring 0.1 / seed 1      64    mds   1.0  0.349  0.418  0.645  0.676  0.8514    8.4
+    lambda = 0.136 (|P_cell grad KL| 2.68e-05, |grad S| at 1.1 Y0 0.000588, S0 = 0.9586)
+spring 0.1 / seed 1      64    mds   3.0  0.343  0.407  0.643  0.708  0.4168   13.1
+    lambda = 0.0672 (|P_cell grad KL| 4.28e-05, |grad S| at 1.1 Y0 0.000636, S0 = 1.0027)
+spring 0.1 / seed 1     128    mds   1.0  0.349  0.407  0.642  0.670  0.7201   13.6
+spring 0.1 / seed 2          start        0.193  0.410  0.643  0.648
+spring 0.1 / seed 2      64   none   0.0  0.354  0.419  0.645  0.615     nan    7.5  (cached)
+spring 0.1 / seed 2      64  input   0.3  0.352  0.417  0.645  0.621  0.1586    8.2  (cached)
+spring 0.1 / seed 2      64  input   1.0  0.348  0.409  0.643  0.651  0.1307    8.8  (cached)
+spring 0.1 / seed 2     128  input   0.3  0.351  0.419  0.645  0.628  0.1461    8.4  (cached)
+spring 0.1 / seed 2      64  start   0.3  0.351  0.428  0.647  0.625  0.0143    8.2  (cached)
+    lambda = 0.0471 (|P_cell grad KL| 2.74e-05, |grad S| at 1.1 Y0 0.000581, S0 = 0.9350)
+spring 0.1 / seed 2      64    mds   1.0  0.348  0.417  0.644  0.681  0.8180    9.7
+    lambda = 0.141 (|P_cell grad KL| 2.74e-05, |grad S| at 1.1 Y0 0.000581, S0 = 0.9350)
+spring 0.1 / seed 2      64    mds   3.0  0.342  0.402  0.641  0.727  0.3927   17.1
+    lambda = 0.0665 (|P_cell grad KL| 4.19e-05, |grad S| at 1.1 Y0 0.000631, S0 = 0.9798)
+spring 0.1 / seed 2     128    mds   1.0  0.346  0.405  0.642  0.678  0.7083    9.4
