@@ -113,7 +113,8 @@ class MAGNET:
     tsne_early_exaggeration : attraction multiplier of the early phase of loss="tsne" (default 12, t-SNE's).
     hybrid_tail : (iterations, exaggeration) of an optional exaggerated tail at the end of the full-batch pass
         (loss="hybrid" and loss="tsne")
-        (default (0, 1.0): none). (100, 2.0) is the "clusters" preset: on MNIST 70k it trades 0.05 of 15-NN
+        (default (0, 1.0): none). (100, 2.0) was the "clusters" preset before `contraction` (now
+        the preset: contraction=0.7 costs no 15-NN); on MNIST 70k the tail trades 0.05 of 15-NN
         and 0.02 of distance Spearman for cluster recovery (HDBSCAN ARI 0.10 -> 0.76, k-means ARI 0.62 ->
         0.71; benchmarks/theory/k28_exaggeration_tail.py).
     contraction : community placement and contraction of the final layout (magnet/contraction.py). None (default):
@@ -122,7 +123,7 @@ class MAGNET:
         a 500-point sample (overlap guard: communities may not mix), then each contracted rigidly towards its
         centroid by g ("separation" dial: 0.7 = compact clusters). A similarity within a community keeps the
         neighbourhoods: MNIST 70k full-batch 15-NN 0.348 -> 0.346, Spearman 0.342 -> 0.46, k-means ARI 0.80 ->
-        0.90 at g=0.7 (benchmarks/theory/k30-k37). A dict passes the arguments of hierarchical_contraction
+        0.90 at g=0.7, 3 s (benchmarks/theory/k30-k38). A dict passes the arguments of hierarchical_contraction
         (resolution, separation, placement, n_sample, tol, sweeps). Needs python-igraph.
     tsne_init_scale, tsne_learning_rate, tsne_far, tsne_mid : research knobs of the exact mode (warm start
         scale and learning rate, constant far-field repulsion, bounded mid-range springs; docs/kernel_exponents.md).
@@ -497,7 +498,7 @@ class MAGNET:
                                   box_width=float(self.fft_box), n_threads=self.n_threads, dof=float(self.tsne_dof),
                                   verbose=self.verbose)
                 tail_iter, tail_exag = int(self.hybrid_tail[0]), float(self.hybrid_tail[1])
-                if tail_iter > 0 and tail_exag != 1.0:   # "clusters" preset: a short exaggerated tail compacts the clusters
+                if tail_iter > 0 and tail_exag != 1.0:   # exaggerated tail: compacts the clusters at a local cost (superseded by contraction=0.7)
                     Y = optimize_tsne(P, Y, n_iter=tail_iter, early_iter=0, exaggeration=tail_exag,
                                       learning_rate=self.tsne_learning_rate, n_interp=int(self.fft_interp),
                                       box_width=float(self.fft_box), n_threads=self.n_threads, dof=float(self.tsne_dof),
@@ -511,7 +512,8 @@ class MAGNET:
             from .contraction import hierarchical_contraction
             opts = dict(self.contraction) if isinstance(self.contraction, dict) else {"separation": float(self.contraction)}
             Y, self.contraction_log_ = hierarchical_contraction(Y, P, X=X if getattr(self, "_is_data_", False) else None,
-                                                                metric=self.metric, random_state=self.random_state or 0, verbose=self.verbose, **opts)
+                                                                metric=self.metric, random_state=self.random_state or 0, verbose=self.verbose,
+                                                                n_threads=(self.n_threads if self.n_threads and self.n_threads > 0 else 8), **opts)
         self.embedding_ = Y
         return self
 

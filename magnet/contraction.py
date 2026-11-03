@@ -58,22 +58,30 @@ def _sample_distances(X, idx, metric):
     return pairwise_distances(Xs, metric=m, n_jobs=1)
 
 
+def _ranks(x):
+    """ranks 1..m without tie averaging (ties are measure-zero for layout distances)."""
+    r = np.empty(len(x), dtype=np.float32)
+    r[np.argsort(x, kind="quicksort")] = np.arange(1, len(x) + 1, dtype=np.float32)
+    return r
+
+
 class _SampleSpearman:
-    """Spearman correlation between the input distances and the layout distances of a fixed random sample."""
+    """Spearman correlation between the input distances and the layout distances of a fixed random sample.
+    Works on the sample coordinates only: shift(mask, d) scores the sample with the points in `mask` moved by d."""
     def __init__(self, X, idx, metric):
-        from scipy.stats import rankdata
         self.idx = idx
         self.iu = np.triu_indices(len(idx), 1)
-        rh = rankdata(_sample_distances(X, idx, metric)[self.iu])
+        rh = _ranks(_sample_distances(X, idx, metric)[self.iu])
         self.rh = (rh - rh.mean()) / rh.std()
 
-    def __call__(self, Y):
-        from scipy.stats import rankdata
-        Z = Y[self.idx]
-        D = np.sqrt(((Z[:, None, :] - Z[None, :, :]) ** 2).sum(-1))[self.iu]
-        rl = rankdata(D)
+    def score_coords(self, Zs):
+        D = np.sqrt(((Zs[:, None, :] - Zs[None, :, :]) ** 2).sum(-1))[self.iu]
+        rl = _ranks(D)
         rl = (rl - rl.mean()) / rl.std()
         return float(np.mean(self.rh * rl))
+
+    def __call__(self, Y):
+        return self.score_coords(Y[self.idx])
 
 
 class _Mixing:
@@ -82,77 +90,99 @@ class _Mixing:
         self.idx = idx
         self.lab = labels[idx]
 
-    def __call__(self, Y):
+    def score_coords(self, Zm):
         from scipy.spatial import cKDTree
-        Z = Y[self.idx]
-        nn = cKDTree(Z).query(Z, k=2)[1][:, 1]
+        nn = cKDTree(Zm).query(Zm, k=2)[1][:, 1]
         return float(np.mean(self.lab[nn] != self.lab))
+
+    def __call__(self, Y):
+        return self.score_coords(Y[self.idx])
 
 
 def place_communities(Y, labels, spearman, mixing=None, tol=0.002, sweeps=2, min_frac=0.01, radial=(0.7, 0.85, 1.15, 1.3, 1.6),
-                      step=0.15, verbose=False):
+                      step=0.15, n_threads=8, verbose=False):
     """Rigid translation of every community (largest first, those above min_frac of the points), coordinate ascent of
     the sample Spearman: candidates = radial scalings of the centroid offset and an 8-direction step grid
-    (step x RMS radius); a move is kept only if the Spearman rises and the mixing does not exceed its start + tol."""
+    (step x RMS radius), scored in parallel on the sample coordinates only; a move is kept only if the Spearman
+    rises and the mixing does not exceed its start + tol."""
+    from concurrent.futures import ThreadPoolExecutor
     Y = Y.copy()
     k = int(labels.max()) + 1
     centre = Y.mean(0)
     R = float(np.sqrt(((Y - centre) ** 2).sum(1).mean()))
     sizes = np.bincount(labels, minlength=k)
-    cur = spearman(Y)
-    mix0 = mixing(Y) if mixing is not None else None
+    Ys = Y[spearman.idx].copy()
+    lab_s = labels[spearman.idx]
+    cur = spearman.score_coords(Ys)
+    if mixing is not None:
+        Ym = Y[mixing.idx].copy()
+        lab_m = labels[mixing.idx]
+        mix0 = mixing.score_coords(Ym)
     log = []
     grid = [np.array([dx, dy], dtype=np.float64) * step * R for dx in (-1, 0, 1) for dy in (-1, 0, 1) if (dx, dy) != (0, 0)]
+    pool = ThreadPoolExecutor(max(1, int(n_threads)))
+
+    def shifted(Zs, mask, d):
+        Z = Zs.copy()
+        Z[mask] += d.astype(np.float32)
+        return Z
+
     for sw in range(sweeps):
         moved = 0
         for c in np.argsort(-sizes):
             if sizes[c] < min_frac * len(Y):
                 break
-            m = labels == c
-            mu = Y[m].mean(0)
+            ms = lab_s == c
+            if not ms.any():
+                continue
+            mu = Y[labels == c].mean(0)
             cands = [(mu - centre) * (s - 1.0) for s in radial] + grid
-            scored = []
-            for d in cands:
-                Z = Y.copy()
-                Z[m] += d.astype(np.float32)
-                v = spearman(Z)
-                if v > cur + 1e-4:
-                    scored.append((v, d))
-            for v, d in sorted(scored, key=lambda t: -t[0]):   # best Spearman first; the guard is checked lazily
-                Z = Y.copy()
-                Z[m] += d.astype(np.float32)
-                if mixing is None or mixing(Z) <= mix0 + tol:
-                    Y = Z
-                    cur = v
-                    moved += 1
+            vals = list(pool.map(lambda d: spearman.score_coords(shifted(Ys, ms, d)), cands))
+            order = np.argsort(vals)[::-1]
+            for j in order:
+                if vals[j] <= cur + 1e-4:
                     break
+                d = cands[j]
+                if mixing is not None:
+                    mm = lab_m == c
+                    if mixing.score_coords(shifted(Ym, mm, d)) > mix0 + tol:
+                        continue
+                    Ym[mm] += d.astype(np.float32)
+                Ys[ms] += d.astype(np.float32)
+                Y[labels == c] += d.astype(np.float32)
+                cur = float(vals[j])
+                moved += 1
+                break
         log.append({"sweep": sw, "moved": int(moved), "spearman": cur})
         if verbose:
             print(f"Contraction: placement sweep {sw}: {moved} communities moved, sample Spearman {cur:.3f}")
         if moved == 0:
             break
+    pool.shutdown()
     return Y, log
 
 
 def hierarchical_contraction(Y, P, X=None, metric="euclidean", resolution=0.3, separation=0.7, placement=True,
-                             n_sample=500, n_mixing=5000, tol=0.002, sweeps=2, random_state=0, verbose=False):
+                             n_sample=500, n_mixing=5000, tol=0.002, sweeps=2, n_threads=8, random_state=0, exclude=None, verbose=False):
     """Returns (Z, log). Communities of P (Leiden at `resolution`); (1) placement: rigid translations of the communities
     chosen by coordinate ascent of the Spearman correlation between input and layout distances on a sample of
     n_sample points (label-free; X required, skipped without it), with an overlap guard (mixing of n_mixing sample
     points may not rise by more than tol); (2) separation: every community contracted rigidly towards its centroid
-    by the gain `separation` (1 = off)."""
+    by the gain `separation` (1 = off). exclude: indices never drawn into the search sample (held-out evaluation
+    points)."""
     t0 = time.time()
     Y = np.ascontiguousarray(Y, dtype=np.float32)
     n = len(Y)
     rng = np.random.default_rng(random_state)
+    pool_idx = np.arange(n) if exclude is None else np.setdiff1d(np.arange(n), np.asarray(exclude))
     labels = communities(P, resolution, seed=random_state)
     k = int(labels.max()) + 1
     log = {"resolution": resolution, "communities": k, "labels": labels}
     Z = Y
     if placement and X is not None and k >= 2:
-        spearman = _SampleSpearman(X, rng.choice(n, size=min(n_sample, n), replace=False), metric)
-        mixing = _Mixing(labels, rng.choice(n, size=min(n_mixing, n), replace=False))
-        Z, log["placement"] = place_communities(Z, labels, spearman, mixing, tol=tol, sweeps=sweeps, verbose=verbose)
+        spearman = _SampleSpearman(X, rng.choice(pool_idx, size=min(n_sample, len(pool_idx)), replace=False), metric)
+        mixing = _Mixing(labels, rng.choice(pool_idx, size=min(n_mixing, len(pool_idx)), replace=False))
+        Z, log["placement"] = place_communities(Z, labels, spearman, mixing, tol=tol, sweeps=sweeps, n_threads=n_threads, verbose=verbose)
     if separation is not None and separation != 1.0:
         Z = contract(Z, labels, float(separation))
         log["separation"] = float(separation)

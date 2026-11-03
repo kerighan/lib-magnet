@@ -34,7 +34,10 @@ class FFTRepulsion2D:
             hi = Y.max(0) + 1e-3
         span = float((hi - lo).max())
         n_boxes = int(np.clip(np.ceil(span / self.box_width), self.min_boxes, self.max_boxes))
-        width = max(span / n_boxes, 1e-12)
+        # the box keeps its nominal width (FIt-SNE's convention) unless the clip binds: the kernel spectrum then
+        # depends on n_boxes only and is reused across iterations instead of being recomputed at every change of
+        # the layout's extent (two 2-D FFTs and a pow per call)
+        width = self.box_width if n_boxes * self.box_width >= span else max(span / n_boxes, 1e-12)
         return float(lo[0]), float(lo[1]), width, n_boxes
 
     def _kernels(self, n_boxes, width):
@@ -42,6 +45,8 @@ class FFTRepulsion2D:
         import scipy.fft as fft
         key = (n_boxes, round(width, 6))
         if key not in self._cache:
+            if len(self._cache) > 8:
+                self._cache.pop(next(iter(self._cache)))
             N = n_boxes * self.n_interp
             M = fft.next_fast_len(2 * N, real=True)
             delta = width / self.n_interp
@@ -56,8 +61,8 @@ class FFTRepulsion2D:
                 K1 = (base ** (-self.dof)).astype(np.float32)          # q~_ij, for Z
                 K2 = (base ** (-self.dof - 1.0)).astype(np.float32)    # d q~ / d d^2 up to sign, for the force
             workers = self.n_threads if self.n_threads and self.n_threads > 0 else -1
-            self._cache = {key: (M, np.ascontiguousarray(fft.rfft2(K1, workers=workers), dtype=np.complex64),
-                                 np.ascontiguousarray(fft.rfft2(K2, workers=workers), dtype=np.complex64))}
+            self._cache[key] = (M, np.ascontiguousarray(fft.rfft2(K1, workers=workers), dtype=np.complex64),
+                                np.ascontiguousarray(fft.rfft2(K2, workers=workers), dtype=np.complex64))
         return self._cache[key]
 
     def __call__(self, Y):

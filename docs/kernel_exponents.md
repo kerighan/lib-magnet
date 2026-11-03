@@ -561,7 +561,7 @@ rho = 2: 0.305 / 0.432 / k-means 0.707 / HDBSCAN 0.764 (10 clusters, 11 % noise)
 0.432 / 0.705 / 0.876; whole pass at rho 1.5: 0.323 / 0.432 / 0.722 / 0.050 (2 clusters: k-means-friendly,
 HDBSCAN-hostile); plain pass 0.355 / 0.452 / 0.615 / 0.097. A relaxation after the tail undoes the HDBSCAN
 separation (0.31); the SGD compact preset + plain pass does not do it (0.476). Shipped as
-`hybrid_tail=(iterations, exaggeration)`, default (0, 1.0); (100, 2.0) is the "clusters" preset.
+`hybrid_tail=(iterations, exaggeration)`, default (0, 1.0); (100, 2.0) was the "clusters" preset until 6.12 (`contraction=0.7`).
 
 ### 6.10 Parameter search of the full-batch mode on four data sets (`benchmarks/fullbatch_search.py`)
 
@@ -622,8 +622,8 @@ of the gain). A coarse level (Leiden resolution 0.02, 2 communities) contracted 
 0.342 -> 0.397, but the useful split is "the zeros against the rest" and depends on the Leiden seed (`k35`).
 
 Placement (`k36`, `k37`): the communities are translated as rigid bodies, coordinate ascent of the Spearman
-between the input distances and the layout distances of a random sample (500-1000 points, disjoint from the
-benchmark's sample; candidates = radial scalings 0.7-1.6 of the centroid offset and an 8-direction grid at 0.15
+between the input distances and the layout distances of a random sample (500-1000 points, an independent draw; in `k39` the
+benchmark's evaluation points are excluded from it; candidates = radial scalings 0.7-1.6 of the centroid offset and an 8-direction grid at 0.15
 RMS radius; two sweeps), with an overlap guard: the fraction of a 10k sample whose nearest sample point is in
 another community may not rise by more than 0.002. Without the guard the bodies overlap (15-NN 0.35 -> 0.32).
 Placement then separation 0.7, cached layouts, benchmark sample:
@@ -639,19 +639,30 @@ Placement then separation 0.7, cached layouts, benchmark sample:
 | Fashion: full-batch + placement + separation 0.7 | 0.321 | 0.684 | 0.765 | 0.930 | 0.452 | 0.913 / 0.77 |
 | Fashion: hybrid + separation 0.7 | 0.326 | 0.717 | | | 0.473 | 0.928 / 0.82 |
 
-The cluster arrangement of a t-SNE-like layout is far from rank-optimal: nine rigid translations lift the
+There is a lot of rank-agreement headroom in the cluster arrangement of these t-SNE-like layouts: nine rigid translations lift the
 MNIST Spearman from 0.342 to 0.46 (the hybrid's level; PCA-2 0.488) and the hybrid's to 0.52, above PCA-2, and
 the two global metrics that are not optimised (triplet accuracy, class-centroid Spearman) rise too. On Fashion
 the arrangement is already good (the pass started from PCA) and the placement adds little; the separation does
 the work there, with more seed variation (`k38`, 3 seeds: full-batch ARI 0.340 -> 0.416 +- 0.05, composite 0.822
 -> 0.869 +- 0.03; hybrid 0.847 -> 0.920 +- 0.03; MNIST full-batch 0.848 -> 0.976 +- 0.004). letter: neutral
 (65 communities, -0.01 15-NN); covertype 20k: Spearman 0.383 -> 0.524 at -0.003 15-NN. The same step lifts the other methods' layouts (`k38`, communities from MAGNET's graph): it is a
-post-processing of a layout, not an objective: a Barnes-Hut t-SNE layout with it scores like ours (MNIST
-0.349 / 0.461 / 0.910, composite 0.977) at 25 times the time, openTSNE 0.809 -> 0.947, UMAP 0.555 -> 0.653,
+post-processing with its own sampled objective, not a replacement for the embedding objective, and method-agnostic:
+a Barnes-Hut t-SNE layout with it scores like ours (MNIST 0.349 / 0.461 / 0.910, composite 0.977; the step takes
+3 s on either layout, the layouts 8 s and 200 s), openTSNE 0.809 -> 0.947, UMAP 0.555 -> 0.653,
 PaCMAP 0.552 -> 0.630 (their weak axis is 15-NN, which the step cannot change). Scaling: covertype 250k has 141
-communities, the step takes 19 s after an 18 s layout (Spearman 0.342 -> 0.413, 15-NN -0.013); the cost is
-~ communities x candidates x sweeps Spearman evaluations. Shipped as `MAGNET(contraction=0.7)` (needs python-igraph; 5-6 s on 70k: one Leiden run plus
-~250 Spearman evaluations on 500 points), off by default; `contraction=dict(...)` passes resolution, separation,
+communities, the step takes 9 s (6 of Leiden) after an 18 s layout (Spearman 0.342 -> 0.413, 15-NN -0.013); the cost is
+~ communities x candidates x sweeps Spearman evaluations. Round-5 GPT-6 review (`paper/reviews/openai-gpt-6-astra@high_round5.md`): GO after a factual / scope patch (no
+general "three axes are compatible" claim, "rigid" -> uniform scaling, disclose the 1 % placement threshold and the
+guard's scope, name the composite references, no "25x" on the step itself, cite nonmetric MDS / multilevel layouts /
+h-NNE / global t-SNE / Leiden); the one experiment asked, the 2 x 2 component ablation with the evaluation points
+excluded from the search sample, is `k39_placement_ablation.py` -> paper/tables/placement.tex. Result: MNIST full-batch
+identity 0.347 / 0.350 / 0.787 -> placement only 0.346 / 0.478 / 0.707 (translations bring communities closer) ->
+separation only 0.346 / 0.331 / 0.916 -> both 0.346 / 0.465 / 0.916 (sd 0.000 / 0.001 / 0.009; triplet 0.627 -> 0.648,
+centroid Spearman 0.652 -> 0.703); BH t-SNE 0.350 / 0.338 / 0.829 -> 0.348 / 0.463 / 0.920; Fashion full-batch
+0.324 / 0.698 / 0.340 -> 0.321 / 0.682 / 0.430 +- 0.03 (triplet -0.01, centroid unchanged), BH 0.327 / 0.634 / 0.398
+-> 0.324 / 0.639 / 0.443. Shipped as
+`MAGNET(contraction=0.7)` (needs python-igraph; 3 s on 70k: one Leiden run plus
+~250 Spearman evaluations on the 500 sample coordinates, 8 threads), off by default; `contraction=dict(...)` passes resolution, separation,
 placement, n_sample, tol, sweeps.
 
 ## Scripts (`benchmarks/theory/`)

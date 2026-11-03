@@ -1,0 +1,25 @@
+\begin{tabular}{llrrrrr}
+\toprule
+data set, layout & variant & 15-NN & Spearman & triplet & centroid Sp. & $k$-means ARI \\
+\midrule
+MNIST, MAGNET full-batch & identity & 0.347 & 0.350 $\pm$ 0.003 & 0.627 & 0.652 $\pm$ 0.011 & 0.787 $\pm$ 0.010 \\
+ & placement only & 0.346 $\pm$ 0.001 & 0.478 $\pm$ 0.002 & 0.651 & 0.701 $\pm$ 0.024 & 0.707 $\pm$ 0.052 \\
+ & separation only & 0.346 & 0.331 $\pm$ 0.002 & 0.622 & 0.651 $\pm$ 0.011 & 0.916 $\pm$ 0.009 \\
+ & placement + separation & 0.346 & 0.465 $\pm$ 0.001 & 0.648 & 0.703 $\pm$ 0.023 & 0.916 $\pm$ 0.009 \\
+\midrule
+MNIST, Barnes-Hut t-SNE & identity & 0.350 & 0.338 & 0.622 & 0.663 & 0.829 \\
+ & placement only & 0.347 & 0.474 $\pm$ 0.001 & 0.648 & 0.704 $\pm$ 0.016 & 0.802 $\pm$ 0.005 \\
+ & separation only & 0.348 & 0.324 $\pm$ 0.001 & 0.618 & 0.663 $\pm$ 0.006 & 0.920 $\pm$ 0.007 \\
+ & placement + separation & 0.348 & 0.463 $\pm$ 0.001 & 0.645 $\pm$ 0.001 & 0.705 $\pm$ 0.016 & 0.920 $\pm$ 0.006 \\
+\midrule
+Fashion-MNIST, MAGNET full-batch & identity & 0.324 & 0.698 $\pm$ 0.001 & 0.774 $\pm$ 0.001 & 0.890 $\pm$ 0.002 & 0.340 $\pm$ 0.010 \\
+ & placement only & 0.322 $\pm$ 0.001 & 0.710 $\pm$ 0.002 & 0.776 $\pm$ 0.002 & 0.895 $\pm$ 0.011 & 0.343 $\pm$ 0.030 \\
+ & separation only & 0.322 & 0.670 $\pm$ 0.001 & 0.763 $\pm$ 0.001 & 0.894 $\pm$ 0.001 & 0.471 $\pm$ 0.007 \\
+ & placement + separation & 0.321 $\pm$ 0.001 & 0.682 $\pm$ 0.002 & 0.764 $\pm$ 0.002 & 0.894 $\pm$ 0.016 & 0.430 $\pm$ 0.031 \\
+\midrule
+Fashion-MNIST, Barnes-Hut t-SNE & identity & 0.327 & 0.634 & 0.739 & 0.865 & 0.398 \\
+ & placement only & 0.324 & 0.661 $\pm$ 0.002 & 0.749 & 0.891 $\pm$ 0.007 & 0.388 $\pm$ 0.009 \\
+ & separation only & 0.324 & 0.615 $\pm$ 0.001 & 0.733 & 0.863 $\pm$ 0.002 & 0.455 $\pm$ 0.001 \\
+ & placement + separation & 0.324 & 0.639 $\pm$ 0.002 & 0.742 & 0.894 $\pm$ 0.005 & 0.443 $\pm$ 0.011 \\
+\bottomrule
+\end{tabular}

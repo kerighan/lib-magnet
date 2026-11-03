@@ -412,7 +412,8 @@ ARI, MAGNET SGD 0.748, full-batch 0.802, openTSNE 0.726, and the hybrid last at 
 clusters and discards 77 % of the points). On a composite (each of 15-NN, Spearman, ARI divided by the
 panel's best, geometric mean) the all-round row is `loss="tsne"`: 0.848 on MNIST (openTSNE 0.810, hybrid
 0.807), 0.816 on Fashion-MNIST (openTSNE 0.824). The hybrid's pass has a knob for this axis,
-`hybrid_tail=(100, 2.0)` (the "clusters" preset: 100 final iterations at exaggeration 2): on MNIST 15-NN
+`hybrid_tail=(100, 2.0)` (100 final iterations at exaggeration 2; it was the "clusters" preset until
+`contraction=0.7` replaced it, see below): on MNIST 15-NN
 0.305, Spearman 0.432, k-means ARI 0.707, HDBSCAN ARI 0.764 against 0.355 / 0.452 / 0.615 / 0.097 without
 it, same time (`benchmarks/theory/k28_exaggeration_tail.py`). Not the default.
 
@@ -427,23 +428,28 @@ perplexity-30 affinities) in the same optimiser: none beats the fuzzy union; t-S
 lower than the fuzzy graph on MNIST, Fashion-MNIST and 20 newsgroups.
 
 **Community placement and separation** (`contraction=0.7`; `magnet/contraction.py`, docs 6.12,
-`benchmarks/theory/k30`-`k38`). The three axes are compatible: a rigid similarity within a cluster keeps its
-neighbourhoods, a rank statistic of the distances only sees how the clusters are arranged, and k-means sees
-how compact they are. The step treats the communities of the fuzzy graph (Leiden, resolution 0.3; 9 on MNIST,
-ARI 0.85 against the labels, labels never used) as rigid bodies: it first translates them, coordinate ascent of
-the Spearman correlation between the input distances and the layout distances of a 500-point sample under an
-overlap guard (communities may not mix), then contracts each towards its centroid by 0.7. MNIST 70k,
-`loss="tsne"`, three seeds: 15-NN 0.347 -> 0.346, Spearman 0.350 -> 0.461 (+- 0.002; the hybrid 0.46, PCA-2
-0.49), k-means ARI 0.79 -> 0.92 (+- 0.01; PaCMAP 0.91), triplet accuracy and class-centroid Spearman up as well,
-composite 0.848 -> 0.976; Fashion-MNIST (three seeds) 0.324 / 0.698 / 0.340 -> 0.322 / 0.682 / 0.416 (+- 0.05),
-composite 0.822 -> 0.869 (hybrid 0.847 -> 0.920); letter (classes are not clusters) within 0.01 of 15-NN and
-Spearman; covertype 20k Spearman 0.383 -> 0.524 at -0.003 of 15-NN. In the method x data set tables
-(`composite_table.py`) the three MAGNET rows with the step take the first three places on both composites
-(mean geometric 0.906 / 0.888 / 0.884 against 0.836 for the best row without it). The t-SNE-like
-arrangement of the clusters is far from rank-optimal and nine translations fix most of it. The step is a
-post-processing of a layout, not an objective: it lifts the other methods' layouts too, a Barnes-Hut t-SNE
-layout with it scores like ours at 25 times the time. 5-6 s on 70k (one Leiden run, ~250 Spearman
-evaluations; 19 s on covertype 250k with 141 communities), off by default.
+`benchmarks/theory/k30`-`k39`). An optional post-process of a finished layout that targets one of the reported
+metrics directly. The communities of the fuzzy graph (Leiden, resolution 0.3; 9-11 on MNIST, ARI 0.85 against the
+labels, labels never used in execution) are translated as rigid bodies, largest first and only those above 1 % of
+the points, by a coordinate search of the Spearman correlation between the input distances and the layout
+distances of a 500-point sample under a mixing guard (the fraction of a 5000-point sample whose nearest sample
+point is in another community may not rise above its initial value + 0.002); then every community is
+contracted about its centroid by 0.7. A contraction keeps the distance order within a community and can only
+change neighbours across its border; k-means recovers the communities more easily by construction, so the ARI
+gain measures how well the graph's communities match the labels, not new clusters. MNIST 70k, `loss="tsne"`,
+three seeds, Spearman evaluated on a sample the search never saw (`k39`): 15-NN 0.347 -> 0.346, Spearman 0.350 ->
+0.465 (+- 0.001; hybrid 0.46, PCA-2 0.49), k-means ARI 0.79 -> 0.92 (+- 0.01; PaCMAP 0.91); triplet accuracy
+(0.627 -> 0.648) and class-centroid Spearman (0.65 -> 0.70), which the step does not fit, rise too; composite against
+the unprocessed panel's bests 0.848 -> 0.976. Placement alone gets the Spearman (0.478) but lowers the ARI to 0.71,
+separation alone gets the ARI (0.916) at Spearman 0.33: the two parts are complementary. Fashion-MNIST (three seeds)
+0.324 / 0.698 / 0.340 -> 0.321 / 0.682 / 0.430 (+- 0.03), composite 0.822 -> 0.88 (hybrid 0.847 -> 0.920); letter (classes are not clusters) within 0.01 of 15-NN and
+Spearman; covertype 20k Spearman 0.383 -> 0.524 at -0.003 of 15-NN. The step is method-agnostic: a Barnes-Hut
+t-SNE layout receives the same gains (MNIST 0.350 / 0.338 / 0.829 -> 0.348 / 0.463 / 0.920, three seeds), so the rows "+ contraction" in
+`composite_table.py` (first three places on the mean of both composites) describe the configurations
+tabulated, not a method comparison. 3 s on 70k (2 of Leiden; the layouts themselves take 8 s for MAGNET and
+200 s for sklearn's t-SNE), 9 s on covertype 250k with 141 communities; off by default. Its settings were chosen
+with the benchmark scores in view and it can open visual gaps along community borders of connected data
+(Fashion-MNIST).
 
 **Timing protocol.** Every method runs with its defaults and all cores; UMAP and densMAP run without
 `random_state` (setting it makes their layout single-threaded: 49 s instead of 10 s on MNIST), MAGNET
@@ -505,8 +511,8 @@ Any networkx graph or sparse adjacency matrix is laid out directly, in linear ti
 | `adaptive` | `(0.5, 1.0, 0.75, 0.0, 2.0, 2)` | for `kernel_b="adaptive"`: base and high exponents, switch epoch fraction, crowding threshold, far-edge reference (times the median edge length), minimum degree |
 | `repulsion_b` | 1.0 | repulsion exponent (Cauchy tail); None couples it to `kernel_b` (UMAP's compact look, 20% slower) |
 | `kernel` | `"power"` | or `"gaussian"`, `"sech"` (exponential tails, for comparison) |
-| `hybrid_tail`, `tsne_early_exaggeration` | (0, 1.0), 12 | exaggerated tail (iterations, factor) of the full-batch pass (`(100, 2.0)` = "clusters" preset, `n_epochs=900, hybrid_tail=(100, 1.5)` = quality preset); early-exaggeration factor of `loss="tsne"` |
-| `contraction` | None | community placement and separation of the final layout (needs python-igraph): a float g = the graph's Leiden communities are translated as rigid bodies by a label-free ascent of the input-vs-layout distance Spearman (overlap guard), then each contracted towards its centroid by g (0.7 = compact clusters); a dict passes `resolution`, `separation`, `placement`, `n_sample`, `tol`, `sweeps` |
+| `hybrid_tail`, `tsne_early_exaggeration` | (0, 1.0), 12 | exaggerated tail (iterations, factor) of the full-batch pass (`n_epochs=900, hybrid_tail=(100, 1.5)` = quality preset; `(100, 2.0)` compacts clusters at a local cost, superseded by `contraction`); early-exaggeration factor of `loss="tsne"` |
+| `contraction` | None | community placement and separation of the final layout (needs python-igraph): a float g = the graph's Leiden communities are translated as rigid bodies by a label-free ascent of the input-vs-layout distance Spearman (overlap guard), then each contracted towards its centroid by g (0.7 = the "clusters" preset); a dict passes `resolution`, `separation`, `placement`, `n_sample`, `tol`, `sweeps` |
 | `tsne_dof` | 1.0 | Student-t degrees of freedom of `loss="tsne"` (< 1 = heavier tail, Kobak et al. 2019) |
 | `fft_interp`, `fft_box` | 3, 1.0 | grid of the exact repulsion (`fft_box=1.5` is the fast preset: -3% 15-NN in `loss="tsne"`, -1% in `loss="hybrid"` for 30% less time) |
 | `mid_scale` | `"fixed"` | or `"spread"` / `"rolewalk"`: per-node length of the mid-range walks from the graph's diffusion spread or from RoleWalk roles |
