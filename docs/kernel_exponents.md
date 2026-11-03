@@ -563,6 +563,48 @@ HDBSCAN-hostile); plain pass 0.355 / 0.452 / 0.615 / 0.097. A relaxation after t
 separation (0.31); the SGD compact preset + plain pass does not do it (0.476). Shipped as
 `hybrid_tail=(iterations, exaggeration)`, default (0, 1.0); (100, 2.0) is the "clusters" preset.
 
+### 6.10 Parameter search of the full-batch mode on four data sets (`benchmarks/fullbatch_search.py`)
+
+Composite = geometric mean (and minimum) of the shares of the panel best on 15-NN, Spearman and k-means ARI
+(ARI dropped where the classes are not clusters: letter, covertype). Stage 1, one parameter at a time around
+the default (29 configurations x MNIST 70k, Fashion 70k, letter 20k, covertype 20k, 1 run each, 8 threads):
+mean composite default 0.863, best single change k = 20 at 0.865 (noise); the levers with a systematic
+effect trade axes: more iterations (900 / 1200) raise 15-NN and Spearman and lower ARI; a final or tail
+exaggeration (1.25, or 100 iterations at 1.5-2) does the reverse and is what the min column rewards; mid 0
+helps ARI and covertype and costs Spearman on Fashion / letter; mid 0.3-1.0, mid phase 0.8, exag 2, early 100,
+dof 1.5, k 10 hurt. Stage 2 (14 combinations): the only consistent gain is 900 iterations + tail 100 at 1.5,
+mean composite 0.872 / min 0.785 (default 0.863 / 0.770), first on MNIST, Fashion and covertype, 0.01 behind on
+letter; raw: MNIST 0.352 / 0.355 / 0.780 (default 0.348 / 0.349 / 0.786), Fashion 0.324 / 0.648 / 0.413
+(0.324 / 0.699 / 0.348), at twice the time (19.6 s against 8.7 s at 8 threads). Shipped as a quality preset
+(`n_epochs=900, hybrid_tail=(100, 1.5)`), the default unchanged: it sits on a plateau. Logs:
+`benchmarks/cache/fullbatch_search*.log`, `fullbatch_search.json`.
+
+### 6.11 Altering the kNN graph (`k29_graph_variants.py`)
+
+Maixent's question: hubness reduction / graph corrections (node2vec-like). Twelve graphs from the same kNN
+through the same full-batch optimiser (PCA init, 600 iterations), MNIST / Fashion / news20, composite with the
+references of 6.10:
+
+| graph (MNIST / Fashion composite; news20 15-NN / Spearman) | MNIST | Fashion | news20 |
+|---|---|---|---|
+| fuzzy union (default) | **0.837** | **0.839** | 0.184 / **0.117** |
+| fuzzy mix 0.5 | 0.836 | 0.817 | 0.187 / 0.129 |
+| hub-capped union (in-degree of hubs cut at 3k) | 0.834 | 0.826 | 0.189 / 0.106 |
+| sym degree-normalised union | 0.811 | 0.832 | 0.181 / 0.068 |
+| Sinkhorn doubly stochastic | 0.802 | 0.825 | 0.169 / 0.080 |
+| local scaling (Zelnik-Manor, sigma 7th nn) | 0.808 | 0.816 | 0.188 / 0.096 |
+| t-SNE perplexity-30 affinities (k = 90) | 0.796 | 0.807 | 0.196 / 0.120 |
+| uniform weights on kNN edges | 0.795 | 0.800 | 0.169 / 0.080 |
+| SNN weights k 15 / k 30 | 0.757 / 0.741 | 0.745 / 0.777 | 0.178 / 0.065 |
+| mutual kNN | 0.771 | 0.654 | 0.190 / 0.040 |
+| fuzzy intersection | 0.587 | 0.574 | 0.166 / 0.032 |
+
+No alteration beats the fuzzy union; the sparse graphs (intersection, mutual: 5-7 edges per node) lose the
+global structure, SNN and Sinkhorn lose ARI or 15-NN, hub capping changes nothing (321 / 2866 / 853 hubs), and
+t-SNE's own perplexity-calibrated affinities score lower than the fuzzy graph in the same optimiser on all
+three data sets (the earlier +21 % of 15-NN of the intersection on text was in the SGD mode and does not
+recur here). The graph is on a plateau too.
+
 ## Scripts (`benchmarks/theory/`)
 
 `e1_force_spectrum.py` (per-octave repulsive force on MAGNET's own embeddings), `k13_tail_crossover.py` (the same binned by the kernel crossover, with the shell-count-adjusted prediction), `e1b_powerlaw.py`

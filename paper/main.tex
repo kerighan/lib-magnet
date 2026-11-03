@@ -135,6 +135,18 @@ with $t$-SNE's momentum and gains and learning rate $n / 12$. Used alone (\textt
 600 iterations with early exaggeration 12 for the first 200 from a PCA initialisation of standard
 deviation $10^{-4}$.
 
+\paragraph{Defaults of the full-batch mode.} A search of its parameters on four data sets (MNIST, Fashion-MNIST,
+letter, covertype; \texttt{fullbatch\_search.py}), scored by a composite of 15-NN, pairwise Spearman and
+cluster recovery (Sec.~\ref{sec:sep}), leaves the default within 0.002 of the best single-parameter change
+among 29 and shows the levers to trade axes against each other: more iterations raise 15-NN and Spearman and
+lower the ARI, an exaggerated tail does the reverse; the one combination that gains on all four (900
+iterations then 100 at exaggeration 1.5, $+0.009$ of composite) doubles the time and is shipped as a preset.
+Twelve alterations of the kNN graph in the same optimiser (fuzzy intersection and mixtures, mutual kNN,
+shared-nearest-neighbour weights, local scaling, doubly stochastic scaling, hub capping, degree
+normalisation, uniform weights, and $t$-SNE's perplexity-30 affinities) score at or below the fuzzy union on
+MNIST, Fashion-MNIST and 20 newsgroups (\texttt{k29}); $t$-SNE's own affinities are below the fuzzy graph in
+our optimiser on all three.
+
 \paragraph{The sequence (\texttt{loss="hybrid"}).} The first stage with $\kappa = 0.5$; the layout is
 centred and rescaled to standard deviation $\sigma = 31 \sqrt{n / 70000}$ (the scale the full-batch
 mode reaches on its own at 70k points); then 300 iterations of the second stage with exaggeration 1

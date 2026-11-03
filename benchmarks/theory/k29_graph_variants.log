@@ -1,0 +1,42 @@
+
+=== mnist70000: variant                                  edges/n  15-NN  Spear    ARI    geo   min   t(s)
+     fuzzy union (default)                       20.7  0.352  0.339  0.809  0.837  0.70    7.7
+     fuzzy intersection                           7.3  0.313  0.277  0.386  0.587  0.42   10.1
+     fuzzy mix 0.5                               20.7  0.353  0.340  0.803  0.836  0.70    7.7
+     mutual kNN (fuzzy weights)                   7.3  0.348  0.298  0.731  0.771  0.61    9.9
+     SNN weights, k 15                           19.0  0.361  0.314  0.631  0.757  0.64    8.4
+     SNN weights, k 30 on k 15 edges             20.6  0.346  0.262  0.741  0.741  0.54    8.3
+     local scaling (sigma 7th nn)                20.7  0.328  0.317  0.836  0.808  0.65    7.4
+     Sinkhorn (doubly stochastic)                20.7  0.347  0.332  0.738  0.802  0.68    7.3
+     hub-capped union (321 hubs)                 20.7  0.354  0.336  0.804  0.834  0.69    7.3
+     sym degree-normalised union                 20.7  0.352  0.329  0.758  0.811  0.68    7.4
+     uniform weights on kNN edges                20.7  0.311  0.323  0.825  0.795  0.66    6.7
+     t-SNE perplexity-30 affinities (k 90)      130.0  0.327  0.338  0.755  0.796  0.69   13.6
+
+=== fmnist70000: variant                                  edges/n  15-NN  Spear    ARI    geo   min   t(s)
+     fuzzy union (default)                       22.7  0.327  0.617  0.417  0.839  0.71    7.3
+     fuzzy intersection                           5.3  0.279  0.431  0.225  0.574  0.47   11.6
+     fuzzy mix 0.5                               22.7  0.332  0.620  0.378  0.817  0.71    7.3
+     mutual kNN (fuzzy weights)                   5.3  0.306  0.446  0.292  0.654  0.51   11.4
+     SNN weights, k 15                           21.1  0.328  0.560  0.320  0.745  0.64    7.8
+     SNN weights, k 30 on k 15 edges             22.6  0.315  0.570  0.371  0.777  0.65    7.7
+     local scaling (sigma 7th nn)                22.7  0.309  0.627  0.400  0.816  0.72    7.3
+     Sinkhorn (doubly stochastic)                22.7  0.317  0.638  0.395  0.825  0.73    7.6
+     hub-capped union (2866 hubs)                21.1  0.330  0.620  0.392  0.826  0.71    8.3
+     sym degree-normalised union                 22.7  0.328  0.628  0.398  0.832  0.72    7.4
+     uniform weights on kNN edges                22.7  0.293  0.636  0.392  0.800  0.73    7.1
+     t-SNE perplexity-30 affinities (k 90)      140.7  0.304  0.638  0.386  0.807  0.73   14.3
+
+=== news20: variant                                  edges/n  15-NN  Spear    ARI    geo   min   t(s)
+     fuzzy union (default)                       21.8  0.184  0.117  0.216    nan   nan    4.7
+     fuzzy intersection                           6.1  0.166  0.032  0.106    nan   nan    9.4
+     fuzzy mix 0.5                               21.8  0.187  0.129  0.205    nan   nan    4.8
+     mutual kNN (fuzzy weights)                   6.1  0.190  0.040  0.137    nan   nan    7.3
+     SNN weights, k 15                           19.3  0.178  0.065  0.180    nan   nan    6.9
+     SNN weights, k 30 on k 15 edges             21.3  0.175  0.061  0.198    nan   nan    5.5
+     local scaling (sigma 7th nn)                21.9  0.188  0.096  0.220    nan   nan    4.8
+     Sinkhorn (doubly stochastic)                21.8  0.169  0.080  0.218    nan   nan    4.7
+     hub-capped union (853 hubs)                 19.9  0.189  0.106  0.223    nan   nan    5.5
+     sym degree-normalised union                 21.8  0.181  0.068  0.233    nan   nan    4.8
+     uniform weights on kNN edges                21.9  0.169  0.080  0.228    nan   nan    4.4
+     t-SNE perplexity-30 affinities (k 90)      128.9  0.196  0.120  0.213    nan   nan    6.1

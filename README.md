@@ -415,6 +415,16 @@ panel's best, geometric mean) the all-round row is `loss="tsne"`: 0.848 on MNIST
 0.305, Spearman 0.432, k-means ARI 0.707, HDBSCAN ARI 0.764 against 0.355 / 0.452 / 0.615 / 0.097 without
 it, same time (`benchmarks/theory/k28_exaggeration_tail.py`). Not the default.
 
+**Full-batch mode: parameter search and graph variants** (`benchmarks/fullbatch_search.py`,
+`benchmarks/theory/k29_graph_variants.py`, docs 6.10-6.11). On four data sets scored by the three-axis
+composite, the default is within 0.002 of the best single-parameter change (29 tried) and on a plateau; the
+levers trade axes (iterations: local and global up, ARI down; exaggeration tail: the reverse). The one
+consistent combination, `n_epochs=900, hybrid_tail=(100, 1.5)`, gains 0.009 of composite at twice the time
+and is the quality preset. Twelve kNN-graph alterations (fuzzy intersection / mix, mutual kNN, shared
+nearest neighbours, local scaling, Sinkhorn, hub capping, degree normalisation, uniform weights, t-SNE's
+perplexity-30 affinities) in the same optimiser: none beats the fuzzy union; t-SNE's own affinities score
+lower than the fuzzy graph on MNIST, Fashion-MNIST and 20 newsgroups.
+
 **Timing protocol.** Every method runs with its defaults and all cores; UMAP and densMAP run without
 `random_state` (setting it makes their layout single-threaded: 49 s instead of 10 s on MNIST), MAGNET
 with a seed (its threads do not depend on it). The numba methods are warmed up before the clock on

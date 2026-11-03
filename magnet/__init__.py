@@ -110,7 +110,9 @@ class MAGNET:
         attraction multiplier of the final phase: 1 = t-SNE, ~4 looks like UMAP).
     exaggeration : multiplier on the attractive gradient (UMAP ~ t-SNE with exaggeration 4).
     hybrid_iter : iterations of the exact pass of loss="hybrid" (default 300; 150 keeps most of the gain).
-    hybrid_tail : (iterations, exaggeration) of an optional exaggerated tail at the end of the hybrid's pass
+    tsne_early_exaggeration : attraction multiplier of the early phase of loss="tsne" (default 12, t-SNE's).
+    hybrid_tail : (iterations, exaggeration) of an optional exaggerated tail at the end of the full-batch pass
+        (loss="hybrid" and loss="tsne")
         (default (0, 1.0): none). (100, 2.0) is the "clusters" preset: on MNIST 70k it trades 0.05 of 15-NN
         and 0.02 of distance Spearman for cluster recovery (HDBSCAN ARI 0.10 -> 0.76, k-means ARI 0.62 ->
         0.71; benchmarks/theory/k28_exaggeration_tail.py).
@@ -194,7 +196,7 @@ class MAGNET:
                  init="auto", pca=None, knn="nndescent", ef_construction=80, M=16, ef=None,
                  set_op_mix_ratio=1.0, neighbor_power=1.0, neighbor_rank_exponent=0.0,
                  samples_per_node=5.0, graph_norm="sym", input="auto",
-                 adaptive=(0.5, 1.0, 0.75, 0.0, 2.0, 2), tsne_init_scale=None, tsne_learning_rate=None, tsne_far=(0.0, 0.1), tsne_mid=("mean", 0.3), hybrid_iter=300, hybrid_tail=(0, 1.0),
+                 adaptive=(0.5, 1.0, 0.75, 0.0, 2.0, 2), tsne_init_scale=None, tsne_learning_rate=None, tsne_far=(0.0, 0.1), tsne_mid=("mean", 0.3), hybrid_iter=300, hybrid_tail=(0, 1.0), tsne_early_exaggeration=12.0,
                  transform_epochs=None, parallel="hogwild", n_threads=-1, random_state=None, verbose=False):
         self.n_components = n_components
         self.parallel = parallel
@@ -205,6 +207,7 @@ class MAGNET:
         self.tsne_mid = tsne_mid
         self.hybrid_iter = hybrid_iter
         self.hybrid_tail = hybrid_tail
+        self.tsne_early_exaggeration = tsne_early_exaggeration
         self.n_neighbors = n_neighbors
         self.metric = metric
         self.min_dist = min_dist
@@ -429,13 +432,18 @@ class MAGNET:
                 from .roles import mid_near_pairs
                 pairs = mid_near_pairs(self._prepared_, self.n_mid_pairs, random_state=self.random_state or 0,
                                        n_threads=self.n_threads)
-            Y = optimize_tsne(P, Y, n_iter=int(n_iter), early_iter=int(early),
+            Y = optimize_tsne(P, Y, n_iter=int(n_iter), early_iter=int(early), early_exaggeration=float(self.tsne_early_exaggeration),
                               exaggeration=float(self.exaggeration), learning_rate=self.tsne_learning_rate,
                               n_interp=int(self.fft_interp), box_width=float(self.fft_box),
                               n_threads=self.n_threads, mid_pairs=pairs, mid_weight=3.0 * float(mid_w),
                               mid_phase=float(self.mid_phase), dof=float(self.tsne_dof), verbose=self.verbose,
                               far_weight=float(self.tsne_far[0]), far_r0=float(self.tsne_far[1]),
                               mid_form=str(self.tsne_mid[0]), mid_c=float(self.tsne_mid[1]))
+            tail_iter, tail_exag = int(self.hybrid_tail[0]), float(self.hybrid_tail[1])
+            if tail_iter > 0 and tail_exag != 1.0:
+                Y = optimize_tsne(P, Y, n_iter=tail_iter, early_iter=0, exaggeration=tail_exag, learning_rate=self.tsne_learning_rate,
+                                  n_interp=int(self.fft_interp), box_width=float(self.fft_box), n_threads=self.n_threads,
+                                  dof=float(self.tsne_dof), verbose=self.verbose)
             self.n_epochs_ = int(n_iter)
             head = np.zeros(0, dtype=np.int32)
         else:
