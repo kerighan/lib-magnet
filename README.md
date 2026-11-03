@@ -267,8 +267,8 @@ correlation 0.261, label accuracy 0.949). `kernel_b=0.5` closes a third of that 
 
 `loss="tsne"` on the same data: 17 s at 250k and 56 s at 1M points (600 iterations; at 1M the
 attraction pass over the 40M edges and the position update dominate, the FFT repulsion step costs
-0.1 s). The scatter, spectral products and gather of that step run in C++; the transforms use
-scipy's pocketfft, which was never the bottleneck.
+0.1 s). The whole repulsion step (scatter, FFTs, kernel products, gather) runs in C++ with persistent
+buffers (`src/fftconv.cpp`, pocketfft header-only, rows and columns split over MAGNET's thread pool).
 
 `transform()` on MNIST (fit 60k, transform 10k): 0.6 s and 10-NN accuracy 0.962 against 14.8 s and
 0.956 for UMAP.
@@ -457,6 +457,24 @@ with a seed (its threads do not depend on it). The numba methods are warmed up b
 data of the same dtype and on enough points (6000) to compile the NN-descent path as well: a float64
 warm-up on 500 points left the float32 and NN-descent compilations inside the timed call, which had
 put UMAP at 18 s on MNIST and 36 s on the SBM graph in earlier versions of this table (10-11 s both).
+
+**Optimisation round of 2026-11-04 (full-batch and contraction).** Profiling the full-batch pass showed the
+kernel spectrum recomputed at every iteration (the box width followed the layout's extent, so the cache key
+never hit: now the box keeps its nominal width, FIt-SNE's convention), ~0.4 ms of thread creation per
+kernel call (now a persistent pool, `src/pool.hpp`, pthread primitives because `std::condition_variable`
+pulls a libstdc++ symbol conda lacks), a generic-dimension attraction loop (now a 2-D path), a modulo per
+element in the update, three numpy temporaries per iteration (now one fused `tsne_step`), and ~30 MB of
+scipy FFT temporaries per iteration (now `FFTConv2D`: in-house pocketfft with persistent buffers, products
+in explicit real arithmetic since `std::complex` multiplication calls `__mulsc3`, grid channels
+interleaved for the scatter / gather). Repulsion on MNIST's final 140-box grid: 15-18 ms -> 6 ms per
+iteration at 8 threads (4.8 at 20), early grid 4.4 -> 2.1 ms. The contraction step's Leiden (python-igraph,
+1.9 s with the conversion) is replaced by a C++ Louvain (`src/graph.cpp`, 0.35 s, equal or better label
+ARI of the communities on MNIST, seed-dependent like Leiden: a class is split in two in some runs) and the
+fuzzy graph's bandwidth search by a C++ per-row binary search (112 -> 16 ms). MNIST 70k on a loaded
+machine (load 3-4), 8 threads: `loss="tsne"` 8.9 -> 5.3 s, hybrid 11.3 -> 7.0 s, `loss="tsne",
+contraction=0.7` 10.6 -> 6.4 s (step 1.2 s), SGD unchanged at 4.3 s; 20 threads: 4.6 / 6.5 / 5.6 s. Quality
+unchanged (full-batch 0.346 / 0.349 / 0.80; with contraction 0.343 / 0.459 / 0.916). The benchmark tables
+above predate this round.
 
 **Where the SGD time goes, and `parallel="owner"`.** On MNIST 70k the default fit is 1.1 s of kNN graph,
 0.9 s of graph construction and spectral init, and 2-3 s of SGD. One thread runs the SGD at 47 cycles per

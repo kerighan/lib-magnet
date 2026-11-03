@@ -665,6 +665,40 @@ centroid Spearman 0.652 -> 0.703); BH t-SNE 0.350 / 0.338 / 0.829 -> 0.348 / 0.4
 ~250 Spearman evaluations on the 500 sample coordinates, 8 threads), off by default; `contraction=dict(...)` passes resolution, separation,
 placement, n_sample, tol, sweeps.
 
+### 6.13 Optimisation round (2026-11-04): "fastas hell"
+
+Profile of `loss="tsne"` on MNIST 70k, 8 threads, before: kNN 1.5 s, graph + init 1.0 s, 600 iterations 8.4 s
+(attraction 1.7, repulsion 5.8, update 0.9), contraction 3.1 s (igraph build 0.65 + Leiden 1.2 + placement 0.7).
+Per iteration on the final 140-box grid (M = 864 padded): scatter 2.6 ms, rfft2 2.2, products 1.7, irfft2 3.4,
+gather 1.4, but the whole call 18 ms: the kernel spectrum (two 864^2 FFTs and a pow) was recomputed at every
+iteration because the box width followed the layout's extent (cache key = (n_boxes, width) never hit).
+
+Fixes, in order of gain: (1) fixed box width (FIt-SNE's convention), spectrum cached per box count; (2) persistent
+thread pool (`src/pool.hpp`): the per-call `std::thread` spawn + join of six kernels per iteration cost ~2.5 ms;
+pthread mutex / condvar instead of `std::condition_variable` (GLIBCXX_3.4.30, absent from conda's libstdc++),
+task counter tagged with the generation (a worker finishing late picked up an index of the next call with a
+freed `std::function`: segfault after a few hundred calls); (3) thread caps raised (scatter / gather ran on 3
+threads at 70k), 2-D attraction path (8.5 -> 4.6 ms single-thread, 2.8 -> 1.6 at 8), update without the modulo
+(1.4 -> 0.6 / 0.9 -> 0.2 ms); (4) `FFTConv2D` (`src/fftconv.cpp`): pocketfft header-only (BSD, its threading
+disabled, rows and columns split over the pool in multi-line calls), persistent buffers, kernel products in
+explicit real arithmetic (`std::complex` operator* calls `__mulsc3` and does not vectorise: 2.8 -> 0.5 ms),
+channels interleaved on the grid, parallel counting sort of the points by x-box reused by the gather (reads the
+potentials with locality), cubic Lagrange weights with constant denominators; fusing the products into the
+column passes was slower (strided tiles) and was reverted; (5) `tsne_step`: one fused C++ call for the
+gradient combination, gains, momentum, update, recentring; (6) `smooth_knn` in C++ (112 -> 16 ms); (7) Louvain
+in C++ (`src/graph.cpp`, generalised modularity with resolution, local moving in random order until fewer than
+1 % of the nodes move, aggregation, size-sorted labels): 0.35 s against 1.9 s for python-igraph's Leiden with
+the edge-list conversion; on MNIST at r = 0.3 seeds 1-4 give 10 communities with label ARI 0.92, seed 0 splits
+a class (11, 0.89), Leiden has the same instability (9 or 10, 0.85 / 0.93); the end-to-end step is unchanged
+(0.345 / 0.458 / 0.908 against 0.346 / 0.453 / 0.900 with Leiden); 1-D `py::array_t` outputs must be built from
+an explicit shape vector (the count constructor returned a zero-stride view: all labels equal).
+
+Repulsion per iteration, final grid: 18 -> 6.0 ms (8 threads), 4.8 (20); early grid 4.4 -> 2.1 / 1.6. End to end
+on a loaded machine (load 3-4), 8 threads: tsne 8.9 -> 5.3 s, hybrid 11.3 -> 7.0, tsne + contraction 10.6 -> 6.4,
+quality preset + contraction 10.2; 20 threads 4.6 / 6.5 / 5.6 / 8.6. SGD mode untouched (4.3 s; its hogwild
+kernel is memory-bound, `parallel="owner"` halves it). Remaining floor of the full-batch pass: the column FFT
+passes (~3 ms of the 6) and the kNN graph (1.2 s of the 5.3). Tests: `tests/test_magnet.py`, 35 passed.
+
 ## Scripts (`benchmarks/theory/`)
 
 `e1_force_spectrum.py` (per-octave repulsive force on MAGNET's own embeddings), `k13_tail_crossover.py` (the same binned by the kernel crossover, with the shell-count-adjusted prediction), `e1b_powerlaw.py`

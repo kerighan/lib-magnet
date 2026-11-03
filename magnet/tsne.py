@@ -22,6 +22,8 @@ class FFTRepulsion2D:
         self.max_boxes = max_boxes
         self.n_threads = n_threads
         self._cache = {}
+        self._buffers = {}
+        self._convs = {}
 
     def _grid(self, Y):
         try:
@@ -67,15 +69,34 @@ class FFTRepulsion2D:
 
     def __call__(self, Y):
         """Returns (sumQ, repulsive forces (n, 2)) with q_ij = 1 / (1 + d_ij^2), self terms removed.
-        Scatter, spectral products and gather run in C++; the transforms use scipy's pocketfft."""
+        Everything runs in C++ with persistent buffers (FFTConv2D); the scipy path below is the fallback."""
+        Y = np.ascontiguousarray(Y, dtype=np.float32)
+        xmin, ymin, width, n_boxes = self._grid(Y)
+        try:
+            from _magnet import FFTConv2D
+        except ImportError:
+            return self._scipy_call(Y, xmin, ymin, width, n_boxes)
+        M, K1h, K2h = self._kernels(n_boxes, width)
+        conv = self._convs.get((int(M), round(width, 6)))
+        if conv is None:
+            conv = FFTConv2D(int(M), self.n_interp)
+            conv.set_kernels(K1h.view(np.float32).reshape(M, -1, 2), K2h.view(np.float32).reshape(M, -1, 2))
+            if len(self._convs) > 4: self._convs.pop(next(iter(self._convs)))
+            self._convs[(int(M), round(width, 6))] = conv
+        sumQ, F = conv.compute(Y, xmin, ymin, width, n_boxes, self.n_threads)
+        return float(sumQ), np.asarray(F)
+
+    def _scipy_call(self, Y, xmin, ymin, width, n_boxes):
         import scipy.fft as fft
         from _magnet import scatter_padded_2d, spectral_products, gather_forces_2d
 
-        Y = np.ascontiguousarray(Y, dtype=np.float32)
-        xmin, ymin, width, n_boxes = self._grid(Y)
         workers = self.n_threads if self.n_threads and self.n_threads > 0 else -1
         M, K1h, K2h = self._kernels(n_boxes, width)
-        W = np.asarray(scatter_padded_2d(Y, xmin, ymin, width, n_boxes, self.n_interp, int(M), self.n_threads))
+        buf = self._buffers.get(int(M))
+        if buf is None:
+            buf = self._buffers[int(M)] = np.zeros((3, int(M), int(M)), dtype=np.float32)
+            if len(self._buffers) > 4: self._buffers.pop(next(iter(self._buffers)))
+        W = np.asarray(scatter_padded_2d(Y, xmin, ymin, width, n_boxes, self.n_interp, int(M), self.n_threads, buf))
         Wh = fft.rfft2(W, axes=(1, 2), workers=workers)
         Ph = np.asarray(spectral_products(K1h.view(np.float32).reshape(M, -1, 2), K2h.view(np.float32).reshape(M, -1, 2),
                                           np.ascontiguousarray(Wh).view(np.float32).reshape(3, M, -1, 2), self.n_threads))
@@ -119,7 +140,7 @@ def optimize_tsne(P, Y, n_iter=750, early_iter=250, early_exaggeration=12.0, exa
     early-exaggeration phase (with n points even a tiny near-field residual summed over all pairs
     overwhelms the normalised gradient). The near field keeps t-SNE's normalised
     repulsion, the far field gets the constant-strength one of the sampled optimiser."""
-    from _magnet import tsne_attraction, tsne_update, mid_spring
+    from _magnet import tsne_attraction, tsne_update, tsne_step, mid_spring
 
     n = P.shape[0]
     P = sp.csr_matrix(P, dtype=np.float32)
@@ -149,6 +170,15 @@ def optimize_tsne(P, Y, n_iter=750, early_iter=250, early_exaggeration=12.0, exa
         t2 = time.time()
         sumQ, F = rep(Y)
         t3 = time.time()
+        if far_weight <= 0 and (mid_pairs is None or mid_weight <= 0):   # the common path: one fused C++ call
+            tsne_step(Y, update, gains, attr, F, float(rho), float(1.0 / max(sumQ, 1e-12)), float(learning_rate), float(mom), n_threads)
+            t4 = time.time()
+            timers["attraction"] += t2 - t1; timers["repulsion"] += t3 - t2; timers["update"] += t4 - t3
+            if callback is not None and (it % 50 == 0 or it == n_iter - 1):
+                callback(it, Y)
+            if verbose and (it % 100 == 0 or it == n_iter - 1):
+                print(f"  t-SNE iteration {it:4d}  exaggeration={rho:g}  T={time.time() - t0:.1f}s")
+            continue
         grad = rho * attr
         grad -= F * (1.0 / max(sumQ, 1e-12))
         if far_weight > 0 and not early:   # the early-exaggeration layout is far below the kernel scale

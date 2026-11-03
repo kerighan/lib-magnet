@@ -152,10 +152,18 @@ def knn_search(X, graph, Q, k, metric="euclidean", landmarks=None, ef=None, n_en
     return np.asarray(ind).astype(np.int64), _convert_dists(np.asarray(dist), metric)
 
 
-def smooth_knn(dist, n_neighbors, bandwidth=1.0, n_iter=64):
-    """UMAP's smooth kNN kernel, vectorised over rows.
-    dist: (n, k-1) sorted distances to the neighbours (self excluded).
-    Returns membership strengths (n, k-1) in (0, 1]."""
+def smooth_knn(dist, n_neighbors, bandwidth=1.0, n_iter=64, n_threads=-1):
+    """UMAP's smooth kNN kernel: per-row binary search of the bandwidth (C++; the numpy version below is the
+    reference). dist: (n, k-1) sorted distances to the neighbours (self excluded). Returns (n, k-1) in (0, 1]."""
+    try:
+        from _magnet import smooth_knn as _smooth_knn
+        return np.asarray(_smooth_knn(np.ascontiguousarray(dist, dtype=np.float32), int(n_neighbors), float(bandwidth), int(n_iter), int(n_threads)))
+    except ImportError:
+        return smooth_knn_numpy(dist, n_neighbors, bandwidth, n_iter)
+
+
+def smooth_knn_numpy(dist, n_neighbors, bandwidth=1.0, n_iter=64):
+    """Reference implementation, vectorised over rows."""
     n, kk = dist.shape
     target = np.log2(n_neighbors) * bandwidth
     nonzero = dist > 0

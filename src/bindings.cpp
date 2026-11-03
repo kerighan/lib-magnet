@@ -3,7 +3,10 @@
 
 namespace py = pybind11;
 
+void bind_fftconv(py::module_& m);
+
 PYBIND11_MODULE(_magnet, m) {
+    bind_fftconv(m);
     m.doc() = "MAGNET v3 native kernels";
     m.def("optimize_layout", &optimize_layout, "Hogwild SGD layout optimisation (in place)",
           py::arg("Y"), py::arg("head"), py::arg("tail"), py::arg("epochs_per_sample"),
@@ -60,11 +63,17 @@ PYBIND11_MODULE(_magnet, m) {
     m.def("mid_spring", &mid_spring, "grad += w (Y_i - mean of partner positions)",
           py::arg("Y"), py::arg("pairs"), py::arg("grad"), py::arg("w"), py::arg("n_threads") = -1);
     m.def("scatter_padded_2d", &scatter_padded_2d, "Charges (1, x, y) on a zero-padded M x M grid, no reduction",
-          py::arg("Y"), py::arg("xmin"), py::arg("ymin"), py::arg("width"), py::arg("n_boxes"), py::arg("n_interp"), py::arg("M"), py::arg("n_threads") = -1);
+          py::arg("Y"), py::arg("xmin"), py::arg("ymin"), py::arg("width"), py::arg("n_boxes"), py::arg("n_interp"), py::arg("M"), py::arg("n_threads") = -1, py::arg("out") = arr<float>(0));
     m.def("spectral_products", &spectral_products, "Kernel-spectrum products of the FFT repulsion",
           py::arg("K1h"), py::arg("K2h"), py::arg("Wh"), py::arg("n_threads") = -1);
     m.def("gather_forces_2d", &gather_forces_2d, "Potentials at the points and repulsive forces: (sumQ, F)",
           py::arg("Y"), py::arg("phi"), py::arg("xmin"), py::arg("ymin"), py::arg("width"), py::arg("n_boxes"), py::arg("n_interp"), py::arg("n_threads") = -1);
+    m.def("tsne_step", &tsne_step, "Fused t-SNE iteration: gradient combination, gains, momentum, update, recentring",
+          py::arg("Y"), py::arg("update"), py::arg("gains"), py::arg("attr"), py::arg("F"), py::arg("rho"), py::arg("inv_sumQ"), py::arg("lr"), py::arg("momentum"), py::arg("n_threads") = -1);
+    m.def("smooth_knn", &smooth_knn, "UMAP smooth-kNN memberships (n, k) from sorted neighbour distances",
+          py::arg("dist"), py::arg("n_neighbors"), py::arg("bandwidth") = 1.0f, py::arg("n_iter") = 64, py::arg("n_threads") = -1);
+    m.def("louvain", &louvain, "Louvain communities of a symmetric weighted CSR graph (generalised modularity, resolution gamma)",
+          py::arg("indptr"), py::arg("indices"), py::arg("data"), py::arg("resolution") = 1.0f, py::arg("seed") = 0, py::arg("max_levels") = 20, py::arg("max_sweeps") = 50);
     m.def("bbox_2d", &bbox_2d, "Bounding box of a (n, 2) array", py::arg("Y"), py::arg("n_threads") = -1);
     m.def("umap_attraction", &umap_attraction, "exact UMAP attraction over a CSR graph",
           py::arg("indptr"), py::arg("indices"), py::arg("data"), py::arg("Y"), py::arg("a"), py::arg("b"), py::arg("n_threads") = -1);

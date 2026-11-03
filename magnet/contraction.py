@@ -32,9 +32,15 @@ def _leiden(g, resolution, seed=0, n_iterations=2):
     return np.asarray(part.membership, dtype=np.int32)
 
 
-def communities(P, resolution, seed=0, n_iterations=2):
-    """Leiden communities (modularity with a resolution parameter) of the symmetric weighted graph P. Needs igraph."""
-    return _leiden(_igraph(P), resolution, seed, n_iterations)
+def communities(P, resolution, seed=0, n_iterations=2, backend="louvain"):
+    """Communities of the symmetric weighted graph P for the generalised modularity at `resolution`: MAGNET's own
+    Louvain (C++, ~0.2 s on 70k nodes) or python-igraph's Leiden (backend="leiden", ~2 s with the conversion)."""
+    if backend == "leiden":
+        return _leiden(_igraph(P), resolution, seed, n_iterations)
+    from _magnet import louvain
+    P = sp.csr_matrix(P, dtype=np.float32)
+    P.sort_indices()
+    return np.asarray(louvain(P.indptr.astype(np.int32), P.indices.astype(np.int32), P.data.astype(np.float32), float(resolution), int(seed)))
 
 
 def contract(Y, labels, gain):
@@ -163,7 +169,8 @@ def place_communities(Y, labels, spearman, mixing=None, tol=0.002, sweeps=2, min
 
 
 def hierarchical_contraction(Y, P, X=None, metric="euclidean", resolution=0.3, separation=0.7, placement=True,
-                             n_sample=500, n_mixing=5000, tol=0.002, sweeps=2, n_threads=8, random_state=0, exclude=None, verbose=False):
+                             n_sample=500, n_mixing=5000, tol=0.002, sweeps=2, n_threads=8, random_state=0, exclude=None,
+                             backend="louvain", verbose=False):
     """Returns (Z, log). Communities of P (Leiden at `resolution`); (1) placement: rigid translations of the communities
     chosen by coordinate ascent of the Spearman correlation between input and layout distances on a sample of
     n_sample points (label-free; X required, skipped without it), with an overlap guard (mixing of n_mixing sample
@@ -175,7 +182,7 @@ def hierarchical_contraction(Y, P, X=None, metric="euclidean", resolution=0.3, s
     n = len(Y)
     rng = np.random.default_rng(random_state)
     pool_idx = np.arange(n) if exclude is None else np.setdiff1d(np.arange(n), np.asarray(exclude))
-    labels = communities(P, resolution, seed=random_state)
+    labels = communities(P, resolution, seed=random_state, backend=backend)
     k = int(labels.max()) + 1
     log = {"resolution": resolution, "communities": k, "labels": labels}
     Z = Y

@@ -4,6 +4,7 @@
 //  * tsne_attraction: sum_j p_ij q_ij (y_i - y_j) over the CSR graph, per row (no race)
 // The convolution with the kernel between grid nodes is done by FFT on the Python side.
 #include "layout.hpp"
+#include "pool.hpp"
 #include <thread>
 #include <vector>
 #include <cmath>
@@ -17,12 +18,7 @@ int resolve(int n_threads) {
     return h == 0 ? 4 : (int)h;
 }
 
-template <class F> void run_threads(int nt, F&& f) {
-    if (nt <= 1) { f(0); return; }
-    std::vector<std::thread> pool;
-    for (int t = 0; t < nt; ++t) pool.emplace_back([&, t] { f(t); });
-    for (auto& th : pool) th.join();
-}
+template <class F> void run_threads(int nt, F&& f) { pool_run(nt, std::forward<F>(f)); }
 
 // Lagrange weights of the n_interp equispaced nodes of a box for a point at local coordinate u in [0,1)
 inline void lagrange(float u, int n_interp, float* w) {
@@ -67,7 +63,7 @@ arr<float> interp_scatter(arr<float> Y_, arr<float> charges_, float xmin, float 
     float* O = out.mutable_data();
     std::fill(O, O + (size_t)T * N * N, 0.f);
     const float* Y = Y_.data(); const float* C = charges_.data();
-    const int nt = (int)std::min<int64_t>(resolve(n_threads), std::max<int64_t>(1, n / 20000));
+    const int nt = (int)std::min<int64_t>(resolve(n_threads), std::max<int64_t>(1, n / 4000));
     py::gil_scoped_release release;
     std::vector<std::vector<float>> local(nt);
     run_threads(nt, [&](int t) {
@@ -107,7 +103,7 @@ arr<float> interp_gather(arr<float> Y_, arr<float> grid_, float xmin, float ymin
     arr<float> out({n, (int64_t)T});
     float* O = out.mutable_data();
     const float* Y = Y_.data(); const float* G = grid_.data();
-    const int nt = (int)std::min<int64_t>(resolve(n_threads), std::max<int64_t>(1, n / 20000));
+    const int nt = (int)std::min<int64_t>(resolve(n_threads), std::max<int64_t>(1, n / 4000));
     py::gil_scoped_release release;
     run_threads(nt, [&](int t) {
         float wx[8], wy[8]; int bx, by;
@@ -141,8 +137,26 @@ arr<float> tsne_attraction(arr<int32_t> indptr_, arr<int32_t> indices_, arr<floa
     arr<float> out({n, (int64_t)dim});
     float* O = out.mutable_data();
     const float* Y = Y_.data(); const int32_t* ip = indptr_.data(); const int32_t* ix = indices_.data(); const float* P = data_.data();
-    const int nt = (int)std::min<int64_t>(resolve(n_threads), std::max<int64_t>(1, n / 4096));
+    const int nt = (int)std::min<int64_t>(resolve(n_threads), std::max<int64_t>(1, n / 2048));
     py::gil_scoped_release release;
+    if (dim == 2) {   // the 2-D path: no inner dimension loops, one reciprocal per edge
+        run_threads(nt, [&](int t) {
+            const int64_t r0 = n * t / nt, r1 = n * (t + 1) / nt;
+            for (int64_t i = r0; i < r1; ++i) {
+                const float xi = Y[2 * i], yi = Y[2 * i + 1];
+                float ax = 0.f, ay = 0.f;
+                const int32_t e0 = ip[i], e1 = ip[i + 1];
+                for (int32_t e = e0; e < e1; ++e) {
+                    const int64_t j = ix[e];
+                    const float dx = xi - Y[2 * j], dy = yi - Y[2 * j + 1];
+                    const float w = P[e] / (1.f + (dx * dx + dy * dy) * inv_dof);
+                    ax += w * dx; ay += w * dy;
+                }
+                O[2 * i] = ax; O[2 * i + 1] = ay;
+            }
+        });
+        return out;
+    }
     run_threads(nt, [&](int t) {
         const int64_t r0 = n * t / nt, r1 = n * (t + 1) / nt;
         float acc[MAX_DIM], diff[MAX_DIM];
@@ -172,21 +186,76 @@ void tsne_update(arr<float> Y_, arr<float> update_, arr<float> gains_, arr<float
     require(update_.size() == total && gains_.size() == total && grad_.size() == total, "arrays must match Y");
     float* Y = Y_.mutable_data(); float* U = update_.mutable_data(); float* G = gains_.mutable_data();
     const float* D = grad_.data();
-    const int nt = (int)std::min<int64_t>(resolve(n_threads), std::max<int64_t>(1, n / 8192));
+    const int nt = (int)std::min<int64_t>(resolve(n_threads), std::max<int64_t>(1, n / 4000));
     py::gil_scoped_release release;
     std::vector<double> sums((size_t)nt * dim, 0.0);
     run_threads(nt, [&](int t) {
         const int64_t r0 = n * t / nt, r1 = n * (t + 1) / nt;
         double* s = sums.data() + (size_t)t * dim;
-        for (int64_t i = r0 * dim; i < r1 * dim; ++i) {
-            const bool same = (D[i] > 0.f) == (U[i] > 0.f);
-            float g = same ? G[i] * 0.8f : G[i] + 0.2f;
-            if (g < 0.01f) g = 0.01f;
-            G[i] = g;
-            U[i] = momentum * U[i] - lr * g * D[i];
-            Y[i] += U[i];
-            s[i % dim] += Y[i];
+        float sl[MAX_DIM];
+        for (int d = 0; d < dim; ++d) sl[d] = 0.f;
+        for (int64_t i = r0; i < r1; ++i) {
+            for (int d = 0; d < dim; ++d) {
+                const int64_t k = i * dim + d;
+                const bool same = (D[k] > 0.f) == (U[k] > 0.f);
+                float g = same ? G[k] * 0.8f : G[k] + 0.2f;
+                if (g < 0.01f) g = 0.01f;
+                G[k] = g;
+                const float u = momentum * U[k] - lr * g * D[k];
+                U[k] = u;
+                const float y = Y[k] + u;
+                Y[k] = y;
+                sl[d] += y;
+            }
+            if ((i & 1023) == 1023) { for (int d = 0; d < dim; ++d) { s[d] += sl[d]; sl[d] = 0.f; } }
         }
+        for (int d = 0; d < dim; ++d) s[d] += sl[d];
+    });
+    std::vector<float> mean(dim, 0.f);
+    for (int d = 0; d < dim; ++d) { double m = 0; for (int t = 0; t < nt; ++t) m += sums[(size_t)t * dim + d]; mean[d] = (float)(m / (double)n); }
+    run_threads(nt, [&](int t) {
+        const int64_t r0 = n * t / nt, r1 = n * (t + 1) / nt;
+        for (int64_t i = r0; i < r1; ++i) for (int d = 0; d < dim; ++d) Y[i * dim + d] -= mean[d];
+    });
+}
+
+
+// Fused t-SNE iteration: grad = rho * attr - F / sumQ (not materialised), then the gains / momentum / position update
+// and the recentring of tsne_update; one pass over the arrays instead of three numpy temporaries and two calls.
+void tsne_step(arr<float> Y_, arr<float> update_, arr<float> gains_, arr<float> attr_, arr<float> F_, float rho, float inv_sumQ,
+               float lr, float momentum, int n_threads)
+{
+    require(Y_.ndim() == 2, "Y must be 2-d");
+    const int64_t n = Y_.shape(0); const int dim = (int)Y_.shape(1);
+    const int64_t total = n * dim;
+    require(update_.size() == total && gains_.size() == total && attr_.size() == total && F_.size() == total, "arrays must match Y");
+    float* Y = Y_.mutable_data(); float* U = update_.mutable_data(); float* G = gains_.mutable_data();
+    const float* A = attr_.data(); const float* F = F_.data();
+    const int nt = (int)std::min<int64_t>(resolve(n_threads), std::max<int64_t>(1, n / 4000));
+    py::gil_scoped_release release;
+    std::vector<double> sums((size_t)nt * dim, 0.0);
+    run_threads(nt, [&](int t) {
+        const int64_t r0 = n * t / nt, r1 = n * (t + 1) / nt;
+        double* s = sums.data() + (size_t)t * dim;
+        float sl[MAX_DIM];
+        for (int d = 0; d < dim; ++d) sl[d] = 0.f;
+        for (int64_t i = r0; i < r1; ++i) {
+            for (int d = 0; d < dim; ++d) {
+                const int64_t k = i * dim + d;
+                const float g_ = rho * A[k] - F[k] * inv_sumQ;
+                const bool same = (g_ > 0.f) == (U[k] > 0.f);
+                float g = same ? G[k] * 0.8f : G[k] + 0.2f;
+                if (g < 0.01f) g = 0.01f;
+                G[k] = g;
+                const float u = momentum * U[k] - lr * g * g_;
+                U[k] = u;
+                const float y = Y[k] + u;
+                Y[k] = y;
+                sl[d] += y;
+            }
+            if ((i & 1023) == 1023) { for (int d = 0; d < dim; ++d) { s[d] += sl[d]; sl[d] = 0.f; } }
+        }
+        for (int d = 0; d < dim; ++d) s[d] += sl[d];
     });
     std::vector<float> mean(dim, 0.f);
     for (int d = 0; d < dim; ++d) { double m = 0; for (int t = 0; t < nt; ++t) m += sums[(size_t)t * dim + d]; mean[d] = (float)(m / (double)n); }
@@ -204,7 +273,7 @@ void mid_spring(arr<float> Y_, arr<int32_t> pairs_, arr<float> grad_, float w, i
     const int64_t n = Y_.shape(0); const int dim = (int)Y_.shape(1); const int m = (int)pairs_.shape(1);
     require(pairs_.shape(0) == n && grad_.shape(0) == n && grad_.shape(1) == dim && m >= 1, "bad shapes");
     const float* Y = Y_.data(); const int32_t* Pp = pairs_.data(); float* G = grad_.mutable_data();
-    const int nt = (int)std::min<int64_t>(resolve(n_threads), std::max<int64_t>(1, n / 8192));
+    const int nt = (int)std::min<int64_t>(resolve(n_threads), std::max<int64_t>(1, n / 4000));
     py::gil_scoped_release release;
     run_threads(nt, [&](int t) {
         const int64_t r0 = n * t / nt, r1 = n * (t + 1) / nt;
@@ -222,19 +291,25 @@ void mid_spring(arr<float> Y_, arr<int32_t> pairs_, arr<float> grad_, float w, i
 // Padded, reduction-free scatter: points are bucketed by their x-box, threads own disjoint ranges of
 // x-boxes (hence disjoint rows of the grid) so no private grids and no reduction are needed.
 // Output (3, M, M) zero-padded charge grids for the charges (1, x, y).
-arr<float> scatter_padded_2d(arr<float> Y_, float xmin, float ymin, float width, int n_boxes, int n_interp, int M, int n_threads)
+arr<float> scatter_padded_2d(arr<float> Y_, float xmin, float ymin, float width, int n_boxes, int n_interp, int M, int n_threads, arr<float> out)
 {
     require(Y_.ndim() == 2 && Y_.shape(1) == 2, "Y must be (n, 2)");
     const int64_t n = Y_.shape(0);
     const int N = n_boxes * n_interp;
     require(n_interp >= 1 && n_interp <= 8 && M >= N && width > 0, "bad grid parameters");
     const float* Y = Y_.data();
-    arr<float> out({(int64_t)3, (int64_t)M, (int64_t)M});
+    const bool fresh = out.size() == 0;
+    if (fresh) out = arr<float>({(int64_t)3, (int64_t)M, (int64_t)M});
+    require(out.ndim() == 3 && out.shape(0) == 3 && out.shape(1) == M && out.shape(2) == M, "out must be (3, M, M)");
     float* O = out.mutable_data();
-    std::fill(O, O + (size_t)3 * M * M, 0.f);
     const Box B{xmin, ymin, width, n_boxes, n_interp, N};
-    const int nt = (int)std::min<int64_t>(resolve(n_threads), std::max<int64_t>(1, n / 20000));
+    const int nt = (int)std::min<int64_t>(resolve(n_threads), std::max<int64_t>(1, n / 4000));
     py::gil_scoped_release release;
+    if (fresh) std::fill(O, O + (size_t)3 * M * M, 0.f);
+    else run_threads(nt, [&](int t) {   // a reused buffer: only the live N x N block was written last time
+        const int g0 = N * t / nt, g1 = N * (t + 1) / nt;
+        for (int c = 0; c < 3; ++c) for (int gx = g0; gx < g1; ++gx) std::fill(O + ((size_t)c * M + gx) * M, O + ((size_t)c * M + gx) * M + N, 0.f);
+    });
     // counting sort of the points by x-box
     std::vector<int32_t> bxs(n);
     std::vector<int64_t> count(n_boxes + 1, 0);
@@ -305,7 +380,7 @@ std::tuple<float, arr<float>> gather_forces_2d(arr<float> Y_, arr<float> phi_, f
     const Box B{xmin, ymin, width, n_boxes, n_interp, N};
     arr<float> F_({n, (int64_t)2});
     float* F = F_.mutable_data();
-    const int nt = (int)std::min<int64_t>(resolve(n_threads), std::max<int64_t>(1, n / 20000));
+    const int nt = (int)std::min<int64_t>(resolve(n_threads), std::max<int64_t>(1, n / 4000));
     std::vector<double> partial(nt, 0.0);
     {
         py::gil_scoped_release release;
@@ -369,7 +444,7 @@ arr<float> umap_attraction(arr<int32_t> indptr_, arr<int32_t> indices_, arr<floa
     arr<float> out({n, (int64_t)dim});
     float* O = out.mutable_data();
     const float* Y = Y_.data(); const int32_t* ip = indptr_.data(); const int32_t* ix = indices_.data(); const float* P = data_.data();
-    const int nt = (int)std::min<int64_t>(resolve(n_threads), std::max<int64_t>(1, n / 4096));
+    const int nt = (int)std::min<int64_t>(resolve(n_threads), std::max<int64_t>(1, n / 2048));
     py::gil_scoped_release release;
     run_threads(nt, [&](int t) {
         const int64_t r0 = n * t / nt, r1 = n * (t + 1) / nt;

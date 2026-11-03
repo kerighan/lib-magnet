@@ -86,7 +86,8 @@ The contributions, with their scope stated:
   five held-out cases (Sec.~\ref{sec:transfer}) reproduces the pattern without retuning.
 \item \textbf{A fast implementation with audited protocols} (Sec.~\ref{sec:exp}): MNIST 70k in 3.6~s for
   the sampled mode, 8~s for the full-batch mode, 11~s for the sequence, against 8~s for UMAP and 94~s
-  for openTSNE on an idle 20-thread machine. The baselines' timings are audited (numba warm-up, UMAP's
+  for openTSNE on an idle 20-thread machine (5 and 7~s after the optimisation pass of
+  Appendix~\ref{app:impl}, run after the experiments). The baselines' timings are audited (numba warm-up, UMAP's
   single-threaded seeded path, PaCMAP's seeded path, a per-phase breakdown of openTSNE, the protocol for
   graph inputs). The speed claim is restricted to the panel; uwot is not in it.
 \item \textbf{A metric-targeted community post-process} (Sec.~\ref{sec:placement}). The communities of
@@ -1093,6 +1094,18 @@ writes cache lines owned by other cores and the slowest thread paces each epoch.
 read: it halves the SGD time (1.45 against 2.98~s), is bit-reproducible for any thread count, and shifts
 the balance towards pairwise Spearman (0.451 against 0.415, 15-NN 0.189 against 0.193). It is not the
 default because the hybrid's attraction is tuned for the lock-free mode.
+
+\paragraph{The full-batch pass, optimised.} After the experiments of this paper were run, a profiling pass
+on the full-batch optimiser removed a kernel spectrum recomputed at every iteration (the interpolation box
+followed the layout's extent; it now keeps its nominal width, as in FIt-SNE), the per-call thread creation of
+its six kernels (a persistent pool), the scipy FFT temporaries (an in-house pocketfft path with persistent
+buffers, channels interleaved on the grid, products in real arithmetic) and the numpy temporaries of the
+update (one fused step); the post-process of Sec.~\ref{sec:placement} uses a C++ Louvain in place of
+python-igraph's Leiden (0.35 against 1.9~s, same end-to-end scores). The repulsion on MNIST's final grid went
+from 15--18 to 6~ms per iteration at 8 threads; on a loaded machine (load average 3--4) the full-batch mode
+runs MNIST 70k in 5.3~s at 8 threads (8.9 before) and 4.6~s at 20, the sequence in 7.0~s (11.3 before), the
+full-batch mode with the post-process in 6.4~s, with unchanged scores. The timings in the tables of this paper
+predate this pass.
 
 \paragraph{Sparse inputs.} The sparse NN-descent scatters the row about to be compared against many
 partners into a dense per-thread buffer once; every partner's dot product is then a branch-free gather

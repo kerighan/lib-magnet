@@ -93,10 +93,14 @@ arr<int32_t> mid_near_pairs_sparse(arr<int32_t> indptr, arr<int32_t> indices, ar
 
 void mid_spring(arr<float> Y, arr<int32_t> pairs, arr<float> grad, float w, int n_threads);
 
-arr<float> scatter_padded_2d(arr<float> Y, float xmin, float ymin, float width, int n_boxes, int n_interp, int M, int n_threads);
+arr<float> scatter_padded_2d(arr<float> Y, float xmin, float ymin, float width, int n_boxes, int n_interp, int M, int n_threads, arr<float> out);
 arr<float> spectral_products(arr<float> K1h, arr<float> K2h, arr<float> Wh, int n_threads);
 std::tuple<float, arr<float>> gather_forces_2d(arr<float> Y, arr<float> phi, float xmin, float ymin, float width, int n_boxes, int n_interp, int n_threads);
 
 std::tuple<float, float, float, float> bbox_2d(arr<float> Y, int n_threads);
 
 arr<float> umap_attraction(arr<int32_t> indptr, arr<int32_t> indices, arr<float> data, arr<float> Y, float a, float b, int n_threads);
+
+arr<float> smooth_knn(arr<float> dist, int n_neighbors, float bandwidth, int n_iter, int n_threads);
+arr<int32_t> louvain(arr<int32_t> indptr, arr<int32_t> indices, arr<float> data, float resolution, uint64_t seed, int max_levels, int max_sweeps);
+void tsne_step(arr<float> Y, arr<float> update, arr<float> gains, arr<float> attr, arr<float> F, float rho, float inv_sumQ, float lr, float momentum, int n_threads);
