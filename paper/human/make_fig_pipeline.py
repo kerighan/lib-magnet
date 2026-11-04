@@ -8,7 +8,7 @@ matplotlib.use("Agg"); import matplotlib.pyplot as plt
 from datasets import mnist, fmnist
 from metrics import evaluate
 from magnet import MAGNET
-fig, axes = plt.subplots(2, 4, figsize=(12.4, 6.6))
+fig, axes = plt.subplots(2, 4, figsize=(12.4, 7.0))
 for row, (ds, loader, name) in enumerate((("mnist", mnist, "MNIST"), ("fmnist", fmnist, "Fashion-MNIST"))):
     X, y, key = loader(70000); y = np.asarray(y).astype(int); n = len(y); show = np.random.default_rng(0).choice(n, 20000, replace=False)
     import scipy.sparse as sp
@@ -24,5 +24,5 @@ for row, (ds, loader, name) in enumerate((("mnist", mnist, "MNIST"), ("fmnist", 
     for col, (label, lay, dt) in enumerate(cols):
         lay = np.asarray(lay, dtype=np.float32); e = evaluate(X, lay, y, cache_key=key); ax = axes[row, col]
         ax.scatter(lay[show, 0], lay[show, 1], c=y[show], cmap="tab10", s=1.0, linewidths=0, alpha=0.8); ax.set_aspect("equal"); ax.set_xticks([]); ax.set_yticks([]); [sp.set_visible(False) for sp in ax.spines.values()]
-        ax.set_title(f"{name}, {label}" + (f" ({dt:.0f} s)" if dt else ""), fontsize=9, loc="left"); ax.text(0.0, -0.02, f"15-NN {e['knn15_preservation']:.3f}   Spearman {e['dist_spearman']:.3f}", transform=ax.transAxes, fontsize=8, va="top", color="#444444")
-fig.tight_layout(); fig.savefig(os.path.join(HERE, "figures", "fig_pipeline.png"), dpi=200); print("written")
+        ax.set_title(f"{name}, {label}" + (f" ({dt:.0f} s)" if dt else ""), fontsize=7.8, loc="left", pad=3); ax.text(0.0, -0.01, f"15-NN {e['knn15_preservation']:.3f}   Spearman {e['dist_spearman']:.3f}", transform=ax.transAxes, fontsize=7.5, va="top", color="#444444")
+fig.tight_layout(h_pad=2.0); fig.savefig(os.path.join(HERE, "figures", "fig_pipeline.png"), dpi=200); print("written")
