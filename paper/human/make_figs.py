@@ -63,10 +63,11 @@ for ax, key, ylabel in ((axes[0], "clusters", "HDBSCAN clusters (10 classes)"), 
     ends = []
     for label, col, ls in (("kernel_b=0.6", C["red"], "-"), ("kernel_b=0.7", C["orange"], "-"), ("kernel_b=0.8", C["green"], "-"), ("UMAP", C["grey"], "--")):
         v = [k45[f"scan/{n}/{label}"][key] for n in ns]; ax.plot(ns, v, color=col, lw=1.6, ls=ls, marker="o", ms=3.5); ends.append((v[-1], label, col))
-    span = (max(e[0] for e in ends) - min(e[0] for e in ends)) or 1.0; last = None
-    for y_, label, col in sorted(ends):   # direct labels, pushed apart when they would collide
-        yy = y_ if last is None or y_ - last > 0.08 * span else last + 0.08 * span
+    lo, hi = ax.get_ylim(); gap = 0.07 * (hi - lo); last = None
+    for y_, label, col in sorted(ends):   # direct labels, pushed apart (in axis units) when they would collide
+        yy = y_ if last is None or y_ - last > gap else last + gap
         ax.annotate(label.replace("kernel_b=", "b = "), (ns[-1], y_), xytext=(ns[-1] * 1.12, yy), textcoords="data", fontsize=7.5, color=col, va="center"); last = yy
+    ax.set_ylim(lo, max(hi, (last or hi) + gap))
     ax.set_xscale("log"); ax.set_xticks(ns); ax.set_xticklabels(["3k", "5k", "10k", "20k", "35k"]); ax.set_xlabel("n (MNIST subsample)"); ax.set_ylabel(ylabel); ax.set_xlim(2500, 60000)
 axes[0].set_title("a heavy tail tears small data sets", loc="left", fontsize=9); axes[1].set_title("and buys local fidelity at large n", loc="left", fontsize=9)
 axes[0].axhline(10, color=C["black"], lw=0.7, ls=":"); axes[0].text(2600, 10.5, "10 classes", fontsize=7.5, color=C["black"])
