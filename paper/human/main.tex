@@ -232,12 +232,60 @@ reported metric; four data sets.]
 
 \appendix
 \section{The hand-over scale: a virial identity}\label{app:virial}
-[TO FILL from the long version, Sec.~3.5: derivation, the scan confirming the stationary dilation as the minimum,
-the conditional nature of $s^\ast$, and the scale $\times$ exaggeration table.]
+Let $Y$ have unit standard deviation and write $k_{ij} = (1 + s^2 d_{ij}^2)^{-1}$ for the kernel of the layout dilated by
+$s$, $Z = \sum_{i \ne j} k_{ij}$ and $u_{ij} = s^2 d_{ij}^2 / (1 + s^2 d_{ij}^2)$. Differentiating the full-batch
+objective $F(sY) = \sum p_{ij} \log p_{ij} - \sum p_{ij} \log k_{ij} + \log Z$ in $\log s$ gives
+\[
+\frac{\partial F(sY)}{\partial \log s} = 2\big(\mathbb{E}_p[u] - \mathbb{E}_q[u]\big)
+= 2\Big(\textstyle\sum_{ij} p_{ij} u_{ij} - 1 + \sum_{ij} k_{ij}^2 / Z\Big),
+\]
+so at a stationary point the $p$-weighted mean of $d^2/(1+d^2)$ over the edges equals its $q$-weighted mean over all
+pairs. Both sides cost one FFT evaluation ($\sum k_{ij}^2$ is the potential of the second FIt-SNE kernel with unit
+charges). The stationary dilation $s^\ast$ of a start $Y_0$ is the root along the ray $sY_0$, confirmed as the minimum
+of $F(sY_0)$ by a 13-point scan; it is conditional on the frozen shape of $Y_0$, not the equilibrium scale of the
+jointly optimised layout. On MNIST 70k (long version, Table~3): $s^\ast = 85$--$102$ for our sampled starts, 10 for
+PCA-2, about 120 for UMAP; the full-batch mode's own layout after 600 iterations is still far from its stationary
+dilation (derivative $-0.05$ at four times its standard deviation), which is the radial component of the slow
+expansion seen in the persistence runs. On MNIST subsamples $s^\ast$ grows as $n^{0.42}$ (28 / 54 / 85 at 5k / 20k /
+70k).
+
+The identity diagnoses the radial pressure but does not pick the hand-over. Handed over at $s^\ast$ the stiff start
+gives \knn{} / Spearman 0.349 / 0.460 against 0.350 / 0.450 at 31 and 0.357 / 0.458 at 62, at five times the cost of
+31; PCA-2 at its $s^\ast = 10$ gives 0.319 / 0.343 against 0.318 / 0.399 at 31. The scale is a dial between local
+repair and global retention; the value that best trades the two is above the stationary one for PCA and below it
+for our starts. The shipped rule, $31 \sqrt{n / 70000}$, is a finite-budget reference set on 70k points. Started
+from $t$-SNE's tiny initialisation instead, the pass re-expands and loses the arrangement (Spearman 0.29--0.39);
+started from the sampled layout's own scale it loses it as well.
 
 \section{Staged refinement}\label{app:staged}
-[TO FILL from the long version, Sec.~3: hand-over tests, staged baselines, the repeated tuned-start comparison,
-persistence.]
+\paragraph{What was tested in the hand-over} (MNIST 70k, one start; long version, Sec.~3.1). Scale 15 / 31 / 62 /
+124 with 300 iterations: \knn{} 0.338 / 0.353 / 0.357 / 0.338, Spearman 0.395 / 0.413 / 0.424 / 0.427 for a start at
+0.428, in 6 / 10 / 30 / 121~s (the FFT grid follows the extent). Early exaggeration separated from the scale: at
+scale 31, 0.352 / 0.458 without and 0.346 / 0.462 with; at the tiny scale 0.333 / 0.417 and 0.295 / 0.359: the
+operative condition is the scale, the exaggeration costs little at the matched scale and is dropped. A mid-range
+spring inside the second stage is fatal (\knn{} 0.118 at stiffness 0.1, collapse at 0.5). Iterations 25 / 75 / 150 /
+300 / 600: \knn{} 0.277 / 0.328 / 0.343 / 0.353 / 0.352. Learning rate and kernel degrees of freedom buy nothing.
+The reverse order (full-batch, then sampled epochs) returns \knn{} to the sampled level. Inside one full-batch
+objective, a mid-range spring, a constant far-field repulsion and late exaggeration each cost \knn{} before the
+Spearman moves.
+
+\paragraph{The first stage can be tuned for global structure alone.} Since the second stage rebuilds the
+neighbourhoods, a stiffer mid-range term in the first stage costs nothing locally after the pass and keeps most
+of its Spearman gain: at stiffness 0.5 the start alone scores 0.178 / 0.459 and the sequence 0.356 / 0.442; at 0.1,
+0.193 / 0.418 and 0.356 / 0.414. Stiffness 0.5 is the shipped compromise.
+
+\paragraph{Is the gain the staging or the start?} The same pass applied to seven starts (long version, Table~1):
+every neighbour-embedding start lands at 0.352--0.356 of \knn{} on MNIST and 0.327--0.331 on Fashion-MNIST over
+five runs, at or above the standalone full-batch mode; the Spearman moves by $-0.02$ to $+0.04$ and is
+predominantly inherited from the start; a start without neighbourhoods is not repaired in 300 iterations (PCA-2
+reaches 0.315, a random start 0.065). Given the same affinities, start, scale and schedule, openTSNE's optimiser
+and ours give the same scores: the pass is the objective and the hand-over, not the implementation.
+
+\paragraph{Persistence.} From the stiff start the Spearman drifts from 0.480 to 0.470 at 300 iterations, 0.462 at
+600, 0.455 at 1200 and 0.446 at 3000, while \knn{} rises from 0.346 to 0.367, the layout expands (standard
+deviation 31 to 55) and the objective is still decreasing: the 300-iteration pass is an early stop, the limiting
+Spearman is unknown. Two constraints that hold the coarse geometry through 1000 iterations at a local cost
+(frozen Laplacian coordinates, a coarse rest-length scaffold) are in the long version's Appendix~C.
 
 \section{All \magnet{} configurations}\label{app:configs}
 [TO FILL: the seven configurations with raw axes, both composites against the frozen references, and time.]
