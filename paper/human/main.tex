@@ -205,6 +205,16 @@ visual gaps at community boundaries of connected data. What did not work is in t
 the KL after the step undoes it; a diffusion filter, soft borders and a placement without the guard lose \knn{};
 a coarse two-community contraction was ``the zeros against the rest'').
 
+\begin{figure*}[t]
+\centering\includegraphics[width=\textwidth]{fig_pipeline.png}
+\caption{The complete pipeline (sampled pass, full-batch pass, community placement and separation) next to UMAP
+and Barnes--Hut $t$-SNE on MNIST and Fashion-MNIST 70k (20\,000 points shown, coloured by class, labels unused;
+\knn{} preservation and pairwise-distance Spearman under each panel; single runs, seed 0). On MNIST the placement
+sends the zeros far from the other digits because that is their input distance (class-centroid Spearman 0.66 $\to$
+0.70); on Fashion-MNIST the step leaves four communities and opens gaps through connected data.}
+\label{fig:pipeline}
+\end{figure*}
+
 \section{Results}\label{sec:results}
 [TO FILL after k41: setup (data sets, metrics, frozen references, seeds, timing conditions); the five-seed table
 of the decisive rows; the composite with one \magnet{} configuration in the main table and the rest in the
