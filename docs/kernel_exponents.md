@@ -819,6 +819,23 @@ real boundaries (MNIST down to 5-6 communities), 0.14 misses splits; 0.10-0.12 a
 split of a community gives 0.5 (sanity check), a median cut along the community's layout principal axis
 0.13-0.17 (not the thinnest cut), along its input principal axis 0.19-0.23 (75 s: not usable).
 
+### 6.17 The HDBSCAN use case (`k44_hdbscan.py`): mixed, not in the paper
+
+UMAP's strongest practical argument is HDBSCAN on its layout (BERTopic and friends). Data sets from Maixent's pybench
+collection without a PCA front end (USPS 7.3k x 256, phonemes 4.5k x 256, letters 20k x 16, stellar 30k x 17, 20
+newsgroups 11.3k x 50 SVD) plus raw MNIST 70k; UMAP, PaCMAP, MAGNET SGD and the three post-processed modes; one
+HDBSCAN rule for all (min_cluster_size = max(15, n / 200)); ARI with the noise as one extra label, 3 seeds. MNIST:
+MAGNET SGD + post 0.920 +- 0.005 (10 clusters, 1 % noise), full-batch + post 0.891, SGD alone 0.829, hybrid + post
+0.751, against UMAP 0.655 and PaCMAP 0.585 (k-means ARI 0.84 / 0.92 / 0.76 / 0.80 against 0.77 / 0.79). USPS: UMAP
+0.741, hybrid + post 0.736, full-batch + post 0.718, PaCMAP 0.670; phonemes: PaCMAP 0.795, UMAP 0.770, full-batch /
+hybrid + post 0.680; letters, stellar, 20 newsgroups: every method at 0.03-0.14 (the classes are not density
+clusters in 2-D). The weak spot is the SGD mode at small n: on USPS and phonemes it fragments the layout into 30-55
+small blobs with 15-20 % of the points as HDBSCAN noise (ARI 0.36 / 0.44 against 0.74 / 0.77 for UMAP), even though
+its k-means ARI is normal; the post-process does not repair that. So: a clear win at 70k, parity at 7k with the
+post-processed full-batch modes, a loss at 4.5k, and a lead for later (the SGD defaults, n_epochs / repulsion at
+n < 10k). Not in the paper, as agreed (positive -> paper, otherwise -> here). The sparse TF-IDF text case (UMAP
+handles sparse input natively too) is a later test.
+
 ## Scripts (`benchmarks/theory/`)
 
 `e1_force_spectrum.py` (per-octave repulsive force on MAGNET's own embeddings), `k13_tail_crossover.py` (the same binned by the kernel crossover, with the shell-count-adjusted prediction), `e1b_powerlaw.py`
