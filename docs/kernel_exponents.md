@@ -734,6 +734,28 @@ Timing of the re-measured tables: a training job shared the machine; the SGD row
 from 3.6 to 4.5 s on the seeds table and UMAP control runs took 9.8-11.8 s against 8.4 idle. Full-batch
 6.2 +- 0.7 s, hybrid 8.4 +- 0.2 s on MNIST (8.2 / 10.9 idle before the round).
 
+### 6.15 A deterministic Louvain for the post-process (`k42_community_stability.py`)
+
+Louvain's random visiting order is the one seed-dependent part of the post-process and its failure mode is
+spectacular (a class split in two: MNIST ARI after the step 0.83 instead of 0.92). Variants on the cached fuzzy
+graphs (MNIST with three NN-descent seeds, Fashion, letter, covertype 20k), scored by the number of communities,
+the label ARI and the stability (mean pairwise ARI between runs):
+* random order, 10 seeds: MNIST 9-11 communities, label ARI 0.886-0.918 +- 0.01-0.05 (min 0.81), stability 0.90-0.96;
+* **strength-descending order** (visit the best-connected nodes first; deterministic, no RNG): MNIST 10 communities on
+  all three graphs, ARI 0.924 / 0.924 / 0.929 (the best of every variant), letter 0.225 against 0.211, covertype equal,
+  Fashion 0.464 against 0.484 (9 communities instead of 8-10); same cost (0.3-0.6 s);
+* strength ascending and index order: deterministic but graph-dependent (11 or 9 communities on some MNIST graphs);
+* medoid consensus of 5 or 9 random runs: 10 communities everywhere, ARI 0.923-0.926, 6-10x the cost;
+* Leiden (igraph, modularity): as unstable as the random Louvain (9-11 communities, min ARI 0.81-0.85), 3x the cost;
+* Leiden CPM: 27-340 communities over gamma 2e-4..2e-3, label ARI < 0.52, stability < 0.71: not usable here;
+* resolution: 0.2 merges classes (8 communities, ARI 0.77), 0.5 splits (11, 0.89), 1.0 (13-16, 0.82): 0.3 is the knee.
+Downstream (the step on the three cached MNIST full-batch layouts): random 0.346 / 0.463 / 0.831-0.919 (ARI mean
+0.887) -> strength 0.347 / 0.467 / 0.910-0.919 (0.915), consensus5 0.912, Leiden 0.910; Fashion: random 0.322 / 0.689
+/ 0.453 (0.41-0.47) -> strength 0.323 / 0.685 / 0.430 (0.42-0.43). `order="strength"` is the default of
+`communities()` / `hierarchical_contraction()` / `MAGNET(contraction=...)` since: deterministic, best worst case,
+no cost; `order="random"`, `consensus=k` and `backend="leiden"` remain available. The modularity does not single out
+the splitting runs (Q 0.9313 for the 11-community run against 0.9305-0.9313), so a max-Q restart would not do it.
+
 ## Scripts (`benchmarks/theory/`)
 
 `e1_force_spectrum.py` (per-octave repulsive force on MAGNET's own embeddings), `k13_tail_crossover.py` (the same binned by the kernel crossover, with the shell-count-adjusted prediction), `e1b_powerlaw.py`

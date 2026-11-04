@@ -79,7 +79,7 @@ arr<float> smooth_knn(arr<float> dist_, int n_neighbors, float bandwidth, int n_
 
 
 // Louvain on a symmetric weighted CSR graph; returns community labels (n,), contiguous from 0, sorted by size (0 = largest).
-arr<int32_t> louvain(arr<int32_t> indptr_, arr<int32_t> indices_, arr<float> data_, float resolution, uint64_t seed, int max_levels, int max_sweeps)
+arr<int32_t> louvain(arr<int32_t> indptr_, arr<int32_t> indices_, arr<float> data_, float resolution, uint64_t seed, int max_levels, int max_sweeps, int order_mode)
 {
     const int64_t n0 = indptr_.shape(0) - 1;
     validate_csr(indptr_, indices_, &data_, n0);
@@ -109,9 +109,12 @@ arr<int32_t> louvain(arr<int32_t> indptr_, arr<int32_t> indices_, arr<float> dat
         std::vector<double> tot(deg);               // total degree of each community
         std::vector<double> link(n, 0.0); std::vector<int32_t> touched; touched.reserve(64);
         std::vector<int32_t> order(n); std::iota(order.begin(), order.end(), 0);
+        // deterministic visiting orders: by strength (descending or ascending, ties by index) or natural index order
+        if (order_mode == 1) std::stable_sort(order.begin(), order.end(), [&](int32_t a, int32_t b) { return deg[a] > deg[b]; });
+        else if (order_mode == 2) std::stable_sort(order.begin(), order.end(), [&](int32_t a, int32_t b) { return deg[a] < deg[b]; });
         bool moved_any = false;
         for (int sweep = 0; sweep < max_sweeps; ++sweep) {
-            for (int64_t i = n - 1; i > 0; --i) std::swap(order[i], order[rng.next() % (uint64_t)(i + 1)]);
+            if (order_mode == 0) for (int64_t i = n - 1; i > 0; --i) std::swap(order[i], order[rng.next() % (uint64_t)(i + 1)]);
             int64_t moved = 0;
             for (int64_t oi = 0; oi < n; ++oi) {
                 const int32_t i = order[oi];

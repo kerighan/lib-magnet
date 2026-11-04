@@ -498,6 +498,16 @@ few iterations of growth (120 -> 31 recomputations on MNIST), and the kernel spe
 (the kernels are even). The benchmark tables above are re-measured with it, on a machine shared with a
 training job (the SGD row, unchanged in code, serves as the control: 3.6 -> 4.5 s on the seeds table).
 
+**A deterministic Louvain (`k42`, 2026-11-04).** The random visiting order of the Louvain was the one seed-dependent
+part of the post-process, with a spectacular failure mode (a class split in two: MNIST ARI after the step 0.83 instead
+of 0.92 on one seed in three). Visiting the nodes by decreasing strength (best-connected first), with no RNG, finds the
+ten MNIST classes on every graph tried (label ARI 0.924-0.929 against 0.89-0.92 +- 0.01-0.05 for the random order,
+min 0.81), is neutral on covertype, slightly better on letter and slightly lower on Fashion (0.464 against 0.484),
+at the same cost; downstream, the step's MNIST ARI goes from 0.831-0.919 over the three layouts to 0.910-0.919. A
+medoid consensus of 5 random runs does the same at 6x the cost, Leiden is as unstable as the random Louvain, CPM is
+unusable on these graphs (27-340 communities), and resolution 0.3 is the knee (0.2 merges classes, 0.5 splits them).
+`order="strength"` is the default; `order="random"`, `consensus=k`, `backend="leiden"` stay available.
+
 **Where the SGD time goes, and `parallel="owner"`.** On MNIST 70k the default fit is 1.1 s of kNN graph,
 0.9 s of graph construction and spectral init, and 2-3 s of SGD. One thread runs the SGD at 47 cycles per
 force evaluation, but 10 cores gave only 3.7x and 20 threads 4.3x: with lock-free (hogwild) updates every
@@ -552,7 +562,7 @@ Any networkx graph or sparse adjacency matrix is laid out directly, in linear ti
 | `repulsion_b` | 1.0 | repulsion exponent (Cauchy tail); None couples it to `kernel_b` (UMAP's compact look, 20% slower) |
 | `kernel` | `"power"` | or `"gaussian"`, `"sech"` (exponential tails, for comparison) |
 | `hybrid_tail`, `tsne_early_exaggeration` | (0, 1.0), 12 | exaggerated tail (iterations, factor) of the full-batch pass (`n_epochs=900, hybrid_tail=(100, 1.5)` = quality preset; `(100, 2.0)` compacts clusters at a local cost, superseded by `contraction`); early-exaggeration factor of `loss="tsne"` |
-| `contraction` | None | community placement and separation of the final layout: a float g = the graph's Louvain communities are translated as rigid bodies by a label-free ascent of the input-vs-layout distance Spearman (overlap guard), then each contracted towards its centroid by g (0.7 = the "clusters" preset); a dict passes `resolution`, `separation`, `placement`, `n_sample`, `tol`, `sweeps` |
+| `contraction` | None | community placement and separation of the final layout: a float g = the graph's Louvain communities (strength-ordered, deterministic) are translated as rigid bodies by a label-free ascent of the input-vs-layout distance Spearman (overlap guard), then each contracted towards its centroid by g (0.7 = the "clusters" preset); a dict passes `resolution`, `separation`, `placement`, `n_sample`, `tol`, `sweeps` |
 | `tsne_dof` | 1.0 | Student-t degrees of freedom of `loss="tsne"` (< 1 = heavier tail, Kobak et al. 2019) |
 | `fft_interp`, `fft_box` | 3, 0.7 | grid of the exact repulsion (FIt-SNE's unit box: -0.004 of 15-NN on MNIST for 15% less time; `fft_box=1.5` is the fast preset: -3% 15-NN in `loss="tsne"`, -1% in `loss="hybrid"` for 30% less time) |
 | `mid_scale` | `"fixed"` | or `"spread"` / `"rolewalk"`: per-node length of the mid-range walks from the graph's diffusion spread or from RoleWalk roles |

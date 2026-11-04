@@ -1,0 +1,124 @@
+
+=== mnist, graph seed 0: 70000 nodes, 10 classes
+  louvain random r0.3                comm 10-11  label ARI 0.918 +- 0.010 (min 0.888)  stability 0.963 (min 0.931)  0.38 s/run
+  louvain strength r0.3              comm 10-10  label ARI 0.926 +- 0.000 (min 0.926)  stability 1.000 (min 1.000)  0.56 s/run
+  louvain strength_asc r0.3          comm 11-11  label ARI 0.892 +- 0.000 (min 0.892)  stability 1.000 (min 1.000)  0.42 s/run
+  louvain index r0.3                 comm 10-10  label ARI 0.924 +- 0.000 (min 0.924)  stability 1.000 (min 1.000)  0.26 s/run
+  louvain consensus5 r0.3            comm 10-10  label ARI 0.924 +- 0.001 (min 0.922)  stability 0.974 (min 0.973)  2.38 s/run
+  louvain consensus9 r0.3            comm 10-10  label ARI 0.926 +- 0.001 (min 0.925)  stability 0.975 (min 0.973)  3.86 s/run
+  louvain random r0.2                comm 8-8  label ARI 0.768 +- 0.000 (min 0.767)  stability 0.979 (min 0.978)  0.37 s/run
+  louvain random r0.5                comm 11-11  label ARI 0.889 +- 0.003 (min 0.884)  stability 0.957 (min 0.945)  0.36 s/run
+  louvain random r1.0                comm 13-15  label ARI 0.822 +- 0.027 (min 0.783)  stability 0.871 (min 0.812)  0.36 s/run
+  leiden modularity r0.3             comm 9-10  label ARI 0.898 +- 0.043 (min 0.843)  stability 0.934 (min 0.891)  1.36 s/run
+  leiden CPM g0.0002                 comm 27-33  label ARI 0.510 +- 0.014 (min 0.498)  stability 0.710 (min 0.682)  1.17 s/run
+  leiden CPM g0.0005                 comm 76-78  label ARI 0.242 +- 0.007 (min 0.235)  stability 0.617 (min 0.608)  1.21 s/run
+  leiden CPM g0.001                  comm 162-170  label ARI 0.115 +- 0.001 (min 0.114)  stability 0.534 (min 0.522)  1.05 s/run
+  leiden CPM g0.002                  comm 339-347  label ARI 0.056 +- 0.001 (min 0.055)  stability 0.523 (min 0.517)  0.94 s/run
+
+=== mnist, graph seed 1: 70000 nodes, 10 classes
+  louvain random r0.3                comm 9-10  label ARI 0.886 +- 0.046 (min 0.807)  stability 0.903 (min 0.770)  0.41 s/run
+  louvain strength r0.3              comm 10-10  label ARI 0.924 +- 0.000 (min 0.924)  stability 1.000 (min 1.000)  0.44 s/run
+  louvain strength_asc r0.3          comm 10-10  label ARI 0.926 +- 0.000 (min 0.926)  stability 1.000 (min 1.000)  1.02 s/run
+  louvain index r0.3                 comm 11-11  label ARI 0.888 +- 0.000 (min 0.888)  stability 1.000 (min 1.000)  0.26 s/run
+  louvain consensus5 r0.3            comm 10-10  label ARI 0.923 +- 0.001 (min 0.922)  stability 0.973 (min 0.970)  2.32 s/run
+  louvain consensus9 r0.3            comm 10-10  label ARI 0.925 +- 0.002 (min 0.923)  stability 0.974 (min 0.972)  3.78 s/run
+  louvain random r0.2                comm 8-8  label ARI 0.766 +- 0.002 (min 0.765)  stability 0.979 (min 0.975)  0.40 s/run
+  louvain random r0.5                comm 11-11  label ARI 0.888 +- 0.002 (min 0.885)  stability 0.961 (min 0.956)  0.40 s/run
+  louvain random r1.0                comm 13-15  label ARI 0.811 +- 0.015 (min 0.789)  stability 0.860 (min 0.809)  0.31 s/run
+  leiden modularity r0.3             comm 10-10  label ARI 0.909 +- 0.048 (min 0.813)  stability 0.938 (min 0.858)  0.99 s/run
+  leiden CPM g0.0002                 comm 28-31  label ARI 0.513 +- 0.011 (min 0.502)  stability 0.708 (min 0.667)  1.00 s/run
+  leiden CPM g0.0005                 comm 74-79  label ARI 0.235 +- 0.005 (min 0.229)  stability 0.560 (min 0.556)  1.04 s/run
+  leiden CPM g0.001                  comm 167-170  label ARI 0.112 +- 0.001 (min 0.111)  stability 0.506 (min 0.498)  1.03 s/run
+  leiden CPM g0.002                  comm 339-344  label ARI 0.056 +- 0.000 (min 0.055)  stability 0.523 (min 0.518)  1.06 s/run
+
+=== mnist, graph seed 2: 70000 nodes, 10 classes
+  louvain random r0.3                comm 9-10  label ARI 0.905 +- 0.032 (min 0.840)  stability 0.936 (min 0.866)  0.44 s/run
+  louvain strength r0.3              comm 10-10  label ARI 0.929 +- 0.000 (min 0.929)  stability 1.000 (min 1.000)  0.45 s/run
+  louvain strength_asc r0.3          comm 10-10  label ARI 0.927 +- 0.000 (min 0.927)  stability 1.000 (min 1.000)  0.41 s/run
+  louvain index r0.3                 comm 9-9  label ARI 0.839 +- 0.000 (min 0.839)  stability 1.000 (min 1.000)  0.59 s/run
+  louvain consensus5 r0.3            comm 10-10  label ARI 0.925 +- 0.001 (min 0.924)  stability 0.974 (min 0.973)  2.33 s/run
+  louvain consensus9 r0.3            comm 10-10  label ARI 0.925 +- 0.001 (min 0.923)  stability 0.974 (min 0.973)  4.31 s/run
+  louvain random r0.2                comm 8-8  label ARI 0.768 +- 0.001 (min 0.766)  stability 0.977 (min 0.972)  0.50 s/run
+  louvain random r0.5                comm 11-11  label ARI 0.890 +- 0.002 (min 0.888)  stability 0.952 (min 0.940)  0.57 s/run
+  louvain random r1.0                comm 11-16  label ARI 0.822 +- 0.037 (min 0.774)  stability 0.868 (min 0.841)  0.40 s/run
+  leiden modularity r0.3             comm 9-11  label ARI 0.892 +- 0.039 (min 0.846)  stability 0.920 (min 0.856)  1.47 s/run
+  leiden CPM g0.0002                 comm 30-33  label ARI 0.505 +- 0.006 (min 0.500)  stability 0.685 (min 0.650)  1.23 s/run
+  leiden CPM g0.0005                 comm 73-77  label ARI 0.237 +- 0.002 (min 0.236)  stability 0.560 (min 0.549)  1.07 s/run
+  leiden CPM g0.001                  comm 167-168  label ARI 0.113 +- 0.001 (min 0.111)  stability 0.514 (min 0.504)  0.96 s/run
+  leiden CPM g0.002                  comm 339-339  label ARI 0.057 +- 0.000 (min 0.056)  stability 0.523 (min 0.507)  0.96 s/run
+
+=== fmnist, graph seed 0: 70000 nodes, 10 classes
+  louvain random r0.3                comm 8-10  label ARI 0.484 +- 0.008 (min 0.471)  stability 0.845 (min 0.782)  0.54 s/run
+  louvain strength r0.3              comm 9-9  label ARI 0.464 +- 0.000 (min 0.464)  stability 1.000 (min 1.000)  0.34 s/run
+  louvain strength_asc r0.3          comm 9-9  label ARI 0.477 +- 0.000 (min 0.477)  stability 1.000 (min 1.000)  0.63 s/run
+  louvain index r0.3                 comm 8-8  label ARI 0.504 +- 0.000 (min 0.504)  stability 1.000 (min 1.000)  0.28 s/run
+  louvain consensus5 r0.3            comm 9-9  label ARI 0.480 +- 0.005 (min 0.474)  stability 0.878 (min 0.811)  2.67 s/run
+  louvain consensus9 r0.3            comm 8-9  label ARI 0.490 +- 0.004 (min 0.485)  stability 0.883 (min 0.856)  4.77 s/run
+  louvain random r0.2                comm 7-7  label ARI 0.494 +- 0.013 (min 0.482)  stability 0.882 (min 0.806)  0.52 s/run
+  louvain random r0.5                comm 12-13  label ARI 0.462 +- 0.015 (min 0.443)  stability 0.764 (min 0.721)  0.51 s/run
+  louvain random r1.0                comm 19-23  label ARI 0.388 +- 0.007 (min 0.375)  stability 0.685 (min 0.635)  0.47 s/run
+  leiden modularity r0.3             comm 10-11  label ARI 0.484 +- 0.015 (min 0.467)  stability 0.865 (min 0.833)  1.36 s/run
+  leiden CPM g0.0002                 comm 38-42  label ARI 0.279 +- 0.005 (min 0.275)  stability 0.705 (min 0.644)  1.26 s/run
+  leiden CPM g0.0005                 comm 87-89  label ARI 0.149 +- 0.002 (min 0.147)  stability 0.674 (min 0.648)  1.23 s/run
+  leiden CPM g0.001                  comm 158-171  label ARI 0.089 +- 0.002 (min 0.087)  stability 0.660 (min 0.647)  1.24 s/run
+  leiden CPM g0.002                  comm 305-315  label ARI 0.051 +- 0.001 (min 0.050)  stability 0.639 (min 0.631)  1.23 s/run
+
+=== covertype_20000 (54 features, metric euclidean, hand-over scale 16.6)
+2026-11-04 10:01:17.108063: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1793782877.120959  936680 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1793782877.124668  936680 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2026-11-04 10:01:17.137628: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+
+=== letter_20000 (16 features, metric euclidean, hand-over scale 16.6)
+
+=== covertype_70000 (54 features, metric euclidean, hand-over scale 31.0)
+
+=== rcv1_70000 (300 features, metric cosine, hand-over scale 31.0)
+
+=== covertype_250000 (54 features, metric euclidean, hand-over scale 58.6)
+
+=== letter, graph seed 0: 20000 nodes, 26 classes
+  louvain random r0.3                comm 60-64  label ARI 0.211 +- 0.004 (min 0.204)  stability 0.920 (min 0.817)  0.04 s/run
+  louvain strength r0.3              comm 62-62  label ARI 0.225 +- 0.000 (min 0.225)  stability 1.000 (min 1.000)  0.03 s/run
+  louvain strength_asc r0.3          comm 61-61  label ARI 0.211 +- 0.000 (min 0.211)  stability 1.000 (min 1.000)  0.04 s/run
+  louvain index r0.3                 comm 62-62  label ARI 0.208 +- 0.000 (min 0.208)  stability 1.000 (min 1.000)  0.03 s/run
+  louvain consensus5 r0.3            comm 61-63  label ARI 0.211 +- 0.006 (min 0.204)  stability 0.944 (min 0.925)  0.21 s/run
+  louvain consensus9 r0.3            comm 62-63  label ARI 0.210 +- 0.001 (min 0.208)  stability 0.961 (min 0.947)  0.41 s/run
+  louvain random r0.2                comm 55-59  label ARI 0.208 +- 0.012 (min 0.187)  stability 0.831 (min 0.725)  0.04 s/run
+  louvain random r0.5                comm 68-72  label ARI 0.213 +- 0.015 (min 0.185)  stability 0.876 (min 0.792)  0.04 s/run
+  louvain random r1.0                comm 91-97  label ARI 0.243 +- 0.004 (min 0.238)  stability 0.864 (min 0.820)  0.04 s/run
+  leiden modularity r0.3             comm 63-65  label ARI 0.210 +- 0.003 (min 0.206)  stability 0.952 (min 0.901)  0.10 s/run
+  leiden CPM g0.0002                 comm 81-83  label ARI 0.236 +- 0.005 (min 0.229)  stability 0.877 (min 0.862)  0.11 s/run
+  leiden CPM g0.0005                 comm 113-113  label ARI 0.243 +- 0.002 (min 0.241)  stability 0.872 (min 0.858)  0.10 s/run
+  leiden CPM g0.001                  comm 142-143  label ARI 0.237 +- 0.002 (min 0.235)  stability 0.915 (min 0.909)  0.10 s/run
+  leiden CPM g0.002                  comm 193-196  label ARI 0.200 +- 0.002 (min 0.198)  stability 0.881 (min 0.872)  0.10 s/run
+
+=== covertype, graph seed 0: 20000 nodes, 7 classes
+  louvain random r0.3                comm 58-60  label ARI 0.040 +- 0.002 (min 0.034)  stability 0.960 (min 0.866)  0.05 s/run
+  louvain strength r0.3              comm 58-58  label ARI 0.040 +- 0.000 (min 0.040)  stability 1.000 (min 1.000)  0.03 s/run
+  louvain strength_asc r0.3          comm 59-59  label ARI 0.040 +- 0.000 (min 0.040)  stability 1.000 (min 1.000)  0.04 s/run
+  louvain index r0.3                 comm 59-59  label ARI 0.040 +- 0.000 (min 0.040)  stability 1.000 (min 1.000)  0.03 s/run
+  louvain consensus5 r0.3            comm 58-59  label ARI 0.041 +- 0.001 (min 0.040)  stability 0.981 (min 0.965)  0.23 s/run
+  louvain consensus9 r0.3            comm 58-59  label ARI 0.041 +- 0.001 (min 0.040)  stability 0.978 (min 0.967)  0.47 s/run
+  louvain random r0.2                comm 57-60  label ARI 0.041 +- 0.001 (min 0.040)  stability 0.978 (min 0.962)  0.04 s/run
+  louvain random r0.5                comm 62-64  label ARI 0.033 +- 0.001 (min 0.032)  stability 0.957 (min 0.927)  0.04 s/run
+  louvain random r1.0                comm 70-73  label ARI 0.024 +- 0.001 (min 0.023)  stability 0.940 (min 0.911)  0.04 s/run
+  leiden modularity r0.3             comm 60-61  label ARI 0.037 +- 0.003 (min 0.034)  stability 0.921 (min 0.869)  0.10 s/run
+  leiden CPM g0.0002                 comm 68-69  label ARI 0.028 +- 0.001 (min 0.027)  stability 0.969 (min 0.960)  0.10 s/run
+  leiden CPM g0.0005                 comm 86-88  label ARI 0.019 +- 0.000 (min 0.019)  stability 0.937 (min 0.930)  0.10 s/run
+  leiden CPM g0.001                  comm 110-112  label ARI 0.014 +- 0.000 (min 0.014)  stability 0.899 (min 0.895)  0.10 s/run
+  leiden CPM g0.002                  comm 159-164  label ARI 0.009 +- 0.000 (min 0.009)  stability 0.862 (min 0.849)  0.10 s/run
+
+=== downstream: post-process on the three MNIST full-batch layouts, communities from each variant
+  louvain random       s0: 0.346/0.463/0.831 (11 comm, 1.3 s)  s1: 0.346/0.463/0.910 (10 comm, 1.5 s)  s2: 0.346/0.467/0.919 (10 comm, 1.4 s)  | ARI mean 0.887
+  louvain strength     s0: 0.347/0.470/0.910 (10 comm, 1.6 s)  s1: 0.347/0.462/0.916 (10 comm, 1.6 s)  s2: 0.347/0.468/0.919 (10 comm, 1.8 s)  | ARI mean 0.915
+  louvain index        s0: 0.346/0.468/0.911 (10 comm, 1.3 s)  s1: 0.346/0.467/0.914 (10 comm, 1.3 s)  s2: 0.346/0.468/0.918 (10 comm, 1.2 s)  | ARI mean 0.914
+  louvain consensus5   s0: 0.346/0.462/0.910 (10 comm, 3.2 s)  s1: 0.346/0.463/0.908 (10 comm, 3.1 s)  s2: 0.346/0.467/0.919 (10 comm, 2.9 s)  | ARI mean 0.912
+  leiden modularity    s0: 0.348/0.463/0.892 (9 comm, 3.0 s)  s1: 0.347/0.462/0.916 (10 comm, 3.9 s)  s2: 0.347/0.467/0.923 (10 comm, 3.3 s)  | ARI mean 0.910

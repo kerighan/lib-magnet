@@ -73,7 +73,7 @@ PYBIND11_MODULE(_magnet, m) {
     m.def("smooth_knn", &smooth_knn, "UMAP smooth-kNN memberships (n, k) from sorted neighbour distances",
           py::arg("dist"), py::arg("n_neighbors"), py::arg("bandwidth") = 1.0f, py::arg("n_iter") = 64, py::arg("n_threads") = -1);
     m.def("louvain", &louvain, "Louvain communities of a symmetric weighted CSR graph (generalised modularity, resolution gamma)",
-          py::arg("indptr"), py::arg("indices"), py::arg("data"), py::arg("resolution") = 1.0f, py::arg("seed") = 0, py::arg("max_levels") = 20, py::arg("max_sweeps") = 50);
+          py::arg("indptr"), py::arg("indices"), py::arg("data"), py::arg("resolution") = 1.0f, py::arg("seed") = 0, py::arg("max_levels") = 20, py::arg("max_sweeps") = 50, py::arg("order_mode") = 0);
     m.def("bbox_2d", &bbox_2d, "Bounding box of a (n, 2) array", py::arg("Y"), py::arg("n_threads") = -1);
     m.def("umap_attraction", &umap_attraction, "exact UMAP attraction over a CSR graph",
           py::arg("indptr"), py::arg("indices"), py::arg("data"), py::arg("Y"), py::arg("a"), py::arg("b"), py::arg("n_threads") = -1);

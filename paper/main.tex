@@ -707,10 +707,11 @@ does not say why those searches plateaued.
 
 The step (\texttt{magnet/contraction.py}; \texttt{k31}--\texttt{k39}) uses no class labels during
 execution; its settings were chosen on the development data sets with the benchmark scores in view. The
-communities are those of the weighted modularity of the fuzzy graph at resolution 0.3 (Louvain in C++;
-Leiden \citep{traag2019leiden} gave the same end-to-end scores at five times the time): 10--11 on MNIST
-across the three-seed runs, ARI 0.89--0.92 against the labels (the 11-community runs split one class in
-two), 8--10 on Fashion-MNIST. \emph{Placement}:
+communities are those of the weighted modularity of the fuzzy graph at resolution 0.3 (Louvain in C++, the
+nodes visited by decreasing strength so that the partition is deterministic given the graph: with the usual
+random order one run in three on MNIST split a class in two, 11 communities and ARI 0.83 after the step
+instead of 0.92, and Leiden \citep{traag2019leiden} had the same instability at five times the time;
+\texttt{k42}): 10 on MNIST on every graph tried, ARI 0.92--0.93 against the labels, 9 on Fashion-MNIST. \emph{Placement}:
 each community containing at least 1\% of the points, largest first, is translated as a rigid body by the
 candidate (five radial scalings of its centroid offset, 0.7--1.6, and the eight steps of a square grid of
 side 0.15 RMS radius) that most raises the Spearman correlation between the input distances and the

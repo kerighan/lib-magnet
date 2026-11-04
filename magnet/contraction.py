@@ -24,23 +24,39 @@ def _igraph(P):
     return g
 
 
-def _leiden(g, resolution, seed=0, n_iterations=2):
+def _leiden(g, resolution, seed=0, n_iterations=2, objective="modularity"):
     import random
     random.seed(int(seed))   # igraph draws from Python's random module
-    part = g.community_leiden(objective_function="modularity", weights="weight", resolution=float(resolution),
+    part = g.community_leiden(objective_function=objective, weights="weight", resolution=float(resolution),
                               n_iterations=int(n_iterations))
     return np.asarray(part.membership, dtype=np.int32)
 
 
-def communities(P, resolution, seed=0, n_iterations=2, backend="louvain"):
+ORDERS = {"random": 0, "strength": 1, "strength_asc": 2, "index": 3}
+
+
+def communities(P, resolution, seed=0, n_iterations=2, backend="louvain", order="strength", consensus=1):
     """Communities of the symmetric weighted graph P for the generalised modularity at `resolution`: MAGNET's own
-    Louvain (C++, ~0.2 s on 70k nodes) or python-igraph's Leiden (backend="leiden", ~2 s with the conversion)."""
+    Louvain (C++, ~0.2 s on 70k nodes) or python-igraph's Leiden (backend="leiden", ~2 s with the conversion).
+    `order`: node visiting order of the Louvain local moving: "strength" (default; strength descending, ties by
+    index: deterministic, and on MNIST it finds the ten classes on every graph where the random order splits one
+    in some runs, k42), "random" (seeded), "strength_asc", "index". `consensus` > 1: run that many seeds and return
+    the medoid partition (highest mean ARI to the others); as robust as "strength" on MNIST at 6x the cost."""
     if backend == "leiden":
         return _leiden(_igraph(P), resolution, seed, n_iterations)
     from _magnet import louvain
     P = sp.csr_matrix(P, dtype=np.float32)
     P.sort_indices()
-    return np.asarray(louvain(P.indptr.astype(np.int32), P.indices.astype(np.int32), P.data.astype(np.float32), float(resolution), int(seed)))
+    ip, ix, w = P.indptr.astype(np.int32), P.indices.astype(np.int32), P.data.astype(np.float32)
+    if consensus <= 1:
+        return np.asarray(louvain(ip, ix, w, float(resolution), int(seed), 20, 50, ORDERS[order]))
+    from sklearn.metrics import adjusted_rand_score
+    runs = [np.asarray(louvain(ip, ix, w, float(resolution), int(seed) + r, 20, 50, ORDERS[order])) for r in range(consensus)]
+    A = np.zeros((consensus, consensus))
+    for i in range(consensus):
+        for j in range(i + 1, consensus):
+            A[i, j] = A[j, i] = adjusted_rand_score(runs[i], runs[j])
+    return runs[int(np.argmax(A.sum(1)))]
 
 
 def contract(Y, labels, gain):
@@ -170,7 +186,7 @@ def place_communities(Y, labels, spearman, mixing=None, tol=0.002, sweeps=2, min
 
 def hierarchical_contraction(Y, P, X=None, metric="euclidean", resolution=0.3, separation=0.7, placement=True,
                              n_sample=500, n_mixing=5000, tol=0.002, sweeps=2, n_threads=8, random_state=0, exclude=None,
-                             backend="louvain", verbose=False):
+                             backend="louvain", order="strength", consensus=1, verbose=False):
     """Returns (Z, log). Communities of P (Leiden at `resolution`); (1) placement: rigid translations of the communities
     chosen by coordinate ascent of the Spearman correlation between input and layout distances on a sample of
     n_sample points (label-free; X required, skipped without it), with an overlap guard (mixing of n_mixing sample
@@ -182,7 +198,7 @@ def hierarchical_contraction(Y, P, X=None, metric="euclidean", resolution=0.3, s
     n = len(Y)
     rng = np.random.default_rng(random_state)
     pool_idx = np.arange(n) if exclude is None else np.setdiff1d(np.arange(n), np.asarray(exclude))
-    labels = communities(P, resolution, seed=random_state, backend=backend)
+    labels = communities(P, resolution, seed=random_state, backend=backend, order=order, consensus=consensus)
     k = int(labels.max()) + 1
     log = {"resolution": resolution, "communities": k, "labels": labels}
     Z = Y
