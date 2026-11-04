@@ -755,6 +755,42 @@ Downstream (the step on the three cached MNIST full-batch layouts): random 0.346
 `communities()` / `hierarchical_contraction()` / `MAGNET(contraction=...)` since: deterministic, best worst case,
 no cost; `order="random"`, `consensus=k` and `backend="leiden"` remain available. The modularity does not single out
 the splitting runs (Q 0.9313 for the 11-community run against 0.9305-0.9313), so a max-Q restart would not do it.
+Label propagation (igraph, weighted, 5 seeds) is not an option on these graphs: 1300-3600 communities (5-10 above
+1 % of the points), label ARI 0.49 +- 0.08 on MNIST and 0.16 on Fashion, stability 0.36-0.41, 16-24 s per run.
+Resolution, downstream on the three MNIST layouts (strength order): 0.15-0.25 give 8-9 communities and composite
+0.971-0.972, 0.3 gives 10 and 0.981, 0.4-0.5 split a class (11; 0.948-0.954), 0.7 0.974; Fashion peaks at 0.15-0.25
+(0.889-0.893 against 0.883 at 0.3): the optimum is where the count matches the k-means k, which no label-free rule
+gives; the merge of 6.16 removes the dependence.
+
+### 6.16 Why modularity fails on kNN graphs, and a density-contrast merge (`k43_interface_merge.py`)
+
+Maixent's remark: a graph has no notion of "in the community but geometrically far", so the modularity's model of a
+community is wrong for a kNN graph. Made precise: on a kNN graph every node has about the same strength (MNIST:
+mean 6.6, cv 0.33), so the configuration null model gamma k_i k_j / 2m is nearly a constant and the modularity is the
+internal weight minus a penalty in (community size)^2; it coincides with CPM at gamma' = gamma kbar^2 / 2m (checked:
+CPM at 3e-5 gives 10-11 communities and ARI 0.90-0.935 with the same instability as the modularity at 0.3; the CPM
+scan of 6.15 at 2e-4..2e-3 was 7-70x too high, hence its hundreds of communities). Two known consequences follow:
+a large geometric community is split because its internal cuts are thin (a bisection of a uniform cloud of n_c
+points cuts ~ n_c^(1-1/d) edges while the penalty saved grows as n_c^2: the field-of-view limit, Schaub, Delvenne,
+Yaliraki, Barahona 2012), and a small one is swallowed because a handful of boundary edges outweighs its tiny
+size product (the resolution limit, Fortunato & Barthelemy 2007). Neither can be fixed by the resolution alone
+(6.15: 0.2 merges classes, 0.5 splits them). What distinguishes an artificial cut from a real boundary is the
+density across it: the boundary nodes of A towards B (nodes of A with an edge into B) send on average a share
+f_AB of their strength into B; across a cut through a uniform cloud both shares are large and symmetric (MNIST
+same-class splits: 0.137-0.159 on both sides, at every size and resolution), across a density dip at least one side
+reaches little (true class boundaries: min(f_AB, f_BA) <= 0.09, the dense side 0.04-0.06). `interface_merge(P,
+labels, tau=0.11)`: Louvain at a high resolution (no swallowing), then merge the interface with the largest
+min(f_AB, f_BA) while it is >= tau. Results: MNIST, three graphs, resolution 0.5 or 1.0 (11-14 communities before)
+-> 10 after, label ARI 0.922-0.926, for every tau in 0.10-0.12 (0.08 merges true boundaries, 0.14 misses splits;
+resolution 1.5 over-splits beyond repair); Fashion (classes are not clusters: the interfaces between touching
+classes are symmetric too) 13 -> 6 at r=0.5, 20 -> 12 at r=1.0; letter and covertype: near no-op (69 -> 68, 62 -> 61:
+their many small communities have asymmetric interfaces, i.e. the merge is size-free, as intended). Downstream
+through the post-process on the cached full-batch layouts (composite against the frozen references): MNIST 0.981
+-> 0.982 (10 communities on every layout), Fashion 0.883 -> 0.891 (ARI 0.430 -> 0.444), letter 0.851 -> 0.847,
+covertype 0.832 -> 0.843 (Spearman 0.530 -> 0.543); step time 1.2-3.3 s. Default since: resolution 0.5 +
+`merge_tau=0.11` (`merge_tau=None` restores the plain Louvain). tau was read off the MNIST interface statistics
+with the benchmark in view (the gap 0.09-0.137); it is a density-contrast threshold, not a size, and the same
+value held on the other three graphs.
 
 ## Scripts (`benchmarks/theory/`)
 

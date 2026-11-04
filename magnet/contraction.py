@@ -59,6 +59,39 @@ def communities(P, resolution, seed=0, n_iterations=2, backend="louvain", order=
     return runs[int(np.argmax(A.sum(1)))]
 
 
+def interface_merge(P, labels, tau=0.11, min_boundary=20):
+    """Merge adjacent communities whose interface shows no density contrast (k43). The boundary nodes of A towards B
+    (nodes of A with an edge into B) send on average a share f_AB of their strength into B. A cut through a cloud
+    of uniform density is symmetric and both shares are large (0.14-0.16 on MNIST's graph, whatever the size);
+    a true cluster boundary is a density dip and at least one side reaches little across (0.04-0.09). Modularity
+    cannot see the difference: on a kNN graph every node has about the same strength, so its null model is a
+    size^2 penalty that splits large geometric communities (the field-of-view limit) and swallows small ones (the
+    resolution limit). Louvain at a high resolution avoids the second, this merge undoes the first. Pairs are
+    merged greedily, largest min(f_AB, f_BA) first, while it is >= tau; interfaces with fewer than `min_boundary`
+    boundary nodes on the first side are ignored."""
+    labels = labels.copy(); n = P.shape[0]
+    strength = np.asarray(P.sum(1)).ravel(); strength[strength == 0] = 1.0
+    while True:
+        k = int(labels.max()) + 1
+        C = sp.csr_matrix((np.ones(n, dtype=np.float32), (np.arange(n), labels)), shape=(n, k))
+        W = np.asarray((P @ C).todense()); frac = W / strength[:, None]
+        best = None
+        for a in range(k):
+            ma = labels == a
+            for b in range(a + 1, k):
+                ia = ma & (W[:, b] > 0)
+                if ia.sum() < min_boundary:
+                    continue
+                ib = (labels == b) & (W[:, a] > 0)
+                f = min(frac[ia, b].mean(), frac[ib, a].mean())
+                if f >= tau and (best is None or f > best[0]):
+                    best = (f, a, b)
+        if best is None:
+            return labels
+        labels[labels == best[2]] = best[1]
+        labels = np.unique(labels, return_inverse=True)[1].astype(np.int32)
+
+
 def contract(Y, labels, gain):
     """Rigid contraction of every community towards its centroid: Z = mu_c + gain (Y - mu_c)."""
     if gain == 1.0:
@@ -184,9 +217,9 @@ def place_communities(Y, labels, spearman, mixing=None, tol=0.002, sweeps=2, min
     return Y, log
 
 
-def hierarchical_contraction(Y, P, X=None, metric="euclidean", resolution=0.3, separation=0.7, placement=True,
+def hierarchical_contraction(Y, P, X=None, metric="euclidean", resolution=0.5, separation=0.7, placement=True,
                              n_sample=500, n_mixing=5000, tol=0.002, sweeps=2, n_threads=8, random_state=0, exclude=None,
-                             backend="louvain", order="strength", consensus=1, verbose=False):
+                             backend="louvain", order="strength", consensus=1, merge_tau=0.11, verbose=False):
     """Returns (Z, log). Communities of P (Leiden at `resolution`); (1) placement: rigid translations of the communities
     chosen by coordinate ascent of the Spearman correlation between input and layout distances on a sample of
     n_sample points (label-free; X required, skipped without it), with an overlap guard (mixing of n_mixing sample
@@ -199,6 +232,8 @@ def hierarchical_contraction(Y, P, X=None, metric="euclidean", resolution=0.3, s
     rng = np.random.default_rng(random_state)
     pool_idx = np.arange(n) if exclude is None else np.setdiff1d(np.arange(n), np.asarray(exclude))
     labels = communities(P, resolution, seed=random_state, backend=backend, order=order, consensus=consensus)
+    if merge_tau is not None:
+        labels = interface_merge(P, labels, tau=float(merge_tau))
     k = int(labels.max()) + 1
     log = {"resolution": resolution, "communities": k, "labels": labels}
     Z = Y

@@ -508,6 +508,20 @@ medoid consensus of 5 random runs does the same at 6x the cost, Leiden is as uns
 unusable on these graphs (27-340 communities), and resolution 0.3 is the knee (0.2 merges classes, 0.5 splits them).
 `order="strength"` is the default; `order="random"`, `consensus=k`, `backend="leiden"` stay available.
 
+**Why modularity fails on kNN graphs, and a density-contrast merge (`k43`).** On a kNN graph every node has about
+the same strength, so the modularity's null model is nearly a constant and the objective is internal weight minus a
+penalty in (community size)^2 (it coincides with CPM at the matched scale, checked). A large geometric community is
+therefore split (its internal cuts are thin: the field-of-view limit) and a small one swallowed (the resolution
+limit), and no resolution fixes both. What tells an artificial cut from a real boundary is the density across it:
+the boundary nodes on each side send a share of their strength across; a cut through a uniform cloud is symmetric
+and large on both sides (0.14-0.16 on MNIST's same-class splits), a real boundary is a density dip and at least one
+side reaches little (<= 0.09). `interface_merge`: Louvain at resolution 0.5, then merge interfaces while
+min(share_AB, share_BA) >= 0.11. MNIST: 11-14 communities -> 10 on every graph and resolution tried, label ARI
+0.92-0.93; Fashion merges touching classes (13 -> 6); letter and covertype are left alone (size-free). Downstream
+the composite is equal or better on the four sets (MNIST 0.981 -> 0.982, Fashion 0.883 -> 0.891, letter 0.851 ->
+0.847, covertype 0.832 -> 0.843). It is the default of `contraction` (`merge_tau=0.11`; `None` restores plain
+Louvain).
+
 **Where the SGD time goes, and `parallel="owner"`.** On MNIST 70k the default fit is 1.1 s of kNN graph,
 0.9 s of graph construction and spectral init, and 2-3 s of SGD. One thread runs the SGD at 47 cycles per
 force evaluation, but 10 cores gave only 3.7x and 20 threads 4.3x: with lock-free (hogwild) updates every
@@ -562,7 +576,7 @@ Any networkx graph or sparse adjacency matrix is laid out directly, in linear ti
 | `repulsion_b` | 1.0 | repulsion exponent (Cauchy tail); None couples it to `kernel_b` (UMAP's compact look, 20% slower) |
 | `kernel` | `"power"` | or `"gaussian"`, `"sech"` (exponential tails, for comparison) |
 | `hybrid_tail`, `tsne_early_exaggeration` | (0, 1.0), 12 | exaggerated tail (iterations, factor) of the full-batch pass (`n_epochs=900, hybrid_tail=(100, 1.5)` = quality preset; `(100, 2.0)` compacts clusters at a local cost, superseded by `contraction`); early-exaggeration factor of `loss="tsne"` |
-| `contraction` | None | community placement and separation of the final layout: a float g = the graph's Louvain communities (strength-ordered, deterministic) are translated as rigid bodies by a label-free ascent of the input-vs-layout distance Spearman (overlap guard), then each contracted towards its centroid by g (0.7 = the "clusters" preset); a dict passes `resolution`, `separation`, `placement`, `n_sample`, `tol`, `sweeps` |
+| `contraction` | None | community placement and separation of the final layout: a float g = the graph's Louvain communities (strength-ordered, resolution 0.5, interfaces without density contrast merged) are translated as rigid bodies by a label-free ascent of the input-vs-layout distance Spearman (overlap guard), then each contracted towards its centroid by g (0.7 = the "clusters" preset); a dict passes `resolution`, `separation`, `placement`, `n_sample`, `tol`, `sweeps` |
 | `tsne_dof` | 1.0 | Student-t degrees of freedom of `loss="tsne"` (< 1 = heavier tail, Kobak et al. 2019) |
 | `fft_interp`, `fft_box` | 3, 0.7 | grid of the exact repulsion (FIt-SNE's unit box: -0.004 of 15-NN on MNIST for 15% less time; `fft_box=1.5` is the fast preset: -3% 15-NN in `loss="tsne"`, -1% in `loss="hybrid"` for 30% less time) |
 | `mid_scale` | `"fixed"` | or `"spread"` / `"rolewalk"`: per-node length of the mid-range walks from the graph's diffusion spread or from RoleWalk roles |

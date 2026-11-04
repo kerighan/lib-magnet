@@ -120,13 +120,16 @@ class MAGNET:
         and 0.02 of distance Spearman for cluster recovery (HDBSCAN ARI 0.10 -> 0.76, k-means ARI 0.62 ->
         0.71; benchmarks/theory/k28_exaggeration_tail.py).
     contraction : community placement and contraction of the final layout (magnet/contraction.py). None (default):
-        off. A float g in (0, 1]: the communities of the fuzzy graph (Leiden, resolution 0.3) are first translated as
+        off. A float g in (0, 1]: the communities of the fuzzy graph (Louvain visited by decreasing strength, so
+        deterministic, at resolution 0.5, then the interfaces without density contrast merged: a cut through a
+        uniform cloud sends >= 0.11 of its boundary nodes' strength across on both sides, a true cluster boundary
+        does not; k42-k43) are first translated as
         rigid bodies by a label-free coordinate ascent of the distance Spearman between the input and the layout on
         a 500-point sample (overlap guard: communities may not mix), then each contracted rigidly towards its
         centroid by g ("separation" dial: 0.7 = compact clusters). A similarity within a community keeps the
         neighbourhoods: MNIST 70k full-batch 15-NN 0.348 -> 0.346, Spearman 0.342 -> 0.46, k-means ARI 0.80 ->
         0.90 at g=0.7, 3 s (benchmarks/theory/k30-k38). A dict passes the arguments of hierarchical_contraction
-        (resolution, separation, placement, n_sample, tol, sweeps; backend="leiden" needs python-igraph).
+        (resolution, separation, placement, n_sample, tol, sweeps, order, consensus, merge_tau; backend="leiden" needs python-igraph).
     tsne_init_scale, tsne_learning_rate, tsne_far, tsne_mid : research knobs of the exact mode (warm start
         scale and learning rate, constant far-field repulsion, bounded mid-range springs; docs/kernel_exponents.md).
     tsne_dof : degrees of freedom of the Student-t kernel of loss="tsne" (1 = Cauchy, the t-SNE kernel;
