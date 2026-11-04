@@ -35,7 +35,7 @@ for ax, (ds, title) in zip(axes, DS):
         ax.errorbar(q[0], i, xerr=q[1], fmt="D", color=C["post"], ms=4, capsize=2, lw=1, zorder=3)
     ax.set_yticks(y); ax.set_yticklabels([LABEL.get(r[0], r[0]) for r in rows], fontsize=7.5)
     d = np.array([res[f"{ds}/MAGNET hybrid/{s}"]["post"]["geo"] - res[f"{ds}/sklearn t-SNE (BH)/{s}"]["post"]["geo"] for s in range(5) if f"{ds}/MAGNET hybrid/{s}" in res and f"{ds}/sklearn t-SNE (BH)/{s}" in res])
-    if len(d): ax.set_xlabel(f"geometric composite (frozen references)\nsequence minus Barnes-Hut, both post-processed: {d.mean():+.3f} +- {d.std(ddof=1):.3f} (sd, {len(d)} paired runs)", fontsize=7.5)
+    if len(d): ax.set_xlabel(f"geometric composite, frozen references\nsequence $-$ Barnes-Hut after the step: {d.mean():+.3f} $\\pm$ {d.std(ddof=1):.3f}", fontsize=7.5)
     ax.set_title(title, loc="left", fontsize=9); ax.grid(axis="y", visible=False)
 axes[0].plot([], [], "o", color=C["magnet"], label="MAGNET, as shipped"); axes[0].plot([], [], "o", color=C["other"], label="comparator, as shipped"); axes[0].plot([], [], "D", color=C["post"], label="+ the same post-process")
 fig.legend(loc="lower center", ncol=3, fontsize=8, bbox_to_anchor=(0.5, -0.01))
