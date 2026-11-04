@@ -8,11 +8,17 @@ matplotlib.use("Agg"); import matplotlib.pyplot as plt
 from datasets import mnist, fmnist
 from metrics import evaluate
 from magnet import MAGNET
-fig, axes = plt.subplots(2, 3, figsize=(9.6, 6.6))
+fig, axes = plt.subplots(2, 4, figsize=(12.4, 6.6))
 for row, (ds, loader, name) in enumerate((("mnist", mnist, "MNIST"), ("fmnist", fmnist, "Fashion-MNIST"))):
     X, y, key = loader(70000); y = np.asarray(y).astype(int); n = len(y); show = np.random.default_rng(0).choice(n, 20000, replace=False)
+    import scipy.sparse as sp
+    from metrics import _idx
+    from magnet.contraction import hierarchical_contraction
+    bh = np.load(os.path.join(ROOT, "benchmarks", "cache", "layouts", f"{ds}_sklearn_t-SNE_BH.npz"))["Y"].astype(np.float32)
+    P = sp.load_npz(os.path.join(ROOT, "benchmarks", "cache", f"P_{ds}.npz")); excl = np.unique(np.concatenate([_idx(n, 2000, 1), _idx(n, 5000, 0), _idx(n, 10000, 2)]))
+    bh_post, _ = hierarchical_contraction(bh, P, X=X, random_state=0, exclude=excl, n_threads=8)
     cols = [("UMAP", np.load(os.path.join(ROOT, "paper", "figures", "cache", f"{ds}_umap0512.npz"))["Y"], None),
-            ("Barnes-Hut t-SNE", np.load(os.path.join(ROOT, "benchmarks", "cache", "layouts", f"{ds}_sklearn_t-SNE_BH.npz"))["Y"], None)]
+            ("Barnes-Hut t-SNE", bh, None), ("Barnes-Hut + our post-process", bh_post, None)]
     t = time.time(); Y = MAGNET(loss="hybrid", contraction=0.7, random_state=0, n_threads=8).fit_transform(X); dt = time.time() - t
     cols.append(("MAGNET complete", Y, dt))
     for col, (label, lay, dt) in enumerate(cols):

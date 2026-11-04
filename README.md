@@ -11,7 +11,9 @@ repulsion is estimated.
 objectives: a sampled SGD pass with a decoupled, heavy-tailed attraction places the clusters, a full-batch FFT
 pass with t-SNE's objective refines the neighbourhoods, and an optional label-free post-process moves the
 communities of the graph to raise the agreement of pairwise distances (`contraction=0.7`). MNIST 70k: the
-full-batch pass reaches Barnes-Hut t-SNE's neighbourhood preservation (0.349 against 0.350) in 6 s against 186;
+full-batch pass reaches Barnes-Hut t-SNE's neighbourhood preservation (0.349 against 0.350) in 4.9 s against 175
+(interleaved timings on a quiet 20-thread machine, `benchmarks/timing.py`: sampled pass 3.6 s, sequence 7.3, with
+the post-process 9.0; UMAP 8.5, PaCMAP 31, openTSNE 93);
 the sequence has the highest 15-NN and the highest pairwise Spearman of the neighbour embeddings tested
 (0.353 / 0.446 over five seeds); with the post-process given to every method of a twelve-method panel on five
 seeds, the sequence keeps the best composite balance of local, global and cluster structure on three data sets

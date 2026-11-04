@@ -33,7 +33,7 @@ stochastic pass with decoupled attraction and repulsion kernels and a transient 
 clusters, 300 iterations of a full-batch, FFT-interpolated $t$-SNE objective on the same fuzzy graph refine the
 neighbourhoods, and an optional post-process, label-free in execution, translates and contracts the graph's
 communities to optimise a sampled distance-rank correlation under an overlap guard. On MNIST 70k the standalone
-full-batch mode obtains a \knn{} overlap of 0.349 against 0.350 for Barnes--Hut $t$-SNE in 4.9~s against 181
+full-batch mode obtains a \knn{} overlap of 0.349 against 0.350 for Barnes--Hut $t$-SNE in 4.9~s against 175
 (interleaved timings on a quiet 20-thread machine), and the unprocessed sequence has a higher mean pairwise
 Spearman than UMAP, PaCMAP, openTSNE and Barnes--Hut $t$-SNE on MNIST and Fashion-MNIST at a similar \knn{}. In a
 matched control in which every method of a twelve-configuration panel receives the identical post-process on five
@@ -72,7 +72,7 @@ community-merge heuristic are reported as design decisions with their evidence, 
 \centering\includegraphics[width=\textwidth]{fig_method.png}
 \caption{The recipe. One fuzzy graph feeds a sampled pass (the arrangement), a full-batch pass (the
 neighbourhoods) and an optional post-process that applies to any layout; the matched control of
-Sec.~\ref{sec:results} gives it to every method. Times are for MNIST 70k on a quiet 20-thread machine.}
+Sec.~\ref{sec:results} gives it to every method. Times are for MNIST 70k on a quiet 20-thread machine (sampled pass 3.6~s, full-batch pass 3.7~s more, post-process 1.7~s).}
 \label{fig:method}
 \end{figure*}
 
@@ -89,7 +89,7 @@ $b$. Sweeping $b$ with the repulsion fixed, \knn{} overlap peaks at $b = 0.5$--$
 and three target dimensions (companion report, Sec.~5); the heavy-tailed $t$-SNE kernels of \citet{kobak2019heavy}
 change both kernels and are a different operation. Second, a transient mid-range attraction on a sample of pairs
 at intermediate input distance: this term, not the exponent, supplies the first pass's global advantage; without
-it the sampled layout's Spearman falls below openTSNE's (companion report, Sec.~3). The pass takes 3.4~s on MNIST
+it the sampled layout's Spearman falls below openTSNE's (companion report, Sec.~3). The pass takes 3.6~s on MNIST
 70k.
 
 \paragraph{The exponent depends on the sample size.} The heavy tail that maximises \knn{} overlap at 70k
@@ -270,8 +270,10 @@ from below 0.0005 to 0.059 (TriMap on letter after the step); the companion repo
 \input{tables/control_geo.tex}
 \end{table*}
 
-\paragraph{Time} (Table~\ref{tab:time}). On MNIST 70k the standalone full-batch mode takes 4.9~s and the sequence
-7.4~s, 8.9~s with the post-process; UMAP 8.6, PaCMAP 31, openTSNE 95, Barnes--Hut $t$-SNE 181. The ratios are those
+\paragraph{Time} (Table~\ref{tab:time}). On MNIST 70k the sampled pass takes 3.6~s, the standalone full-batch mode
+4.9~s and the sequence 7.3~s, 9.0~s with the post-process; UMAP 8.5, PaCMAP 31, openTSNE 93, Barnes--Hut $t$-SNE
+175 (Fashion-MNIST: 3.7 / 4.9 / 6.7 / 7.5 against 8.4 / 30 / 85 / 174). The ranges over the three interleaved rounds
+are within 5\% except Barnes--Hut's (156--184). The ratios are those
 of the shipped defaults of each library on this machine; the companion report audits openTSNE phase by phase
 (24~s of affinities, 0.15~s per iteration).
 

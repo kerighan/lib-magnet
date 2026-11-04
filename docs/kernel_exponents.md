@@ -744,7 +744,10 @@ per iteration, M 840 -> 1200). The box count is rounded up to a multiple of 4 (s
 instead of 120 times on MNIST), the kernel spectra are stored real (even kernels; products 1.5 -> 1.3 ms).
 Timing of the re-measured tables: a training job shared the machine; the SGD row (code unchanged) went
 from 3.6 to 4.5 s on the seeds table and UMAP control runs took 9.8-11.8 s against 8.4 idle. Full-batch
-6.2 +- 0.7 s, hybrid 8.4 +- 0.2 s on MNIST (8.2 / 10.9 idle before the round).
+6.2 +- 0.7 s, hybrid 8.4 +- 0.2 s on MNIST (8.2 / 10.9 idle before the round). Quiet-machine suite later that day
+(`benchmarks/timing.py`, load 1.5 before, fits only, interleaved x 3, graph included): MNIST sampled 3.6 (3.4-3.7),
+full-batch 4.9, sequence 7.3, + post 9.0, UMAP 8.5, PaCMAP 31.0, openTSNE 93.3, BH 175.3 (170.8-181.2); Fashion
+3.7 / 4.9 / 6.7 / 7.5 / 8.4 / 30.3 / 84.5 / 173.8. These are the reference timings now.
 
 ### 6.15 A deterministic Louvain for the post-process (`k42_community_stability.py`)
 

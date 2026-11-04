@@ -1157,7 +1157,11 @@ finer grid matters over the whole post-exaggeration phase, not only its end. It 
 \magnet{} rows of Tables~\ref{tab:mnist}--\ref{tab:seeds}, \ref{tab:placement} and
 \ref{tab:composite_geo}--\ref{tab:composite_min} were run with it (a training job shared the machine:
 the SGD row, whose code did not change, went from 3.6 to 4.5~s on MNIST). On that machine the full-batch mode
-runs MNIST 70k in 6.2~s (8.2 idle before the pass), the sequence in 8.4~s (10.9). The other tables
+runs MNIST 70k in 6.2~s (8.2 idle before the pass), the sequence in 8.4~s (10.9). A later interleaved timing suite
+on the quiet machine (\texttt{benchmarks/timing.py}: fits only, all threads, numba warm-up, eight configurations
+repeated three times, graph construction included) gives on MNIST 70k: sampled pass 3.6~s, full-batch mode 4.9,
+sequence 7.3, sequence with the post-process 9.0, UMAP 8.5, PaCMAP 31, openTSNE 93, Barnes--Hut $t$-SNE 175
+(Fashion-MNIST 3.7 / 4.9 / 6.7 / 7.5 / 8.4 / 30 / 85 / 174); those are the timings the short paper quotes. The other tables
 (Tables~\ref{tab:staged_seeds}, \ref{tab:transfer}, \ref{tab:kscale}, \ref{tab:strata}) and the figures other
 than Figs.~\ref{fig:layouts} and \ref{fig:layouts_fmnist} keep their unit-box runs; the change is within
 0.004 of 15-NN on the real data sets.
