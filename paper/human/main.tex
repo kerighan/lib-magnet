@@ -404,5 +404,18 @@ Spearman is unknown. Two constraints that hold the coarse geometry through 1000 
 (frozen Laplacian coordinates, a coarse rest-length scaffold) are in the long version's Appendix~C.
 
 \section{All \magnet{} configurations}\label{app:configs}
-[TO FILL: the seven configurations with raw axes, both composites against the frozen references, and time.]
+Table~\ref{tab:configs} gives every \magnet{} configuration on the four data sets: the three modes as shipped
+and with the post-process (five end-to-end seeds, the control runs of Sec.~\ref{sec:results}; raw axes, both
+composites against the frozen references, time including the post-process on the shared machine) and the
+quality preset of the full-batch mode (900 iterations and a tail of 100 at exaggeration 1.5; single runs). The
+configuration recommended by default is the sequence (\texttt{loss="hybrid"}); the full-batch mode is the choice
+when a deterministic $k$-means-friendly layout matters more than the arrangement, the sampled mode when time does.
+\begin{table*}[t]
+\centering\footnotesize
+\caption{All \magnet{} configurations. ARI is reported on every set but enters the composites only on MNIST and
+Fashion-MNIST.}
+\label{tab:configs}
+\setlength{\tabcolsep}{4pt}
+\input{tables/configs.tex}
+\end{table*}
 \end{document}

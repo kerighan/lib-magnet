@@ -7,6 +7,19 @@ and t-SNE do: a neighbour graph pulls close points together, everything else pus
 rebuilds that pipeline from scratch in C++ and makes the one choice that matters explicit: how the
 repulsion is estimated.
 
+**In short.** Local fidelity and global arrangement pull apart, so MAGNET does them in two passes with two
+objectives: a sampled SGD pass with a decoupled, heavy-tailed attraction places the clusters, a full-batch FFT
+pass with t-SNE's objective refines the neighbourhoods, and an optional label-free post-process moves the
+communities of the graph to raise the agreement of pairwise distances (`contraction=0.7`). MNIST 70k: the
+full-batch pass reaches Barnes-Hut t-SNE's neighbourhood preservation (0.349 against 0.350) in 6 s against 186;
+the sequence has the highest 15-NN and the highest pairwise Spearman of the neighbour embeddings tested
+(0.353 / 0.446 over five seeds); with the post-process given to every method of a twelve-method panel on five
+seeds, the sequence keeps the best composite balance of local, global and cluster structure on three data sets
+of four (on MNIST the post-processed t-SNE layouts converge). Two papers: the exhaustive document
+(`paper/main.tex`, every experiment and negative result) and the short one (`paper/human/main.tex`).
+
+![The complete pipeline next to UMAP and Barnes-Hut t-SNE](benchmarks/plots/pipeline_mnist_fmnist.png)
+
 * `loss="umap"` (default): negative sampling, lock-free multithreaded SGD. **MNIST 70k in 4.1 s**
   against 11 s for UMAP 0.5.12, 15-NN preservation 0.19 against 0.12 and a distance correlation of 0.41
   against 0.30: the highest pairwise distance Spearman among the unstaged neighbour embeddings benchmarked (PCA stays ahead).
