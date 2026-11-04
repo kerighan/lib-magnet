@@ -40,8 +40,10 @@ $k \ge 50$, the stiff attraction makes the class-centroid geometry of MNIST the 
 among the methods with centroid measurements, before the post-process below PCA stays ahead of every neighbour embedding on pairwise Spearman on the real data sets,
 on 20 newsgroups the sequence trails six methods including our own full-batch mode, and on cluster
 recovery (ARI of $k$-means and HDBSCAN on the layout) the hybrid is last among the neighbour embeddings
-while PaCMAP and UMAP are first; the row that is good on all three axes is the standalone full-batch
-mode, first or second on a composite of the three in 8~s against 94 for openTSNE. An optional
+while PaCMAP and UMAP are first; on a composite of the three against frozen references the hybrid has the best four-set mean of the panel
+as shipped (0.85 against 0.80 for Barnes--Hut $t$-SNE) and with the same post-process given to every method
+(0.91 against 0.88), a margin that holds on three data sets of four and vanishes on MNIST, where the
+post-processed $t$-SNE layouts converge. An optional
 post-process, label-free in execution, translates the communities of the fuzzy graph to raise a sampled
 distance Spearman under an overlap guard, then contracts each about its centroid: across three MNIST seeds
 the full-batch means go from 15-NN / Spearman / ARI 0.349 / 0.350 / 0.761 to 0.347 / 0.469 / 0.914 (run
@@ -758,12 +760,25 @@ lowers it by 0.03, the ARI goes from $0.340 \pm 0.008$ to $0.441 \pm 0.004$ (Bar
 0.634 to 0.644), triplet accuracy falls by 0.01 and the centroid Spearman rises from 0.89 to 0.92. On letter,
 whose classes are not clusters, 15-NN and Spearman stay within 0.01; on covertype 20k the placement lifts the
 full-batch Spearman from 0.386 to 0.545 at a 15-NN cost of 0.002, and at 250k (138 communities) from 0.343 to
-0.402 at a cost of 0.013, in 6~s after a 25~s layout. The three post-processed \magnet{} rows have the highest
-mean composites of Tables~\ref{tab:composite_geo} and \ref{tab:composite_min}; since the competitors are
-not post-processed there, these ranks describe the configurations tabulated and are not a method
-comparison, and the references of those tables move when the new rows enter the panel (the post-processed
-hybrid's MNIST Spearman, 0.48, and the full-batch's 0.46 approach PCA-2's 0.49), so their values are not comparable with the frozen-reference
-composites above. What did not work (\texttt{k31}--\texttt{k36}): refining with the KL after the step
+0.402 at a cost of 0.013, in 6~s after a 25~s layout. \paragraph{The matched control.} Comparing a post-processed configuration with competitors that are not
+post-processed describes the configurations tabulated, not the methods. Tables~\ref{tab:composite_geo} and
+\ref{tab:composite_min} (\texttt{k41}) therefore run every configuration of the panel end to end on five seeds and
+give each the identical step (the graph and communities of that replicate, the same search sample with the
+evaluation points excluded, every setting frozen), with the composites computed per run against the frozen
+references of the unprocessed calibration panel (MNIST 0.356 / 0.488 / 0.914, Fashion-MNIST 0.330 / 0.873 /
+0.483, letter 0.642 / 0.716, covertype 0.632 / 0.755; ratios, not shares, may exceed one). As shipped, the hybrid
+has the best four-set mean (0.854 geometric; Barnes--Hut 0.799, openTSNE 0.749, UMAP and PaCMAP 0.58). With the
+same step, it stays first (0.907 against 0.883 for Barnes--Hut, 0.879 for our full-batch mode, 0.854 for
+openTSNE, 0.68 for UMAP and PaCMAP; minimum composite 0.826 against 0.779), but the paired difference against
+the post-processed Barnes--Hut layout is $0.023 \pm 0.047$ over the 20 runs and changes sign across data sets: on
+MNIST the three post-processed $t$-SNE layouts converge (0.971--0.976; the Barnes--Hut one is $0.046 \pm 0.022$
+ahead of the hybrid, whose $k$-means ARI is the unstable axis, $0.73 \pm 0.08$ with the step), on Fashion-MNIST,
+letter and covertype the hybrid keeps $0.020 \pm 0.015$, $0.071 \pm 0.003$ and $0.047 \pm 0.013$. The embedding
+stages contribute beyond the post-process where the global axis weighs (the arrangement the first pass provides
+and the placement does not invent); on MNIST the post-process is the result and the strong local embeddings are
+interchangeable under it. UMAP, PaCMAP, TriMap and densMAP stay far below with the step (0.54--0.68): their weak
+axis is 15-NN, which rigid motions of communities do not change. The step lifts every configuration except where
+its communities do not match the data (TriMap on letter, $-0.10$); it costs 1--4~s. What did not work (\texttt{k31}--\texttt{k36}): refining with the KL after the step
 undoes it (30 iterations: 15-NN 0.35 to 0.25); the contraction as a diffusion filter $z = g\,y + (1 -
 g)\,\hat P^t y$ is not a similarity within a community and loses 15-NN at every $t$; soft borders through
 one step of the graph lose 0.05 of 15-NN; the placement without the guard overlaps the bodies (15-NN 0.35
@@ -788,8 +803,8 @@ open visual gaps at community boundaries of connected data without removing any 
 \begin{table}[t]
 \centering\small
 \caption{Component ablation of the post-process (\texttt{k39}): three seeds of the full-batch layout and
-three community-detection / search seeds on the Barnes--Hut $t$-SNE layout; communities from \magnet{}'s graph,
-resolution 0.3, $g = 0.7$; the search sample excludes the benchmark's evaluation points; mean $\pm$ run
+three community-detection / search seeds on the Barnes--Hut $t$-SNE layout; communities from \magnet{}'s graph
+(strength-ordered Louvain at resolution 0.5, density-contrast merge at 0.10), $g = 0.7$; the search sample excludes the benchmark's evaluation points; mean $\pm$ run
 standard deviation. Spearman is the metric the placement fits, on an independent sample; triplet accuracy
 and class-centroid Spearman are not fitted.}
 \label{tab:placement}
@@ -807,18 +822,20 @@ widens the gaps at the graph-community boundaries, on Fashion-MNIST through conn
 
 \begin{table}[t]
 \centering\small
-\caption{Method $\times$ data set composite, geometric mean of the shares of the panel's best on 15-NN,
-Spearman and $k$-means ARI (two axes on letter and covertype, whose classes are not clusters;
-\texttt{composite\_table.py}, single runs).}
+\caption{The matched post-process control (\texttt{k41}): geometric mean of the ratios to the frozen unprocessed
+references on 15-NN, Spearman and $k$-means ARI (two axes on letter and covertype, whose classes are not
+clusters), computed per run and averaged over five end-to-end seeds, for every configuration as shipped (plain)
+and with the identical post-process (+ post); last column, the four-set mean of the post-processed values. Run
+standard deviations are 0.000--0.03 (0.08 for the hybrid's MNIST minimum); the paired differences are in the text.}
 \label{tab:composite_geo}
-\input{tables/composite_geo.tex}
+\resizebox{\textwidth}{!}{\input{tables/control_geo.tex}}
 \end{table}
 
 \begin{table}[t]
 \centering\small
-\caption{Same as Table~\ref{tab:composite_geo} with the minimum of the shares.}
+\caption{Same as Table~\ref{tab:composite_geo} with the minimum of the ratios.}
 \label{tab:composite_min}
-\input{tables/composite_min.tex}
+\resizebox{\textwidth}{!}{\input{tables/control_min.tex}}
 \end{table}
 
 \subsection{Graphs}
@@ -910,7 +927,8 @@ transfer of Sec.~\ref{sec:transfer} concerns the staged procedure, not this step
 metrics rise on MNIST but triplet accuracy falls by 0.01 on Fashion-MNIST, and placement without the
 separation lowers the MNIST ARI. The hard partition can open visual
 gaps in connected data without removing graph edges; a higher ARI is not evidence of clusters in the
-input. Any layout can receive the step, so its rows in the composite tables are not a method comparison. The hybrid's
+input. Any layout can receive the step; the matched control gives it to every method, and on MNIST the strong local
+embeddings are then interchangeable. The hybrid's
 local advantage holds at $k = 15$, the scale of its graph, and not at $k = 5$ or $k \ge 50$; its 15-NN
 margin over openTSNE is what the pass adds to openTSNE's own layout. The shipped operating point is a
 compromise ($\kappa = 1.0$ and the scale-62 preset score higher on pairwise Spearman). The
@@ -928,10 +946,11 @@ refinement does the same to the tested neighbour-embedding starts, and openTSNE'
 nearly the same fidelity scores from the same affinities; the pairwise Spearman after it is predominantly inherited from the start, and in
 this pipeline adding the mid-range attraction is what supplies the start's advantage. The price is paid
 in class-centroid geometry, in cluster separability, and at neighbourhood sizes other than the graph's;
-on a composite of local, global and separability the all-round row is the standalone full-batch mode,
-level with openTSNE at a tenth of its time; on MNIST an optional metric-targeted post-process of the
-graph's communities raises that layout's Spearman and $k$-means ARI with a small 15-NN loss, to 94\% or
-more of each unprocessed-panel reference, and does the same to a Barnes--Hut $t$-SNE layout. With its settings frozen
+on a composite of local, global and separability against frozen references the hybrid has the best four-set
+mean of the panel, as shipped and with the same label-free post-process given to every method, except on MNIST
+where the post-processed $t$-SNE layouts converge; the post-process raises the full-batch layout's Spearman and
+$k$-means ARI with a 15-NN loss of 0.002, to 96\% or more of each unprocessed-panel reference, and does the same
+to a Barnes--Hut $t$-SNE layout. With its settings frozen
 the staged recipe transfers to held-out tabular and text data at 20k--250k points; the post-process has
 not been given that test. The implementation runs
 the whole sequence in 1.3 times the time of a UMAP layout.
@@ -1136,7 +1155,7 @@ ground. A box width of 0.7 (\texttt{k40}; 1.2\% RMS) is the knee: 15-NN 0.346 $\
 nothing, four or five interpolation points per box reach the same accuracy at a higher cost, and the
 finer grid matters over the whole post-exaggeration phase, not only its end. It is the default, and the
 \magnet{} rows of Tables~\ref{tab:mnist}--\ref{tab:seeds}, \ref{tab:placement} and
-\ref{tab:composite_geo}--\ref{tab:composite_min} were re-run with it (a training job shared the machine:
+\ref{tab:composite_geo}--\ref{tab:composite_min} were run with it (a training job shared the machine:
 the SGD row, whose code did not change, went from 3.6 to 4.5~s on MNIST). On that machine the full-batch mode
 runs MNIST 70k in 6.2~s (8.2 idle before the pass), the sequence in 8.4~s (10.9). The other tables
 (Tables~\ref{tab:staged_seeds}, \ref{tab:transfer}, \ref{tab:kscale}, \ref{tab:strata}) and the figures other
