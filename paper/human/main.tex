@@ -38,7 +38,7 @@ on the way: the attraction exponent that maximises local fidelity at 70k tears d
 micro-clusters and must follow the sample size; FIt-SNE's unit interpolation box leaves a 3.5\% force error that
 costs 0.004 of \knn{}; and on kNN graphs the modularity's null model is nearly a constant, which splits large
 geometric communities and swallows small ones, a failure that a density-contrast merge repairs with a threshold
-read off a uniform cloud. [RESULTS: to be completed after the matched control experiment.]
+read off a uniform cloud. With the same post-process applied to every method of a twelve-method panel on five seeds, the sequence keeps the best composite balance of the three axes on three data sets of four; on MNIST the post-processed $t$-SNE layouts converge.
 \end{abstract}
 
 \section{Introduction}
@@ -216,17 +216,123 @@ sends the zeros far from the other digits because that is their input distance (
 \end{figure*}
 
 \section{Results}\label{sec:results}
-[TO FILL after k41: setup (data sets, metrics, frozen references, seeds, timing conditions); the five-seed table
-of the decisive rows; the composite with one \magnet{} configuration in the main table and the rest in the
-appendix; the matched post-process control; transfer to held-out data; time; what the panels do not show.]
+\paragraph{Setup.} Four development data sets: MNIST and Fashion-MNIST (70k $\times$ 784), letter and covertype
+(20k; 16 and 54 features), plus 20 newsgroups and Gaussian blobs in the long version's main tables and five held-out
+cases for the transfer study. Three axes: \knn{} preservation (5000 query points), Spearman correlation of the
+pairwise distances of 2000 sampled points, and the adjusted Rand index of $k$-means ($k$ = classes) on 10\,000
+points, the last only where the classes are clusters (MNIST, Fashion-MNIST); triplet accuracy, trustworthiness
+and the Spearman of the class centroids are reported in the long version. A composite is the geometric mean (or
+the minimum) of the three ratios to \emph{frozen} references, the best unprocessed value of the twelve-method panel
+on each axis (MNIST 0.356 / 0.488 / 0.914, Fashion 0.330 / 0.873 / 0.483, letter 0.642 / 0.716, covertype 0.632 /
+0.755), computed per run and then averaged. Five seeds everywhere (UMAP unseeded, as seeding it serialises its
+layout); all libraries at their defaults with audited warm-ups; the \magnet{} timings were measured with a training
+job sharing the 20-thread machine and are upper bounds (the unchanged sampled mode went from 3.6 to 4.5~s under
+that load), the comparators' on the idle machine: speed ratios below are indicative, the final timing benchmark is
+to be re-run on a quiet machine.
+
+\paragraph{The decisive rows} (Table~\ref{tab:seeds}). The full-batch pass reaches the neighbourhood preservation
+of Barnes--Hut $t$-SNE (0.349 $\pm$ 0.001 against 0.350) and openTSNE (0.347) in 6~s against 186 and 94, with
+a higher pairwise Spearman than both; the sequence has the highest \knn{} and the highest Spearman of the
+neighbour embeddings on both image sets (0.353 / 0.446 on MNIST, 0.329 / 0.750 on Fashion-MNIST) at about UMAP's
+time; the sampled pass alone is the fastest row and keeps the highest Spearman of the unstaged neighbour embeddings
+(0.416 against 0.299 for UMAP) at a \knn{} of 0.19. On the two sets whose classes are not clusters the same ranking
+holds on the two axes (long version).
+
+\begin{table}[t]
+\centering\footnotesize
+\caption{Five runs of the decisive rows (mean $\pm$ sd; long version, seeds table). Times: \magnet{} rows on the shared
+machine, the others on the idle one.}
+\label{tab:seeds}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llrrr}
+\toprule
+ & method & time (s) & \knn{} & Spearman \\
+\midrule
+MNIST & \magnet{} sampled & 4.5 & 0.192 $\pm$ .002 & 0.416 $\pm$ .004 \\
+ & \magnet{} full-batch & 6.2 & 0.349 $\pm$ .001 & 0.352 $\pm$ .003 \\
+ & \magnet{} sequence & 8.4 & \textbf{0.353} $\pm$ .002 & \textbf{0.446} $\pm$ .014 \\
+ & UMAP 0.5.12 & 8.4 & 0.117 $\pm$ .001 & 0.299 $\pm$ .005 \\
+ & openTSNE 1.0.4 & 93.5 & 0.347 $\pm$ .001 & 0.331 $\pm$ .002 \\
+ & PaCMAP & 30.5 & 0.094 $\pm$ .001 & 0.310 $\pm$ .006 \\
+ & Barnes--Hut $t$-SNE & 186 & 0.350 $\pm$ .000 & 0.338 $\pm$ .000 \\
+\midrule
+Fashion & \magnet{} sampled & 4.2 & 0.204 $\pm$ .001 & 0.724 $\pm$ .002 \\
+ & \magnet{} full-batch & 6.4 & 0.325 $\pm$ .000 & 0.698 $\pm$ .003 \\
+ & \magnet{} sequence & 8.2 & \textbf{0.329} $\pm$ .000 & \textbf{0.750} $\pm$ .003 \\
+ & UMAP 0.5.12 & 8.1 & 0.133 $\pm$ .001 & 0.579 $\pm$ .001 \\
+ & openTSNE 1.0.4 & 84.7 & 0.323 $\pm$ .001 & 0.620 $\pm$ .002 \\
+ & PaCMAP & 30.2 & 0.099 $\pm$ .001 & 0.582 $\pm$ .001 \\
+ & Barnes--Hut $t$-SNE & 204 & 0.327 $\pm$ .000 & 0.634 $\pm$ .000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{The complete pipeline, and the matched control} (Table~\ref{tab:control}, Fig.~\ref{fig:control}).
+Comparing a post-processed pipeline with competitors that are not post-processed would say little, so every
+configuration of the panel was run end to end on five seeds and then given the identical step (the graph and
+communities of that replicate, the same search sample with the evaluation points excluded, every setting
+frozen). Three findings. (i) As shipped, the sequence has the best mean composite of the panel (0.854 against
+0.799 for Barnes--Hut, 0.749 for openTSNE and 0.58 for UMAP and PaCMAP). (ii) With the same post-process, the
+sequence stays first on the four-set mean (0.907 against 0.883 for Barnes--Hut, 0.879 for our full-batch pass,
+0.854 for openTSNE, 0.68 for UMAP and PaCMAP), but the margin over the post-processed Barnes--Hut is 0.023 $\pm$
+0.047 over the 20 paired runs and changes sign across data sets: on MNIST the three post-processed $t$-SNE layouts
+converge (0.971--0.976, the Barnes--Hut one 0.046 ahead of the sequence, whose $k$-means ARI is the unstable
+axis); on Fashion-MNIST, letter and covertype the sequence keeps 0.02, 0.07 and 0.05, the arrangement its first
+pass provides and the placement does not invent. So the embedding stages contribute beyond the post-process where
+the global axis dominates, and the post-process is the result where the local axis does; the minimum composite
+tells the same story (0.826 against 0.779). (iii) UMAP, PaCMAP, TriMap and densMAP remain far below with the step:
+their weak axis is \knn{}, which no rigid motion of communities changes. The step lifts every configuration except
+where its communities do not match the data (TriMap on letter, $-0.10$); it costs 1--4~s.
+
+\begin{figure*}[t]
+\centering\includegraphics[width=\textwidth]{fig_control.png}
+\caption{The matched post-process control: geometric composite against the frozen references, five seeds, each
+configuration as shipped (circles) and with the identical post-process (diamonds), sorted by the latter.}
+\label{fig:control}
+\end{figure*}
+
+\begin{table*}[t]
+\centering\footnotesize
+\caption{Geometric composite (ratios to the frozen unprocessed references, per run, mean over five seeds) of
+every configuration as shipped and with the identical post-process; last column: mean of the post-processed
+values. Standard deviations are 0.00--0.03 (Table~\ref{tab:seeds} and the long version give them).}
+\label{tab:control}
+\setlength{\tabcolsep}{3.5pt}
+\input{tables/control_geo.tex}
+\end{table*}
+
+\paragraph{Transfer.} With every rule frozen on the development sets, the sequence reproduces the pattern on five
+held-out cases (covertype at 20k, 70k and 250k, letter, RCV1 text at 70k): the pass keeps \knn{} level with
+openTSNE's and the first stage's Spearman 0.1--0.25 above UMAP's and PaCMAP's, e.g. covertype 70k 0.622 / 0.560
+against 0.623 / 0.324 for UMAP and 0.624 / 0.298 for openTSNE (long version, transfer table).
+
+\paragraph{What the panels do not show.} Trustworthiness is openTSNE's column by 0.002; PaCMAP and UMAP have the
+best $k$-means ARI of the unprocessed panel on MNIST (0.91, 0.78), where the sequence is last among the neighbour
+embeddings (0.60 $\pm$ 0.10) and the full-batch pass reaches 0.79, 0.92 with the step. The pairwise Spearman of
+every neighbour embedding stays below PCA's on the real data sets, with or without the step (0.50 against 0.49 on
+MNIST is the one exception, by the post-processed sequence).
 
 \section{Limitations}
-[TO FILL: hybrid $k$-means instability; Fashion's touching classes; small $n$ (phonemes); text; the HDBSCAN use
-case is mixed outside MNIST; timings measured with a training job on the machine; the post-process targets one
-reported metric; four data sets.]
+The post-process fits a sampled version of one reported metric, with settings chosen on the development sets with
+the scores in view; its threshold has a reference (half the no-contrast share) but its separation $g = 0.7$ does
+not. The sequence's $k$-means ARI on MNIST varies by $\pm 0.08$ across seeds, with or without the step. Classes
+that are not density clusters (Fashion-MNIST's garments, letter, covertype) are merged or left alone by the
+density criterion, which is what the data say and not always what a user wants. Below 15k points the sampled
+pass needs the lighter attraction (Sec.~\ref{sec:exponents}), and on phonemes (4.5k) it stays behind PaCMAP for
+HDBSCAN clustering; the HDBSCAN use case is a clear win at 70k (ARI 0.92 against 0.66 for UMAP) and mixed
+elsewhere (long version, Sec.~6.17). Text with a TF-IDF front end is a weak spot of every method in the panel in
+2-D. The pass is accurate to its grid, not exact. The timings of the \magnet{} rows were taken on a shared
+machine. Four development data sets and five held-out cases are not a population of data sets.
 
 \section{Conclusion}
-[TO FILL.]
+Two objectives, two passes: a sampled pass with a robust, size-aware attraction for the arrangement, a full-batch
+pass accurate to a 0.7 box for the neighbourhoods, and a label-free post-process that moves the graph's
+communities, whose detection on kNN graphs needed a density-contrast correction that modularity cannot provide.
+The library runs MNIST 70k in 6--9~s, matches Barnes--Hut $t$-SNE's local fidelity, has the best global arrangement
+of the neighbour embeddings tested, and, with the step, the best measured composite balance of a twelve-method
+panel on four data sets; the matched control shows where that balance comes from the embedding stages (the
+arrangement) and where it is the post-process's alone (MNIST). The exhaustive document, the code and every result
+file are public.
 
 \bibliographystyle{plainnat}
 \begin{thebibliography}{20}
