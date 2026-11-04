@@ -192,10 +192,8 @@ class MAGNET(BaseEstimator, TransformerMixin):
         graphs). With loss="tsne" the
         pairs act as a spring of stiffness 3 * mid_weight / n on the normalised gradient (+0.03
         distance correlation on MNIST at unchanged local quality).
-    mid_scale : "fixed" (walk_len steps for every node), "spread" (per-node length from the 2-step
-        diffusion spread of the graph) or "rolewalk" (per-role length from RoleWalk signatures).
-    component_placement : "centroid" (data centroids, spiral for graphs) or "rolewalk" (components
-        of a graph placed by their mean RoleWalk signature).
+    mid_scale : "fixed" (walk_len steps for every node) or "spread" (per-node length from the 2-step
+        diffusion spread of the graph).
     init : "auto" (default: PCA for loss="tsne" on a data matrix, spectral otherwise), "spectral",
         "pca" (data only), "random" or an (n, n_components) array. PCA gives the exact-repulsion mode
         a better global structure (distance correlation 0.34 against 0.30 on MNIST 70k) at equal local
@@ -237,7 +235,6 @@ class MAGNET(BaseEstimator, TransformerMixin):
                  late_exaggeration=1.0, late_phase=0.2, tsne_dof=1.0, optimizer="sgd", clip="coord", beta1=0.9, beta2=0.999,
                  walk_len=4, mid_weight=None, mid_rate=0.25, mid_phase=0.5, mid_scale="fixed", mid_source="auto",
                  n_mid_pairs=5, mid_jump=0.5,
-                 component_placement="centroid",
                  init="auto", pca=None, knn="nndescent", ef_construction=80, M=16, ef=None,
                  set_op_mix_ratio=1.0, neighbor_power=1.0, neighbor_rank_exponent=0.0,
                  samples_per_node=5.0, graph_norm="sym", input="auto",
@@ -285,7 +282,6 @@ class MAGNET(BaseEstimator, TransformerMixin):
         self.mid_source = mid_source
         self.n_mid_pairs = n_mid_pairs
         self.mid_jump = mid_jump
-        self.component_placement = component_placement
         self.init = init
         self.pca = pca
         self.knn = knn
@@ -381,9 +377,6 @@ class MAGNET(BaseEstimator, TransformerMixin):
             Y = PCA(self.n_components, random_state=self.random_state).fit_transform(X).astype(np.float32)
         elif init == "spectral":
             data_for_components = X if isinstance(X, np.ndarray) else None
-            if data_for_components is None and self.component_placement == "rolewalk":
-                from .roles import rolewalk_embedding
-                data_for_components = rolewalk_embedding(P)
             Y = spectral_init(P, self.n_components, self.random_state, n_threads=self.n_threads,
                               data=data_for_components, verbose=self.verbose)
         else:
@@ -433,6 +426,8 @@ class MAGNET(BaseEstimator, TransformerMixin):
         if c is not None and not isinstance(c, dict):
             if not np.isscalar(c) or not (0.0 < float(c) <= 1.0):
                 raise ValueError(f"contraction must be None, a float in (0, 1] (the separation g; 0.7 recommended) or a dict of hierarchical_contraction arguments; got {c!r}")
+        if self.mid_scale not in ("fixed", "spread"):
+            raise ValueError(f"mid_scale must be 'fixed' or 'spread', got {self.mid_scale!r}")
         if not (isinstance(self.n_components, (int, np.integer)) and self.n_components >= 1):
             raise ValueError(f"n_components must be a positive integer, got {self.n_components!r}")
         if self.loss in ("tsne", "hybrid", "umap_exact") and self.n_components != 2:

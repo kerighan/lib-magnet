@@ -234,22 +234,6 @@ def test_adaptive_walk_lengths_spread():
     assert set(np.unique(wl)) <= {1, 2, 3}
 
 
-def test_rolewalk_component_placement_groups_similar_components():
-    pytest.importorskip("rolewalk")
-    parts = []
-    for _ in range(3):
-        parts += [nx.complete_graph(30), nx.cycle_graph(60), nx.balanced_tree(2, 5), nx.grid_2d_graph(7, 7)]
-    G = nx.disjoint_union_all([nx.convert_node_labels_to_integers(g) for g in parts])
-    sizes = [g.number_of_nodes() for g in parts]
-    comp_of = np.repeat(np.arange(12), sizes)
-    ctype = np.arange(12) % 4
-    Y = MAGNET(n_epochs=100, component_placement="rolewalk", random_state=0).fit_transform(G)
-    centers = np.array([Y[comp_of == c].mean(0) for c in range(12)])
-    D = np.linalg.norm(centers[:, None] - centers[None], axis=-1)
-    np.fill_diagonal(D, np.inf)
-    assert (ctype[D.argmin(1)] == ctype).mean() >= 0.4   # chance level is 0.18
-
-
 def test_mid_near_pairs_are_closer_than_random():
     from magnet.roles import mid_near_pairs
     X, y = blobs(3000, d=20, centers=6, seed=7)

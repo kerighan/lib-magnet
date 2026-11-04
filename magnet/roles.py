@@ -1,7 +1,5 @@
-"""Structural information for the layout: per-node diffusion scale for the mid-range attraction and
-role signatures for the placement of disconnected components. Two sources: a cheap graph proxy
-(effective size of the 2-step transition distribution) or RoleWalk embeddings (the author's
-structural-role library, imported lazily)."""
+"""Structural information for the layout: per-node diffusion scale for the mid-range attraction (effective
+size of the 2-step transition distribution), mid-near pairs, local intrinsic dimension and exponents."""
 import numpy as np
 import scipy.sparse as sp
 from sklearn.preprocessing import normalize
@@ -23,48 +21,16 @@ def two_step_effective_size(P, max_nnz=200_000_000):
     return 1.0 / np.maximum(ipr, 1e-12)
 
 
-def rolewalk_embedding(P, walk_len=3, n_samples=10):
-    """RoleWalk signature of every node of the (symmetric) graph P, computed on the sparse matrix
-    directly (same construction as RoleWalk.transform: lazy walk on I + A)."""
-    try:
-        from rolewalk import RoleWalk, compute_embedding
-    except ImportError as e:
-        raise ImportError("mid_scale='rolewalk' and component_placement='rolewalk' need the rolewalk package "
-                          "(the author's research library, not on PyPI)") from e
-
-    rw = RoleWalk(walk_len=walk_len, n_samples=n_samples)
-    A = sp.csr_matrix(P, dtype=np.float32)
-    H = normalize(sp.identity(A.shape[0], format="csr", dtype=np.float32) + A, norm="l1").tocsr()
-    return np.asarray(compute_embedding(H, rw.theta, rw.walk_len, rw.aggregate, rw.tol, None), dtype=np.float32)
-
-
-def adaptive_walk_lengths(P, mode="spread", base=4, low=2, high=6, n_roles=None):
-    """Per-node length of the mid-range random walks.
-    "spread": nodes whose 2-step walks already reach many nodes get short walks, nodes in sparse or
-    chain-like regions get long ones (ranks mapped linearly to [low, high]).
-    "rolewalk": same target, but assigned per RoleWalk role (median spread of the role), so that
-    structurally equivalent nodes share a scale."""
+def adaptive_walk_lengths(P, mode="spread", base=4, low=2, high=6):
+    """Per-node length of the mid-range random walks ("spread"): nodes whose 2-step walks already reach many
+    nodes get short walks, nodes in sparse or chain-like regions get long ones (ranks mapped linearly to
+    [low, high])."""
+    if mode != "spread":
+        raise ValueError("mode must be 'spread'")
     n = P.shape[0]
     eff = two_step_effective_size(P)
-    if mode == "spread":
-        ranks = np.argsort(np.argsort(-eff)) / max(1, n - 1)       # 0 = widest spread
-        return np.rint(low + (high - low) * ranks).astype(np.int32)
-    if mode == "rolewalk":
-        try:
-            from rolewalk import RoleWalk
-        except ImportError as e:
-            raise ImportError("mid_scale='rolewalk' and component_placement='rolewalk' need the rolewalk package "
-                              "(the author's research library, not on PyPI)") from e
-        X = rolewalk_embedding(P)
-        rw = RoleWalk()
-        labels = rw.fit_predict(X, n_roles=n_roles) if n_roles else rw.fit_predict(X)
-        out = np.full(n, base, dtype=np.int32)
-        role_eff = np.array([np.median(eff[labels == r]) for r in range(labels.max() + 1)])
-        ranks = np.argsort(np.argsort(-role_eff)) / max(1, len(role_eff) - 1)
-        role_len = np.rint(low + (high - low) * ranks).astype(np.int32)
-        out[:] = role_len[labels]
-        return out
-    raise ValueError("mode must be 'spread' or 'rolewalk'")
+    ranks = np.argsort(np.argsort(-eff)) / max(1, n - 1)       # 0 = widest spread
+    return np.rint(low + (high - low) * ranks).astype(np.int32)
 
 
 def mid_near_pairs(X, n_pairs=5, n_candidates=6, random_state=0, n_threads=-1):

@@ -45,9 +45,8 @@ python -m pytest tests -q
 A C++17 compiler is needed (gcc, clang or MSVC); the dependencies are numpy, scipy, scikit-learn and tqdm.
 Optional extras: `[hnsw]` (hnswlib, an alternative kNN backend), `[graphs]` (networkx inputs), `[leiden]`
 (python-igraph, the Leiden backend of the post-process; the default Louvain is built in), `[clustering]`
-(hdbscan, for `kernel_b="consistent"` on old scikit-learn), `[test]`. Two research options rely on the author's
-unpublished libraries and fall back or raise without them: `kernel_b="local"` (dimprint; a biased MLE fallback is
-used) and `mid_scale="rolewalk"` / `component_placement="rolewalk"` (rolewalk). `examples/quickstart.py` runs
+(hdbscan, for `kernel_b="consistent"` on old scikit-learn), `[test]`. One research option uses the author's
+unpublished dimprint library when it is installed: `kernel_b="local"` (a biased MLE fallback is used without it). `examples/quickstart.py` runs
 the three modes and the post-process on scikit-learn's digits in a few seconds.
 
 ## Quickstart
@@ -638,8 +637,7 @@ Any networkx graph or sparse adjacency matrix is laid out directly, in linear ti
 | `contraction` | None | community placement and separation of the final layout: a float g = the graph's Louvain communities (strength-ordered, resolution 0.5, interfaces without density contrast merged) are translated as rigid bodies by a label-free ascent of the input-vs-layout distance Spearman (overlap guard), then each contracted towards its centroid by g (0.7 = the "clusters" preset); a dict passes `resolution`, `separation`, `placement`, `n_sample`, `tol`, `sweeps` |
 | `tsne_dof` | 1.0 | Student-t degrees of freedom of `loss="tsne"` (< 1 = heavier tail, Kobak et al. 2019) |
 | `fft_interp`, `fft_box` | 3, 0.7 | grid of the exact repulsion (FIt-SNE's unit box: -0.004 of 15-NN on MNIST for 15% less time; `fft_box=1.5` is the fast preset: -3% 15-NN in `loss="tsne"`, -1% in `loss="hybrid"` for 30% less time) |
-| `mid_scale` | `"fixed"` | or `"spread"` / `"rolewalk"`: per-node length of the mid-range walks from the graph's diffusion spread or from RoleWalk roles |
-| `component_placement` | `"centroid"` | or `"rolewalk"`: disconnected components of a graph placed by their structural-role signature |
+| `mid_scale` | `"fixed"` | or `"spread"`: per-node length of the mid-range walks from the graph's diffusion spread |
 | `optimizer`, `clip` | `"sgd"`, `"coord"` | or `"adam"`; `"norm"` clips the step norm |
 | `input` | `"auto"` | a sparse square matrix is an adjacency; `"data"` or `"graph"` to force |
 | `graph_norm` | `"sym"` | degree normalisation of graph inputs |
@@ -657,15 +655,13 @@ Random walks on a two-layer graph (kNN edges plus mid-near edges, `mid_source="h
 mechanism for every scale on paper, but each walk step after a mid-range jump diffuses back into
 local structure and dilutes the inter-cluster signal (distance correlation 0.39 against 0.42 on
 MNIST, 0.68 against 0.71 on Fashion-MNIST, local unchanged). A per-node diffusion scale for the
-mid-range walks (`mid_scale="spread"` or `"rolewalk"`) changes nothing measurable on MNIST: the mid-range term itself matters (distance correlation 0.35 against
+mid-range walks (`mid_scale="spread"`, or a per-role length from structural-role signatures) changes nothing measurable on MNIST: the mid-range term itself matters (distance correlation 0.35 against
 0.29 without it) but not its per-node length. For graph inputs, mid-near pairs measured in an 8-d
 spectral embedding (`mid_source="spectral"`) lose to the random walks (0.31 against 0.34 on the kNN
 graph of MNIST evaluated against the hidden data): walks stay the default for graphs. What did make the cut: `repulsion_strength=2` (+8%
 neighbourhood preservation, nothing lost), the centroid placement of disconnected components, PCA
 initialisation for the exact-repulsion mode, PaCMAP-style mid-near pairs in place of random walks for
-data inputs (distance correlation +30% on MNIST, +25% on Fashion-MNIST, for 3% of 15-NN preservation),
-and for graphs the placement of disconnected components by RoleWalk signature
-(`component_placement="rolewalk"`: structurally similar components end up next to each other).
+data inputs (distance correlation +30% on MNIST, +25% on Fashion-MNIST, for 3% of 15-NN preservation).
 
 ## History
 
@@ -673,7 +669,6 @@ MAGNET started in 2019 as a random-walk embedding with a full-batch optimiser; v
 complete rewrite around per-edge SGD, a native neighbour search and the exact-repulsion mode, and
 the split of the kernel exponent into an attraction exponent (the L1 point, 1/2) and a repulsion
 exponent (the Cauchy tail).
-RoleWalk, the author's structural-role embedding, is the natural companion for graph inputs.
 
 ## Cite
 
