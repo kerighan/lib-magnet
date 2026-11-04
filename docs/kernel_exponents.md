@@ -836,6 +836,26 @@ post-processed full-batch modes, a loss at 4.5k, and a lead for later (the SGD d
 n < 10k). Not in the paper, as agreed (positive -> paper, otherwise -> here). The sparse TF-IDF text case (UMAP
 handles sparse input natively too) is a later test.
 
+### 6.18 The SGD mode at small n: the attraction exponent (`k45_small_n.py`)
+
+k44's weak spot explained. MNIST subsamples, HDBSCAN ARI (clusters, noise) / 15-NN at kernel_b 0.6 / 0.7 / 0.8 / 0.9,
+UMAP as the reference:
+* n = 3k: UMAP 0.507 (6, 0.01) / 0.388; 0.6: 0.181 (70, 0.20) / 0.410; 0.8: 0.400 (23, 0.16) / 0.404; 0.9: 0.356 (10) / 0.397
+* n = 5k: UMAP 0.508 (6) / 0.339; 0.6: 0.094 (78, 0.22) / 0.383; 0.8: 0.578 (7, 0.01) / 0.367; 0.9: 0.589 (7) / 0.351
+* n = 10k: UMAP 0.610 (7) / 0.282; 0.6: 0.176 (56, 0.28) / 0.338; 0.7: 0.729 (12) / 0.323; 0.8: 0.727 (8) / 0.306
+* n = 20k: UMAP 0.745 (8) / 0.203; 0.6: 0.739 (8, 0.01) / 0.278; 0.7: 0.749 (10) / 0.255; 0.8: 0.631 (8) / 0.230
+* n = 35k: UMAP 0.617 (7) / 0.162; 0.6: 0.747 (8) / 0.240; 0.7: 0.813 (9) / 0.210
+* n = 70k: 0.6: 0.901 (11) / 0.191; 0.8: 0.920 (10) / 0.140; 1.0: 0.105 (3) / 0.109.
+USPS 7k: 0.6 60 clusters (ARI 0.25), 0.8 8 (0.743; UMAP 0.740), 1.0 8 (0.737); phonemes 4.5k: 0.6 34 (0.36), 0.8 3
+(0.63), 1.0 4 (0.79; PaCMAP 0.80). The mechanism: the attractive force on a neighbour is ~ d^(2b-1), steep at short
+range for b < 1, so neighbours glue into tight clumps that only the redundancy of a dense graph knits together;
+below ~15k points the clumps drift apart. Not the cause (USPS, each tested): one thread or `parallel="owner"`
+(hogwild collisions), n_epochs 30 / 300, learning rate 0.3 (worse: 82 clusters), n_neighbors 30, mid_weight 0, the
+coupled kernel (27 clusters), `kernel_b="adaptive"` (58) or `"local"` (82). Rule shipped (`kernel_b="size"`, the
+default): 0.6 at n >= 20k, 0.8 at n <= 10k, log-linear in log n between (0.7 at 14k); graph inputs stay at 0.6. The
+15-NN cost of 0.8 at small n is 0.02-0.03 (USPS 0.365 -> 0.336, still above UMAP's 0.316). Re-run with it: the blobs
+(10k) and 20 newsgroups (18.8k) SGD rows of the main table, the k44 SGD rows.
+
 ## Scripts (`benchmarks/theory/`)
 
 `e1_force_spectrum.py` (per-octave repulsive force on MAGNET's own embeddings), `k13_tail_crossover.py` (the same binned by the kernel crossover, with the shell-count-adjusted prediction), `e1b_powerlaw.py`

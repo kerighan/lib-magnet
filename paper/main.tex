@@ -129,8 +129,9 @@ effective objective of negative sampling is not the full cross-entropy, \citealp
 $(i, j)$ sampled with probability proportional to $w_{ij}$ the attraction $-\log \phi_b(d_{ij})$ is
 applied, with $\phi_b(d) = 1/(1 + a d^{2b})$, followed by five negatives $l$ drawn uniformly with the
 repulsion $-\gamma \log (1 - \phi_{b_r}(d_{il}))$, $\gamma = 2$; the two kernels carry separate
-exponents $b = 0.6$ and $b_r = 1$ (Sec.~\ref{sec:theory}), $a$ is UMAP's for the given spread and
-\texttt{min\_dist}. Both ends of an edge move under the attraction, the sampled end only under the
+exponents $b = 0.6$ and $b_r = 1$ (Sec.~\ref{sec:theory}; $b = 0.8$ below 10\,000 points, log-linear between
+10\,000 and 20\,000, where the heavy tail tears small data sets into micro-clusters, Appendix~\ref{app:impl}),
+$a$ is UMAP's for the given spread and \texttt{min\_dist}. Both ends of an edge move under the attraction, the sampled end only under the
 repulsion; the gradient is clipped at 4 as in UMAP; updates are lock-free across threads; the epoch
 schedule is UMAP's. \emph{Mid-range attraction:} with probability
 $1/4$ a positive sample is followed by a partner $m$ of $i$ drawn from five PaCMAP-style mid-near pairs
@@ -1141,6 +1142,19 @@ runs MNIST 70k in 6.2~s (8.2 idle before the pass), the sequence in 8.4~s (10.9)
 (Tables~\ref{tab:staged_seeds}, \ref{tab:transfer}, \ref{tab:kscale}, \ref{tab:strata}) and the figures other
 than Figs.~\ref{fig:layouts} and \ref{fig:layouts_fmnist} keep their unit-box runs; the change is within
 0.004 of 15-NN on the real data sets.
+
+\paragraph{The attraction exponent at small $n$.} The heavy-tailed attraction $b = 0.6$ maximises 15-NN at
+70k, but on small data sets it tears the layout into micro-clusters: on MNIST subsamples HDBSCAN finds 56--78
+clusters at $n \le 10\,000$ against 8 at $n \ge 20\,000$ (USPS 7k: 60; phonemes 4.5k: 34; UMAP 6--8
+everywhere), with 20--28\% of the points as noise, while the $k$-means ARI is normal: the force on a neighbour is
+$\sim d^{2b-1}$, steep at short range for $b < 1$, so neighbours glue into tight clumps that only the graph's
+redundancy knits together, which small data sets lack. $b = 0.8$ holds them together (USPS 8 clusters, HDBSCAN ARI
+0.743 against UMAP's 0.740 at a 15-NN of 0.336 against 0.316; MNIST 10k 8 clusters, 0.727 against 0.610) at a
+15-NN cost of 0.02--0.03, and $b = 1$ collapses MNIST 70k into 3 clusters. Epochs, learning rate, $k$, threads,
+the coupled kernel and the per-point exponents of Sec.~\ref{sec:theory} do not change it (\texttt{k45}). The
+default is therefore $b = 0.6$ at $n \ge 20\,000$, $0.8$ at $n \le 10\,000$ and log-linear in $\log n$ between;
+the blobs (10k) and 20 newsgroups (18.8k) rows of Tables~\ref{tab:news20}--\ref{tab:blobs} use it, the 70k and 20k
+tables are unchanged.
 
 \paragraph{The communities of the post-process.} The modularity's configuration null model expects a weight
 $\gamma k_i k_j / 2m$ between two nodes. On a kNN graph the strengths are nearly uniform (MNIST: mean 6.6,

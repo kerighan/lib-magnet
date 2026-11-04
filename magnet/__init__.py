@@ -79,7 +79,11 @@ class MAGNET:
         have exponential or lighter tails (kept for comparison).
     kernel_b : exponent b of the attraction kernel 1 / (1 + a d^(2b)); a is fitted to the (min_dist, spread) curve.
         The attraction exponent sets local fidelity: the force on a neighbour is ~ d^(2b-1), constant at b = 1/2,
-        and 15-NN preservation peaks at 0.5 (images) to 0.7 (text) in every target dimension; default 0.6.
+        and 15-NN preservation peaks at 0.5 (images) to 0.7 (text) in every target dimension. Default "size":
+        0.6 for n >= 20 000 points, 0.8 for n <= 10 000, log-linear in between (0.6 for graph inputs): the
+        heavy tail that maximises 15-NN at large n tears small data sets into micro-clusters (MNIST
+        subsamples: 56-78 HDBSCAN clusters at n <= 10k against 8 at 0.8; USPS 7k: 60 against 8), at a 15-NN
+        cost of 0.02-0.03 there (k45). The exponent used is in `kernel_b_`.
         None = UMAP's fit (~0.8 to 0.9); an array = one exponent per point (the repulsion stays at repulsion_b);
         "local" = 1 where the neighbourhood-smoothed local intrinsic dimension fits in n_components, 1/2 elsewhere
         (data mixing manifolds of different dimensions; dimprint when installed; docs/kernel_exponents.md);
@@ -202,7 +206,7 @@ class MAGNET:
 
     def __init__(self, n_components=2, n_neighbors=15, metric="euclidean", min_dist=0.05, spread=1.0,
                  n_epochs=None, learning_rate=1.0, negative_sample_rate=5, repulsion_strength=2.0,
-                 kernel="power", kernel_b=0.6, repulsion_b=1.0, fft_interp=3, fft_box=0.7, tsne_early=None, loss="umap", exaggeration=1.0,
+                 kernel="power", kernel_b="size", repulsion_b=1.0, fft_interp=3, fft_box=0.7, tsne_early=None, loss="umap", exaggeration=1.0,
                  late_exaggeration=1.0, late_phase=0.2, tsne_dof=1.0, optimizer="sgd", clip="coord", beta1=0.9, beta2=0.999,
                  walk_len=4, mid_weight=None, mid_rate=0.25, mid_phase=0.5, mid_scale="fixed", mid_source="auto",
                  n_mid_pairs=5, mid_jump=0.5,
@@ -377,6 +381,12 @@ class MAGNET:
 
         kb = self.kernel_b
         self.node_b_ = None
+        if isinstance(kb, str) and kb == "size":
+            # the heavy-tailed attraction (b = 0.6) maximises 15-NN at large n but tears small data sets into
+            # micro-clusters (MNIST subsamples: 56-78 HDBSCAN clusters at n <= 10k, 8 at n >= 20k; USPS 7k: 60;
+            # k45); b = 0.8 holds them together there at a 15-NN cost of 0.02-0.03. Graph inputs keep 0.6.
+            kb = 0.6 if not getattr(self, "_is_data_", False) else float(np.clip(0.6 + 0.2 * (np.log(20000.0) - np.log(max(n, 1))) / np.log(2.0), 0.6, 0.8))
+        self.kernel_b_ = kb if np.isscalar(kb) else None
         if isinstance(kb, str) and kb == "auto_dim":
             kb = 0.6 if self.n_components <= 2 else 0.8   # less crowding in 3-D: lighter tail
         if isinstance(kb, str) and kb == "auto":

@@ -103,8 +103,9 @@ Fashion-MNIST 20k, 1-D to 8-D, 20 newsgroups, synthetic manifolds of known dimen
 The old "optimal b" was the compromise between the two: coupled, it climbs with the target dimension
 (0.52 / 0.59 / 0.76 / 1.2 / 1.6 / 1.9 / 2.3 for 1 to 8 components, mean of three data sets, roughly
 0.3 m) because the repulsion side tolerates lighter tails as the volume grows while the attraction
-side does not move. Decoupled, the defaults are `kernel_b=0.6` (0.5 for images, 0.7 for text) and
-`repulsion_b=1` in every dimension; `repulsion_b=None` gives back the coupled kernel and UMAP's
+side does not move. Decoupled, the defaults are `kernel_b=0.6` at n >= 20 000 points (0.5 for images, 0.7 for
+text; 0.8 at n <= 10 000 and log-linear between, `kernel_b="size"`: the heavy tail tears small data sets into
+micro-clusters, see "The SGD mode at small n" below) and `repulsion_b=1` in every dimension; `repulsion_b=None` gives back the coupled kernel and UMAP's
 compact blobs. A tail scale-free in the volume sense (b = m/2, van der Maaten's Student-t with m - 1
 degrees of freedom) is what the repulsion side prefers; the attraction side obeys a different
 principle (the L1 point), which is why a single exponent could never satisfy both. The exponent
@@ -499,6 +500,19 @@ few iterations of growth (120 -> 31 recomputations on MNIST), and the kernel spe
 (the kernels are even). The benchmark tables above are re-measured with it, on a machine shared with a
 training job (the SGD row, unchanged in code, serves as the control: 3.6 -> 4.5 s on the seeds table).
 
+**The SGD mode at small n (`k44`-`k45`, 2026-11-04).** On Maixent's pybench collection the HDBSCAN use case (UMAP's
+strongest practical argument) showed the SGD mode tearing small data sets into micro-clusters: USPS 7k 60 HDBSCAN
+clusters with 23 % noise, phonemes 4.5k 34, MNIST subsamples 56-78 at n <= 10k against 8 at n >= 20k, while
+UMAP gives 6-8 everywhere. The cause is the attraction exponent: the force on a neighbour is ~ d^(2b-1), steep at
+short range for b = 0.6, so neighbours glue into tight clumps that only the graph's redundancy knits together,
+which small data sets lack; b = 0.8 holds them together (USPS 8 clusters, HDBSCAN ARI 0.743 = UMAP's 0.740 with
+15-NN 0.336 against 0.316; MNIST 10k 8 clusters, 0.727 against UMAP's 0.610) at a 15-NN cost of 0.02-0.03, and
+b = 1.0 collapses MNIST 70k into 3 clusters. Nothing else fixes it (n_epochs, learning rate, n_neighbors, one
+thread, the coupled kernel, `"adaptive"`, `"local"`: tested). Default since: `kernel_b="size"`, 0.6 at n >= 20k,
+0.8 at n <= 10k, log-linear between; the 70k and 20k tables are unchanged, the blobs (10k) and 20 newsgroups
+(18.8k) SGD rows were re-run. With it, HDBSCAN on MAGNET's layout matches UMAP at 7k and beats it at 10k and 70k
+(MNIST 70k: SGD + post-process 0.92 against 0.66), loses on phonemes 4.5k to PaCMAP (0.80).
+
 **A deterministic Louvain (`k42`, 2026-11-04).** The random visiting order of the Louvain was the one seed-dependent
 part of the post-process, with a spectacular failure mode (a class split in two: MNIST ARI after the step 0.83 instead
 of 0.92 on one seed in three). Visiting the nodes by decreasing strength (best-connected first), with no RNG, finds the
@@ -575,7 +589,7 @@ Any networkx graph or sparse adjacency matrix is laid out directly, in linear ti
 | `init` | `"auto"` | PCA for `loss="tsne"` on data, spectral otherwise; or `"spectral"`, `"pca"`, `"random"`, an array |
 | `knn` | `"nndescent"` | or `"hnsw"` (needs hnswlib) |
 | `pca` | None | project wide data to this many components before the neighbour search |
-| `kernel_b` | 0.6 | attraction exponent (0.5 for images, 0.7 for text, any dimension); None = UMAP's fit; `"auto_dim"` = the former coupled defaults; `"local"` = 1 where the local dimension fits in `n_components`, 1/2 elsewhere (mixed-dimension data); `"adaptive"` = the same split read off the layout at 3/4 of the run (graphs too); an array = one exponent per point |
+| `kernel_b` | `"size"` | attraction exponent: 0.6 at n >= 20k (0.5 for images, 0.7 for text, any dimension), 0.8 at n <= 10k, log-linear between (`kernel_b_` holds the value used; graph inputs 0.6); None = UMAP's fit; `"auto_dim"` = the former coupled defaults; `"local"` = 1 where the local dimension fits in `n_components`, 1/2 elsewhere (mixed-dimension data); `"adaptive"` = the same split read off the layout at 3/4 of the run (graphs too); an array = one exponent per point |
 | `adaptive` | `(0.5, 1.0, 0.75, 0.0, 2.0, 2)` | for `kernel_b="adaptive"`: base and high exponents, switch epoch fraction, crowding threshold, far-edge reference (times the median edge length), minimum degree |
 | `repulsion_b` | 1.0 | repulsion exponent (Cauchy tail); None couples it to `kernel_b` (UMAP's compact look, 20% slower) |
 | `kernel` | `"power"` | or `"gaussian"`, `"sech"` (exponential tails, for comparison) |
