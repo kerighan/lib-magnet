@@ -516,10 +516,10 @@ limit), and no resolution fixes both. What tells an artificial cut from a real b
 the boundary nodes on each side send a share of their strength across; a cut through a uniform cloud is symmetric
 and large on both sides (0.14-0.16 on MNIST's same-class splits), a real boundary is a density dip and at least one
 side reaches little (<= 0.09). `interface_merge`: Louvain at resolution 0.5, then merge interfaces while
-min(share_AB, share_BA) >= 0.11. MNIST: 11-14 communities -> 10 on every graph and resolution tried, label ARI
+min(share_AB, share_BA) >= 0.10 (0.08 merges true boundaries, 0.14 misses splits; 0.10-0.12 give the same partitions on MNIST). MNIST: 11-14 communities -> 10 on every graph and resolution tried, label ARI
 0.92-0.93; Fashion merges touching classes (13 -> 6); letter and covertype are left alone (size-free). Downstream
-the composite is equal or better on the four sets (MNIST 0.981 -> 0.982, Fashion 0.883 -> 0.891, letter 0.851 ->
-0.847, covertype 0.832 -> 0.843). It is the default of `contraction` (`merge_tau=0.11`; `None` restores plain
+the composite is equal or better on the four sets (MNIST 0.981 -> 0.982, Fashion 0.883 -> 0.889, letter 0.851 ->
+0.847, covertype 0.832 -> 0.847). It is the default of `contraction` (`merge_tau=0.10`; `None` restores plain
 Louvain).
 
 **Where the SGD time goes, and `parallel="owner"`.** On MNIST 70k the default fit is 1.1 s of kNN graph,

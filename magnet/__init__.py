@@ -122,7 +122,7 @@ class MAGNET:
     contraction : community placement and contraction of the final layout (magnet/contraction.py). None (default):
         off. A float g in (0, 1]: the communities of the fuzzy graph (Louvain visited by decreasing strength, so
         deterministic, at resolution 0.5, then the interfaces without density contrast merged: a cut through a
-        uniform cloud sends >= 0.11 of its boundary nodes' strength across on both sides, a true cluster boundary
+        uniform cloud sends >= 0.10 of its boundary nodes' strength across on both sides, a true cluster boundary
         does not; k42-k43) are first translated as
         rigid bodies by a label-free coordinate ascent of the distance Spearman between the input and the layout on
         a 500-point sample (overlap guard: communities may not mix), then each contracted rigidly towards its

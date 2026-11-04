@@ -59,7 +59,7 @@ def communities(P, resolution, seed=0, n_iterations=2, backend="louvain", order=
     return runs[int(np.argmax(A.sum(1)))]
 
 
-def interface_merge(P, labels, tau=0.11, min_boundary=20):
+def interface_merge(P, labels, tau=0.10, min_boundary=20):
     """Merge adjacent communities whose interface shows no density contrast (k43). The boundary nodes of A towards B
     (nodes of A with an edge into B) send on average a share f_AB of their strength into B. A cut through a cloud
     of uniform density is symmetric and both shares are large (0.14-0.16 on MNIST's graph, whatever the size);
@@ -219,7 +219,7 @@ def place_communities(Y, labels, spearman, mixing=None, tol=0.002, sweeps=2, min
 
 def hierarchical_contraction(Y, P, X=None, metric="euclidean", resolution=0.5, separation=0.7, placement=True,
                              n_sample=500, n_mixing=5000, tol=0.002, sweeps=2, n_threads=8, random_state=0, exclude=None,
-                             backend="louvain", order="strength", consensus=1, merge_tau=0.11, verbose=False):
+                             backend="louvain", order="strength", consensus=1, merge_tau=0.10, verbose=False):
     """Returns (Z, log). Communities of P (Leiden at `resolution`); (1) placement: rigid translations of the communities
     chosen by coordinate ascent of the Spearman correlation between input and layout distances on a sample of
     n_sample points (label-free; X required, skipped without it), with an overlap guard (mixing of n_mixing sample

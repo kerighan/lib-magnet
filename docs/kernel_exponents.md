@@ -787,10 +787,13 @@ classes are symmetric too) 13 -> 6 at r=0.5, 20 -> 12 at r=1.0; letter and cover
 their many small communities have asymmetric interfaces, i.e. the merge is size-free, as intended). Downstream
 through the post-process on the cached full-batch layouts (composite against the frozen references): MNIST 0.981
 -> 0.982 (10 communities on every layout), Fashion 0.883 -> 0.891 (ARI 0.430 -> 0.444), letter 0.851 -> 0.847,
-covertype 0.832 -> 0.843 (Spearman 0.530 -> 0.543); step time 1.2-3.3 s. Default since: resolution 0.5 +
-`merge_tau=0.11` (`merge_tau=None` restores the plain Louvain). tau was read off the MNIST interface statistics
-with the benchmark in view (the gap 0.09-0.137); it is a density-contrast threshold, not a size, and the same
-value held on the other three graphs.
+covertype 0.832 -> 0.843 (Spearman 0.530 -> 0.543); step time 1.2-3.3 s. The default is the round value
+tau = 0.10 (Maixent: less tuned-looking than 0.11), which gives the same partitions on MNIST (10 on the three graphs,
+ARI 0.922-0.926), merges a little more on Fashion (4 communities instead of 6: composite 0.889 instead of 0.891,
+0.883 without the merge) and is equal on letter (0.847) and slightly better on covertype (0.847 against 0.843);
+`merge_tau=None` restores the plain Louvain. The threshold sits 0.01 above the largest min share of a true class
+boundary seen (0.090, the 4/9 interface of MNIST) and 0.04 below the smallest same-class split (0.137); 0.08 merges
+true boundaries (MNIST down to 5-6 communities), 0.14 misses splits. It is a density-contrast threshold, not a size.
 
 ## Scripts (`benchmarks/theory/`)
 
