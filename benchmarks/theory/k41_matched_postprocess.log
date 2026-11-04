@@ -1,0 +1,351 @@
+
+=== covertype_20000 (54 features, metric euclidean, hand-over scale 16.6)
+2026-11-04 10:48:51.255767: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1793785731.270900 1165942 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1793785731.275049 1165942 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2026-11-04 10:48:51.288663: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+
+=== letter_20000 (16 features, metric euclidean, hand-over scale 16.6)
+
+=== covertype_70000 (54 features, metric euclidean, hand-over scale 31.0)
+
+=== rcv1_70000 (300 features, metric cosine, hand-over scale 31.0)
+
+=== covertype_250000 (54 features, metric euclidean, hand-over scale 58.6)
+
+=== letter: 20000 points, 26 classes, refs {'knn15': 0.642, 'sp': 0.716}, 13232 evaluation points excluded from the search sample
+  MAGNET SGD           seed 0: 0.469/0.590/0.194 geo 0.776 min 0.730 -> 0.467/0.595/0.175 geo 0.778 min 0.728 | fit 1.0 s, graph 1.1, post 2.2, 67 comm
+  MAGNET full-batch    seed 0: 0.627/0.533/0.175 geo 0.852 min 0.744 -> 0.614/0.537/0.169 geo 0.847 min 0.750 | fit 4.2 s, graph 1.1, post 2.6, 67 comm
+  MAGNET hybrid        seed 0: 0.625/0.614/0.166 geo 0.914 min 0.858 -> 0.610/0.604/0.166 geo 0.895 min 0.843 | fit 3.6 s, graph 1.1, post 2.4, 67 comm
+  UMAP                 seed 0: 0.487/0.300/0.191 geo 0.564 min 0.419 -> 0.483/0.377/0.152 geo 0.630 min 0.526 | fit 3.1 s, graph 1.1, post 2.3, 67 comm
+Warning: random state is set to 0.
+  PaCMAP               seed 0: 0.436/0.494/0.177 geo 0.685 min 0.679 -> 0.434/0.533/0.178 geo 0.710 min 0.677 | fit 6.0 s, graph 1.1, post 2.2, 67 comm
+  openTSNE             seed 0: 0.638/0.455/0.232 geo 0.795 min 0.635 -> 0.636/0.475/0.233 geo 0.811 min 0.664 | fit 100.7 s, graph 1.1, post 2.5, 67 comm
+  sklearn t-SNE (BH)   seed 0: 0.642/0.479/0.246 geo 0.818 min 0.669 -> 0.638/0.488/0.237 geo 0.823 min 0.682 | fit 51.1 s, graph 1.1, post 3.0, 67 comm
+  TriMap               seed 0: 0.325/0.447/-0.000 geo 0.562 min 0.507 -> 0.353/0.341/0.001 geo 0.512 min 0.476 | fit 20.1 s, graph 1.1, post 2.2, 67 comm
+  h-NNE                seed 0: 0.445/0.382/0.163 geo 0.608 min 0.534 -> 0.463/0.470/0.172 geo 0.688 min 0.656 | fit 8.4 s, graph 1.1, post 2.3, 67 comm
+  densMAP              seed 0: 0.279/0.284/0.193 geo 0.415 min 0.397 -> 0.280/0.322/0.180 geo 0.442 min 0.436 | fit 15.3 s, graph 1.1, post 2.9, 67 comm
+  PCA-2                seed 0: 0.070/0.716/0.044 geo 0.331 min 0.109 -> 0.090/0.720/0.063 geo 0.375 min 0.140 | fit 0.0 s, graph 1.1, post 2.6, 67 comm
+  PCA-2 + pass         seed 0: 0.601/0.627/0.093 geo 0.906 min 0.876 -> 0.578/0.625/0.109 geo 0.886 min 0.873 | fit 4.2 s, graph 1.1, post 3.6, 67 comm
+  MAGNET SGD           seed 1: 0.465/0.570/0.169 geo 0.760 min 0.725 -> 0.464/0.581/0.149 geo 0.765 min 0.722 | fit 1.4 s, graph 1.6, post 2.8, 68 comm
+  MAGNET full-batch    seed 1: 0.626/0.530/0.162 geo 0.849 min 0.740 -> 0.612/0.529/0.176 geo 0.839 min 0.739 | fit 8.6 s, graph 1.6, post 3.5, 68 comm
+  MAGNET hybrid        seed 1: 0.624/0.610/0.162 geo 0.910 min 0.852 -> 0.609/0.604/0.177 geo 0.895 min 0.844 | fit 5.9 s, graph 1.6, post 3.0, 68 comm
+  UMAP                 seed 1: 0.483/0.288/0.146 geo 0.550 min 0.403 -> 0.481/0.362/0.140 geo 0.616 min 0.505 | fit 5.6 s, graph 1.6, post 2.9, 68 comm
+Warning: random state is set to 1.
+  PaCMAP               seed 1: 0.434/0.491/0.205 geo 0.681 min 0.676 -> 0.433/0.530/0.174 geo 0.707 min 0.675 | fit 7.1 s, graph 1.6, post 2.8, 68 comm
+  openTSNE             seed 1: 0.640/0.455/0.232 geo 0.795 min 0.635 -> 0.637/0.477/0.215 geo 0.813 min 0.666 | fit 70.9 s, graph 1.6, post 3.0, 68 comm
+  sklearn t-SNE (BH)   seed 1: 0.642/0.479/0.238 geo 0.818 min 0.669 -> 0.636/0.488/0.228 geo 0.822 min 0.681 | fit 57.2 s, graph 1.6, post 2.5, 68 comm
+  TriMap               seed 1: 0.343/0.455/-0.000 geo 0.583 min 0.535 -> 0.362/0.345/0.000 geo 0.521 min 0.482 | fit 12.8 s, graph 1.6, post 2.1, 68 comm
+  h-NNE                seed 1: 0.445/0.382/0.163 geo 0.608 min 0.534 -> 0.462/0.477/0.156 geo 0.693 min 0.666 | fit 8.7 s, graph 1.6, post 2.0, 68 comm
+  densMAP              seed 1: 0.284/0.336/0.183 geo 0.455 min 0.442 -> 0.285/0.371/0.181 geo 0.479 min 0.444 | fit 11.3 s, graph 1.6, post 2.4, 68 comm
+  PCA-2                seed 1: 0.070/0.716/0.047 geo 0.331 min 0.109 -> 0.094/0.714/0.065 geo 0.381 min 0.146 | fit 0.0 s, graph 1.6, post 1.9, 68 comm
+  PCA-2 + pass         seed 1: 0.598/0.628/0.104 geo 0.904 min 0.877 -> 0.577/0.624/0.103 geo 0.885 min 0.871 | fit 2.4 s, graph 1.6, post 2.4, 68 comm
+  MAGNET SGD           seed 2: 0.467/0.591/0.194 geo 0.774 min 0.727 -> 0.463/0.596/0.154 geo 0.775 min 0.722 | fit 1.1 s, graph 1.1, post 1.8, 69 comm
+  MAGNET full-batch    seed 2: 0.627/0.534/0.174 geo 0.853 min 0.746 -> 0.614/0.533/0.193 geo 0.843 min 0.744 | fit 4.1 s, graph 1.1, post 2.2, 69 comm
+  MAGNET hybrid        seed 2: 0.624/0.614/0.168 geo 0.913 min 0.858 -> 0.607/0.607/0.180 geo 0.895 min 0.848 | fit 3.8 s, graph 1.1, post 2.2, 69 comm
+  UMAP                 seed 2: 0.494/0.288/0.161 geo 0.556 min 0.402 -> 0.491/0.372/0.137 geo 0.630 min 0.519 | fit 2.9 s, graph 1.1, post 1.8, 69 comm
+Warning: random state is set to 2.
+  PaCMAP               seed 2: 0.440/0.488/0.217 geo 0.683 min 0.682 -> 0.440/0.529/0.176 geo 0.712 min 0.686 | fit 6.1 s, graph 1.1, post 2.2, 69 comm
+  openTSNE             seed 2: 0.640/0.450/0.228 geo 0.791 min 0.628 -> 0.637/0.471/0.224 geo 0.808 min 0.658 | fit 64.8 s, graph 1.1, post 2.2, 69 comm
+  sklearn t-SNE (BH)   seed 2: 0.642/0.484/0.247 geo 0.822 min 0.675 -> 0.639/0.490/0.228 geo 0.826 min 0.685 | fit 39.5 s, graph 1.1, post 2.1, 69 comm
+  TriMap               seed 2: 0.334/0.452/-0.000 geo 0.573 min 0.520 -> 0.353/0.188/0.001 geo 0.380 min 0.262 | fit 12.2 s, graph 1.1, post 1.7, 69 comm
+  h-NNE                seed 2: 0.445/0.382/0.163 geo 0.608 min 0.534 -> 0.461/0.483/0.165 geo 0.696 min 0.675 | fit 10.7 s, graph 1.1, post 1.9, 69 comm
+  densMAP              seed 2: 0.283/0.288/0.163 geo 0.421 min 0.402 -> 0.284/0.333/0.156 geo 0.454 min 0.443 | fit 11.1 s, graph 1.1, post 2.5, 69 comm
+  PCA-2                seed 2: 0.070/0.716/0.047 geo 0.331 min 0.109 -> 0.091/0.723/0.062 geo 0.379 min 0.142 | fit 0.0 s, graph 1.1, post 1.8, 69 comm
+  PCA-2 + pass         seed 2: 0.598/0.627/0.087 geo 0.903 min 0.875 -> 0.576/0.619/0.111 geo 0.881 min 0.865 | fit 2.7 s, graph 1.1, post 2.7, 69 comm
+  MAGNET SGD           seed 3: 0.483/0.589/0.187 geo 0.787 min 0.752 -> 0.481/0.596/0.168 geo 0.790 min 0.750 | fit 1.1 s, graph 1.1, post 1.9, 70 comm
+  MAGNET full-batch    seed 3: 0.627/0.531/0.160 geo 0.851 min 0.742 -> 0.617/0.525/0.170 geo 0.839 min 0.733 | fit 4.1 s, graph 1.1, post 2.4, 70 comm
+  MAGNET hybrid        seed 3: 0.626/0.611/0.155 geo 0.912 min 0.853 -> 0.614/0.602/0.179 geo 0.897 min 0.841 | fit 3.8 s, graph 1.1, post 2.1, 70 comm
+  UMAP                 seed 3: 0.488/0.286/0.149 geo 0.552 min 0.400 -> 0.485/0.358/0.115 geo 0.615 min 0.500 | fit 2.9 s, graph 1.1, post 2.0, 70 comm
+Warning: random state is set to 3.
+  PaCMAP               seed 3: 0.436/0.490/0.230 geo 0.682 min 0.679 -> 0.435/0.531/0.177 geo 0.709 min 0.677 | fit 5.8 s, graph 1.1, post 1.8, 70 comm
+  openTSNE             seed 3: 0.640/0.452/0.238 geo 0.794 min 0.632 -> 0.637/0.472/0.229 geo 0.809 min 0.659 | fit 69.3 s, graph 1.1, post 2.6, 70 comm
+  sklearn t-SNE (BH)   seed 3: 0.642/0.480/0.238 geo 0.819 min 0.671 -> 0.638/0.489/0.201 geo 0.824 min 0.682 | fit 53.1 s, graph 1.1, post 2.2, 70 comm
+  TriMap               seed 3: 0.346/0.456/-0.000 geo 0.586 min 0.539 -> 0.369/0.292/0.000 geo 0.484 min 0.408 | fit 12.5 s, graph 1.1, post 2.2, 70 comm
+  h-NNE                seed 3: 0.445/0.382/0.163 geo 0.608 min 0.534 -> 0.458/0.484/0.181 geo 0.695 min 0.676 | fit 11.7 s, graph 1.1, post 2.4, 70 comm
+  densMAP              seed 3: 0.287/0.319/0.186 geo 0.447 min 0.445 -> 0.293/0.355/0.173 geo 0.476 min 0.456 | fit 15.1 s, graph 1.1, post 3.0, 70 comm
+  PCA-2                seed 3: 0.070/0.716/0.047 geo 0.331 min 0.110 -> 0.091/0.719/0.062 geo 0.377 min 0.142 | fit 0.0 s, graph 1.1, post 2.4, 70 comm
+  PCA-2 + pass         seed 3: 0.598/0.626/0.096 geo 0.903 min 0.875 -> 0.578/0.621/0.104 geo 0.883 min 0.867 | fit 3.2 s, graph 1.1, post 2.7, 70 comm
+  MAGNET SGD           seed 4: 0.466/0.575/0.209 geo 0.764 min 0.727 -> 0.465/0.589/0.155 geo 0.772 min 0.724 | fit 1.5 s, graph 1.5, post 2.4, 71 comm
+  MAGNET full-batch    seed 4: 0.628/0.526/0.163 geo 0.848 min 0.735 -> 0.615/0.529/0.176 geo 0.841 min 0.739 | fit 4.9 s, graph 1.5, post 3.0, 71 comm
+  MAGNET hybrid        seed 4: 0.624/0.608/0.160 geo 0.909 min 0.849 -> 0.615/0.599/0.162 geo 0.895 min 0.836 | fit 4.8 s, graph 1.5, post 2.3, 71 comm
+  UMAP                 seed 4: 0.486/0.266/0.160 geo 0.530 min 0.372 -> 0.482/0.337/0.122 geo 0.594 min 0.470 | fit 4.0 s, graph 1.5, post 2.1, 71 comm
+Warning: random state is set to 4.
+  PaCMAP               seed 4: 0.435/0.488/0.216 geo 0.680 min 0.678 -> 0.435/0.525/0.190 geo 0.705 min 0.678 | fit 6.1 s, graph 1.5, post 2.1, 71 comm
+  openTSNE             seed 4: 0.639/0.454/0.224 geo 0.795 min 0.635 -> 0.637/0.477/0.209 geo 0.813 min 0.667 | fit 76.3 s, graph 1.5, post 2.9, 71 comm
+  sklearn t-SNE (BH)   seed 4: 0.642/0.480/0.250 geo 0.819 min 0.671 -> 0.639/0.493/0.231 geo 0.828 min 0.689 | fit 49.7 s, graph 1.5, post 2.6, 71 comm
+  TriMap               seed 4: 0.341/0.483/-0.000 geo 0.598 min 0.531 -> 0.364/0.331/0.000 geo 0.512 min 0.463 | fit 15.0 s, graph 1.5, post 2.2, 71 comm
+  h-NNE                seed 4: 0.445/0.382/0.163 geo 0.608 min 0.534 -> 0.461/0.491/0.165 geo 0.702 min 0.686 | fit 9.2 s, graph 1.5, post 2.5, 71 comm
+  densMAP              seed 4: 0.287/0.339/0.157 geo 0.460 min 0.447 -> 0.293/0.395/0.141 geo 0.502 min 0.457 | fit 13.8 s, graph 1.5, post 6.1, 71 comm
+  PCA-2                seed 4: 0.070/0.716/0.044 geo 0.331 min 0.109 -> 0.089/0.718/0.062 geo 0.373 min 0.139 | fit 0.0 s, graph 1.5, post 2.3, 71 comm
+  PCA-2 + pass         seed 4: 0.599/0.626/0.086 geo 0.903 min 0.874 -> 0.576/0.622/0.109 geo 0.883 min 0.869 | fit 3.0 s, graph 1.5, post 2.4, 71 comm
+
+=== covertype: 20000 points, 7 classes, refs {'knn15': 0.632, 'sp': 0.755}, 13232 evaluation points excluded from the search sample
+  MAGNET SGD           seed 0: 0.465/0.589/0.030 geo 0.758 min 0.736 -> 0.465/0.776/0.098 geo 0.870 min 0.736 | fit 1.5 s, graph 1.3, post 3.0, 59 comm
+  MAGNET full-batch    seed 0: 0.626/0.386/0.043 geo 0.711 min 0.511 -> 0.624/0.549/0.099 geo 0.847 min 0.727 | fit 5.2 s, graph 1.3, post 3.2, 59 comm
+  MAGNET hybrid        seed 0: 0.622/0.530/0.013 geo 0.831 min 0.702 -> 0.614/0.602/0.041 geo 0.880 min 0.797 | fit 4.4 s, graph 1.3, post 3.3, 59 comm
+  UMAP                 seed 0: 0.450/0.369/0.053 geo 0.590 min 0.489 -> 0.449/0.660/0.072 geo 0.788 min 0.710 | fit 2.9 s, graph 1.3, post 2.5, 59 comm
+Warning: random state is set to 0.
+  PaCMAP               seed 0: 0.363/0.395/0.035 geo 0.548 min 0.523 -> 0.368/0.699/0.100 geo 0.735 min 0.582 | fit 6.4 s, graph 1.3, post 2.5, 59 comm
+  openTSNE             seed 0: 0.630/0.265/0.045 geo 0.592 min 0.351 -> 0.629/0.452/0.082 geo 0.773 min 0.599 | fit 65.5 s, graph 1.3, post 3.4, 59 comm
+  sklearn t-SNE (BH)   seed 0: 0.632/0.351/0.052 geo 0.682 min 0.465 -> 0.631/0.553/0.095 geo 0.855 min 0.732 | fit 48.8 s, graph 1.3, post 3.0, 59 comm
+  TriMap               seed 0: 0.374/0.736/0.106 geo 0.760 min 0.591 -> 0.374/0.832/0.101 geo 0.807 min 0.591 | fit 18.8 s, graph 1.3, post 3.2, 59 comm
+  h-NNE                seed 0: 0.456/0.198/0.074 geo 0.436 min 0.263 -> 0.462/0.486/0.113 geo 0.686 min 0.643 | fit 10.5 s, graph 1.3, post 3.0, 59 comm
+  densMAP              seed 0: 0.312/0.350/0.026 geo 0.479 min 0.464 -> 0.318/0.580/0.032 geo 0.622 min 0.503 | fit 12.5 s, graph 1.3, post 3.2, 59 comm
+  PCA-2                seed 0: 0.061/0.397/0.048 geo 0.224 min 0.096 -> 0.108/0.647/0.077 geo 0.383 min 0.171 | fit 0.0 s, graph 1.3, post 2.5, 59 comm
+  PCA-2 + pass         seed 0: 0.607/0.288/0.034 geo 0.606 min 0.382 -> 0.590/0.424/0.060 geo 0.724 min 0.562 | fit 2.8 s, graph 1.3, post 3.5, 59 comm
+  MAGNET SGD           seed 1: 0.462/0.604/0.032 geo 0.765 min 0.732 -> 0.462/0.795/0.081 geo 0.877 min 0.731 | fit 1.1 s, graph 1.3, post 2.7, 61 comm
+  MAGNET full-batch    seed 1: 0.625/0.337/0.042 geo 0.665 min 0.447 -> 0.623/0.462/0.090 geo 0.777 min 0.612 | fit 4.5 s, graph 1.3, post 3.1, 61 comm
+  MAGNET hybrid        seed 1: 0.622/0.536/0.021 geo 0.835 min 0.710 -> 0.615/0.661/0.049 geo 0.922 min 0.875 | fit 4.1 s, graph 1.3, post 3.1, 61 comm
+  UMAP                 seed 1: 0.450/0.353/0.040 geo 0.577 min 0.467 -> 0.449/0.662/0.074 geo 0.789 min 0.711 | fit 2.8 s, graph 1.3, post 2.5, 61 comm
+Warning: random state is set to 1.
+  PaCMAP               seed 1: 0.366/0.427/0.031 geo 0.572 min 0.565 -> 0.370/0.716/0.095 geo 0.746 min 0.586 | fit 6.0 s, graph 1.3, post 2.4, 61 comm
+  openTSNE             seed 1: 0.629/0.246/0.044 geo 0.570 min 0.326 -> 0.628/0.434/0.088 geo 0.756 min 0.575 | fit 59.5 s, graph 1.3, post 2.9, 61 comm
+  sklearn t-SNE (BH)   seed 1: 0.633/0.352/0.049 geo 0.683 min 0.466 -> 0.632/0.565/0.092 geo 0.865 min 0.748 | fit 44.7 s, graph 1.3, post 4.1, 61 comm
+  TriMap               seed 1: 0.378/0.753/0.109 geo 0.772 min 0.598 -> 0.377/0.839/0.101 geo 0.814 min 0.596 | fit 12.9 s, graph 1.3, post 4.9, 61 comm
+  h-NNE                seed 1: 0.456/0.198/0.074 geo 0.436 min 0.263 -> 0.462/0.464/0.119 geo 0.670 min 0.615 | fit 19.4 s, graph 1.3, post 7.7, 61 comm
+  densMAP              seed 1: 0.310/0.334/0.018 geo 0.466 min 0.443 -> 0.314/0.606/0.048 geo 0.632 min 0.497 | fit 27.9 s, graph 1.3, post 6.8, 61 comm
+  PCA-2                seed 1: 0.061/0.397/0.047 geo 0.225 min 0.096 -> 0.101/0.628/0.059 geo 0.364 min 0.159 | fit 0.0 s, graph 1.3, post 5.5, 61 comm
+  PCA-2 + pass         seed 1: 0.606/0.290/0.035 geo 0.607 min 0.385 -> 0.591/0.419/0.039 geo 0.720 min 0.554 | fit 8.5 s, graph 1.3, post 7.9, 61 comm
+  MAGNET SGD           seed 2: 0.465/0.600/0.044 geo 0.765 min 0.736 -> 0.465/0.772/0.101 geo 0.868 min 0.736 | fit 4.1 s, graph 4.4, post 7.0, 62 comm
+  MAGNET full-batch    seed 2: 0.625/0.339/0.031 geo 0.666 min 0.449 -> 0.623/0.516/0.072 geo 0.821 min 0.684 | fit 13.2 s, graph 4.4, post 5.0, 62 comm
+  MAGNET hybrid        seed 2: 0.623/0.541/0.008 geo 0.841 min 0.717 -> 0.616/0.650/0.057 geo 0.917 min 0.861 | fit 10.2 s, graph 4.4, post 6.1, 62 comm
+  UMAP                 seed 2: 0.451/0.303/0.026 geo 0.535 min 0.401 -> 0.450/0.630/0.065 geo 0.771 min 0.712 | fit 9.0 s, graph 4.4, post 6.8, 62 comm
+Warning: random state is set to 2.
+  PaCMAP               seed 2: 0.358/0.396/0.033 geo 0.545 min 0.524 -> 0.364/0.710/0.078 geo 0.736 min 0.576 | fit 12.7 s, graph 4.4, post 2.9, 62 comm
+  openTSNE             seed 2: 0.628/0.253/0.044 geo 0.577 min 0.335 -> 0.628/0.457/0.091 geo 0.775 min 0.605 | fit 88.5 s, graph 4.4, post 3.1, 62 comm
+  sklearn t-SNE (BH)   seed 2: 0.631/0.352/0.049 geo 0.683 min 0.467 -> 0.630/0.571/0.093 geo 0.869 min 0.757 | fit 48.9 s, graph 4.4, post 6.4, 62 comm
+  TriMap               seed 2: 0.380/0.742/0.108 geo 0.768 min 0.601 -> 0.379/0.854/0.111 geo 0.824 min 0.600 | fit 16.7 s, graph 4.4, post 3.0, 62 comm
+  h-NNE                seed 2: 0.456/0.198/0.074 geo 0.436 min 0.263 -> 0.464/0.475/0.080 geo 0.680 min 0.630 | fit 13.9 s, graph 4.4, post 3.1, 62 comm
+  densMAP              seed 2: 0.309/0.308/0.024 geo 0.447 min 0.408 -> 0.314/0.549/0.064 geo 0.601 min 0.496 | fit 14.4 s, graph 4.4, post 3.5, 62 comm
+  PCA-2                seed 2: 0.061/0.397/0.048 geo 0.225 min 0.096 -> 0.103/0.609/0.058 geo 0.362 min 0.162 | fit 0.0 s, graph 4.4, post 3.4, 62 comm
+  PCA-2 + pass         seed 2: 0.606/0.292/0.032 geo 0.609 min 0.386 -> 0.590/0.424/0.062 geo 0.724 min 0.561 | fit 4.1 s, graph 4.4, post 6.4, 62 comm
+  MAGNET SGD           seed 3: 0.468/0.588/0.024 geo 0.759 min 0.741 -> 0.467/0.769/0.084 geo 0.868 min 0.739 | fit 2.1 s, graph 1.6, post 2.9, 61 comm
+  MAGNET full-batch    seed 3: 0.626/0.350/0.039 geo 0.678 min 0.464 -> 0.625/0.521/0.087 geo 0.826 min 0.690 | fit 7.3 s, graph 1.6, post 3.9, 61 comm
+  MAGNET hybrid        seed 3: 0.623/0.545/0.014 geo 0.844 min 0.722 -> 0.614/0.673/0.064 geo 0.931 min 0.892 | fit 7.3 s, graph 1.6, post 4.2, 61 comm
+  UMAP                 seed 3: 0.451/0.386/0.022 geo 0.604 min 0.512 -> 0.450/0.652/0.100 geo 0.785 min 0.713 | fit 4.3 s, graph 1.6, post 3.3, 61 comm
+Warning: random state is set to 3.
+  PaCMAP               seed 3: 0.366/0.398/0.032 geo 0.553 min 0.527 -> 0.372/0.714/0.090 geo 0.747 min 0.589 | fit 7.2 s, graph 1.6, post 3.3, 61 comm
+  openTSNE             seed 3: 0.629/0.266/0.045 geo 0.592 min 0.352 -> 0.628/0.452/0.072 geo 0.771 min 0.598 | fit 74.7 s, graph 1.6, post 3.6, 61 comm
+  sklearn t-SNE (BH)   seed 3: 0.632/0.359/0.049 geo 0.690 min 0.476 -> 0.631/0.583/0.100 geo 0.878 min 0.772 | fit 57.6 s, graph 1.6, post 3.2, 61 comm
+  TriMap               seed 3: 0.372/0.753/0.102 geo 0.766 min 0.589 -> 0.372/0.842/0.100 geo 0.810 min 0.589 | fit 13.4 s, graph 1.6, post 3.1, 61 comm
+  h-NNE                seed 3: 0.456/0.198/0.074 geo 0.436 min 0.263 -> 0.463/0.493/0.082 geo 0.692 min 0.653 | fit 14.6 s, graph 1.6, post 3.6, 61 comm
+  densMAP              seed 3: 0.300/0.393/0.035 geo 0.497 min 0.475 -> 0.304/0.628/0.082 geo 0.632 min 0.481 | fit 18.8 s, graph 1.6, post 3.4, 61 comm
+  PCA-2                seed 3: 0.061/0.397/0.048 geo 0.225 min 0.096 -> 0.111/0.610/0.061 geo 0.377 min 0.176 | fit 0.2 s, graph 1.6, post 3.3, 61 comm
+  PCA-2 + pass         seed 3: 0.607/0.291/0.034 geo 0.609 min 0.386 -> 0.585/0.427/0.063 geo 0.724 min 0.566 | fit 3.7 s, graph 1.6, post 3.9, 61 comm
+  MAGNET SGD           seed 4: 0.471/0.579/0.035 geo 0.756 min 0.746 -> 0.471/0.766/0.072 geo 0.869 min 0.745 | fit 1.8 s, graph 1.8, post 4.1, 62 comm
+  MAGNET full-batch    seed 4: 0.624/0.373/0.037 geo 0.698 min 0.494 -> 0.620/0.542/0.088 geo 0.839 min 0.717 | fit 8.3 s, graph 1.8, post 4.7, 62 comm
+  MAGNET hybrid        seed 4: 0.623/0.526/0.012 geo 0.829 min 0.696 -> 0.619/0.653/0.051 geo 0.921 min 0.865 | fit 7.1 s, graph 1.8, post 4.4, 62 comm
+  UMAP                 seed 4: 0.453/0.409/0.031 geo 0.623 min 0.542 -> 0.451/0.653/0.074 geo 0.786 min 0.714 | fit 5.9 s, graph 1.8, post 4.4, 62 comm
+Warning: random state is set to 4.
+  PaCMAP               seed 4: 0.363/0.424/0.029 geo 0.568 min 0.562 -> 0.368/0.739/0.101 geo 0.755 min 0.583 | fit 8.0 s, graph 1.8, post 3.3, 62 comm
+  openTSNE             seed 4: 0.631/0.267/0.049 geo 0.594 min 0.354 -> 0.628/0.472/0.070 geo 0.788 min 0.625 | fit 77.5 s, graph 1.8, post 3.4, 62 comm
+  sklearn t-SNE (BH)   seed 4: 0.632/0.351/0.050 geo 0.682 min 0.464 -> 0.632/0.572/0.110 geo 0.870 min 0.757 | fit 48.3 s, graph 1.8, post 3.5, 62 comm
+  TriMap               seed 4: 0.368/0.755/0.105 geo 0.763 min 0.582 -> 0.368/0.842/0.104 geo 0.806 min 0.582 | fit 13.7 s, graph 1.8, post 3.1, 62 comm
+  h-NNE                seed 4: 0.456/0.198/0.074 geo 0.436 min 0.263 -> 0.462/0.462/0.117 geo 0.669 min 0.612 | fit 4.9 s, graph 1.8, post 3.5, 62 comm
+  densMAP              seed 4: 0.306/0.355/0.027 geo 0.478 min 0.471 -> 0.310/0.570/0.057 geo 0.609 min 0.491 | fit 13.9 s, graph 1.8, post 3.1, 62 comm
+  PCA-2                seed 4: 0.061/0.397/0.047 geo 0.225 min 0.096 -> 0.108/0.625/0.089 geo 0.375 min 0.170 | fit 0.0 s, graph 1.8, post 3.1, 62 comm
+  PCA-2 + pass         seed 4: 0.605/0.294/0.034 geo 0.611 min 0.389 -> 0.591/0.424/0.050 geo 0.725 min 0.562 | fit 3.1 s, graph 1.8, post 3.5, 62 comm
+
+=== mnist: 70000 points, 10 classes, refs {'knn15': 0.356, 'sp': 0.488, 'ari': 0.914}, 15880 evaluation points excluded from the search sample
+  MAGNET SGD           seed 0: 0.193/0.417/0.749 geo 0.724 min 0.542 -> 0.192/0.510/0.761 geo 0.777 min 0.540 | fit 6.8 s, graph 6.2, post 1.6, 10 comm
+  MAGNET full-batch    seed 0: 0.350/0.347/0.775 geo 0.840 min 0.712 -> 0.347/0.468/0.909 geo 0.976 min 0.959 | fit 7.9 s, graph 6.2, post 1.7, 10 comm
+  MAGNET hybrid        seed 0: 0.356/0.417/0.680 geo 0.859 min 0.743 -> 0.350/0.482/0.807 geo 0.950 min 0.883 | fit 11.7 s, graph 6.2, post 2.1, 10 comm
+  UMAP                 seed 0: 0.117/0.288/0.777 geo 0.549 min 0.330 -> 0.118/0.448/0.847 geo 0.657 min 0.333 | fit 36.2 s, graph 6.2, post 3.6, 10 comm
+Warning: random state is set to 0.
+  PaCMAP               seed 0: 0.094/0.306/0.914 geo 0.550 min 0.265 -> 0.096/0.469/0.894 geo 0.632 min 0.269 | fit 42.8 s, graph 6.2, post 1.5, 10 comm
+  openTSNE             seed 0: 0.347/0.332/0.733 geo 0.810 min 0.680 -> 0.344/0.462/0.919 geo 0.972 min 0.946 | fit 99.4 s, graph 6.2, post 1.8, 10 comm
+  sklearn t-SNE (BH)   seed 0: 0.350/0.338/0.829 geo 0.852 min 0.693 -> 0.347/0.469/0.906 geo 0.976 min 0.961 | fit 232.1 s, graph 6.2, post 1.3, 10 comm
+  TriMap               seed 0: 0.091/0.177/0.666 geo 0.408 min 0.256 -> 0.093/0.403/0.752 geo 0.562 min 0.261 | fit 51.4 s, graph 6.2, post 1.3, 10 comm
+  h-NNE                seed 0: 0.232/0.353/0.612 geo 0.681 min 0.652 -> 0.230/0.479/0.615 geo 0.753 min 0.645 | fit 4.1 s, graph 6.2, post 1.1, 10 comm
+  densMAP              seed 0: 0.071/0.364/0.846 geo 0.518 min 0.201 -> 0.073/0.467/0.881 geo 0.574 min 0.205 | fit 38.6 s, graph 6.2, post 1.2, 10 comm
+  PCA-2                seed 0: 0.010/0.488/0.242 geo 0.193 min 0.027 -> 0.012/0.565/0.329 geo 0.239 min 0.033 | fit 0.5 s, graph 6.2, post 1.1, 10 comm
+  PCA-2 + pass         seed 0: 0.316/0.399/0.347 geo 0.651 min 0.380 -> 0.302/0.420/0.406 geo 0.687 min 0.444 | fit 6.8 s, graph 6.2, post 1.4, 10 comm
+  MAGNET SGD           seed 1: 0.193/0.417/0.772 geo 0.732 min 0.544 -> 0.193/0.503/0.817 geo 0.793 min 0.542 | fit 4.6 s, graph 4.2, post 1.2, 10 comm
+  MAGNET full-batch    seed 1: 0.349/0.349/0.795 geo 0.848 min 0.715 -> 0.347/0.464/0.917 geo 0.976 min 0.952 | fit 6.3 s, graph 4.2, post 1.3, 10 comm
+  MAGNET hybrid        seed 1: 0.354/0.463/0.533 geo 0.820 min 0.583 -> 0.350/0.527/0.628 geo 0.900 min 0.687 | fit 9.2 s, graph 4.2, post 1.3, 10 comm
+  UMAP                 seed 1: 0.115/0.300/0.778 geo 0.554 min 0.324 -> 0.117/0.451/0.895 geo 0.667 min 0.328 | fit 10.0 s, graph 4.2, post 1.2, 10 comm
+Warning: random state is set to 1.
+  PaCMAP               seed 1: 0.095/0.306/0.805 geo 0.528 min 0.266 -> 0.096/0.470/0.919 geo 0.640 min 0.270 | fit 28.8 s, graph 4.2, post 1.2, 10 comm
+  openTSNE             seed 1: 0.347/0.328/0.682 geo 0.788 min 0.672 -> 0.344/0.466/0.919 geo 0.975 min 0.955 | fit 91.3 s, graph 4.2, post 1.3, 10 comm
+  sklearn t-SNE (BH)   seed 1: 0.350/0.338/0.828 geo 0.851 min 0.693 -> 0.347/0.462/0.922 geo 0.977 min 0.947 | fit 209.2 s, graph 4.2, post 1.3, 10 comm
+  TriMap               seed 1: 0.088/0.179/0.677 geo 0.407 min 0.247 -> 0.090/0.397/0.754 geo 0.554 min 0.253 | fit 59.1 s, graph 4.2, post 1.3, 10 comm
+  h-NNE                seed 1: 0.234/0.307/0.651 geo 0.665 min 0.629 -> 0.232/0.459/0.641 geo 0.755 min 0.653 | fit 4.8 s, graph 4.2, post 1.2, 10 comm
+  densMAP              seed 1: 0.069/0.352/0.828 geo 0.501 min 0.193 -> 0.070/0.466/0.863 geo 0.561 min 0.196 | fit 39.7 s, graph 4.2, post 1.3, 10 comm
+  PCA-2                seed 1: 0.010/0.488/0.242 geo 0.193 min 0.027 -> 0.012/0.558/0.316 geo 0.235 min 0.033 | fit 0.5 s, graph 4.2, post 1.2, 10 comm
+  PCA-2 + pass         seed 1: 0.318/0.399/0.366 geo 0.664 min 0.401 -> 0.303/0.409/0.457 geo 0.709 min 0.500 | fit 7.0 s, graph 4.2, post 1.4, 10 comm
+  MAGNET SGD           seed 2: 0.194/0.413/0.763 geo 0.728 min 0.546 -> 0.194/0.493/0.866 geo 0.805 min 0.544 | fit 4.4 s, graph 4.5, post 1.8, 10 comm
+  MAGNET full-batch    seed 2: 0.349/0.353/0.779 geo 0.845 min 0.724 -> 0.347/0.465/0.912 geo 0.974 min 0.952 | fit 6.7 s, graph 4.5, post 1.8, 10 comm
+  MAGNET hybrid        seed 2: 0.353/0.425/0.662 geo 0.856 min 0.725 -> 0.350/0.502/0.774 geo 0.950 min 0.847 | fit 15.7 s, graph 4.5, post 1.6, 10 comm
+  UMAP                 seed 2: 0.117/0.305/0.778 geo 0.560 min 0.330 -> 0.118/0.450/0.841 geo 0.656 min 0.332 | fit 13.4 s, graph 4.5, post 1.4, 10 comm
+Warning: random state is set to 2.
+  PaCMAP               seed 2: 0.094/0.319/0.797 geo 0.533 min 0.265 -> 0.096/0.468/0.918 geo 0.639 min 0.271 | fit 38.8 s, graph 4.5, post 4.5, 10 comm
+  openTSNE             seed 2: 0.347/0.329/0.733 geo 0.808 min 0.674 -> 0.344/0.459/0.914 geo 0.968 min 0.940 | fit 102.5 s, graph 4.5, post 1.5, 10 comm
+  sklearn t-SNE (BH)   seed 2: 0.349/0.338/0.828 geo 0.851 min 0.693 -> 0.347/0.460/0.922 geo 0.975 min 0.942 | fit 265.2 s, graph 4.5, post 1.6, 10 comm
+  TriMap               seed 2: 0.089/0.182/0.669 geo 0.408 min 0.249 -> 0.091/0.397/0.758 geo 0.556 min 0.256 | fit 54.0 s, graph 4.5, post 1.5, 10 comm
+  h-NNE                seed 2: 0.233/0.330/0.585 geo 0.656 min 0.640 -> 0.230/0.464/0.552 geo 0.718 min 0.604 | fit 7.2 s, graph 4.5, post 1.3, 10 comm
+  densMAP              seed 2: 0.069/0.346/0.716 geo 0.476 min 0.194 -> 0.071/0.455/0.857 geo 0.560 min 0.201 | fit 45.4 s, graph 4.5, post 1.5, 10 comm
+  PCA-2                seed 2: 0.010/0.488/0.242 geo 0.193 min 0.027 -> 0.012/0.567/0.338 geo 0.241 min 0.033 | fit 0.4 s, graph 4.5, post 1.3, 10 comm
+  PCA-2 + pass         seed 2: 0.319/0.399/0.340 geo 0.648 min 0.372 -> 0.304/0.422/0.405 geo 0.688 min 0.443 | fit 8.0 s, graph 4.5, post 1.6, 10 comm
+  MAGNET SGD           seed 3: 0.194/0.414/0.753 geo 0.724 min 0.544 -> 0.194/0.497/0.806 geo 0.788 min 0.544 | fit 7.0 s, graph 5.2, post 1.6, 10 comm
+  MAGNET full-batch    seed 3: 0.348/0.351/0.807 geo 0.853 min 0.718 -> 0.346/0.464/0.917 geo 0.975 min 0.951 | fit 7.0 s, graph 5.2, post 1.7, 10 comm
+  MAGNET hybrid        seed 3: 0.355/0.452/0.576 geo 0.835 min 0.631 -> 0.350/0.523/0.681 geo 0.923 min 0.745 | fit 10.4 s, graph 5.2, post 1.5, 10 comm
+  UMAP                 seed 3: 0.118/0.292/0.754 geo 0.546 min 0.331 -> 0.119/0.442/0.853 geo 0.657 min 0.335 | fit 10.8 s, graph 5.2, post 1.4, 10 comm
+Warning: random state is set to 3.
+  PaCMAP               seed 3: 0.092/0.306/0.910 geo 0.545 min 0.259 -> 0.094/0.476/0.886 geo 0.630 min 0.264 | fit 30.0 s, graph 5.2, post 1.2, 10 comm
+  openTSNE             seed 3: 0.347/0.330/0.735 geo 0.809 min 0.677 -> 0.344/0.463/0.912 geo 0.970 min 0.948 | fit 102.0 s, graph 5.2, post 1.4, 10 comm
+  sklearn t-SNE (BH)   seed 3: 0.349/0.338/0.829 geo 0.851 min 0.693 -> 0.347/0.465/0.921 geo 0.978 min 0.953 | fit 220.1 s, graph 5.2, post 1.6, 10 comm
+  TriMap               seed 3: 0.090/0.187/0.678 geo 0.417 min 0.254 -> 0.092/0.407/0.822 geo 0.580 min 0.260 | fit 56.1 s, graph 5.2, post 1.4, 10 comm
+  h-NNE                seed 3: 0.233/0.297/0.550 geo 0.621 min 0.602 -> 0.230/0.483/0.508 geo 0.708 min 0.556 | fit 7.8 s, graph 5.2, post 1.1, 10 comm
+  densMAP              seed 3: 0.068/0.360/0.691 geo 0.475 min 0.192 -> 0.071/0.462/0.866 geo 0.565 min 0.201 | fit 39.7 s, graph 5.2, post 1.3, 10 comm
+  PCA-2                seed 3: 0.010/0.488/0.242 geo 0.193 min 0.027 -> 0.012/0.564/0.353 geo 0.247 min 0.034 | fit 0.4 s, graph 5.2, post 1.2, 10 comm
+  PCA-2 + pass         seed 3: 0.317/0.397/0.322 geo 0.635 min 0.353 -> 0.304/0.419/0.453 geo 0.714 min 0.496 | fit 6.8 s, graph 5.2, post 1.4, 10 comm
+  MAGNET SGD           seed 4: 0.192/0.417/0.751 geo 0.724 min 0.540 -> 0.190/0.499/0.783 geo 0.776 min 0.533 | fit 4.4 s, graph 4.2, post 1.2, 10 comm
+  MAGNET full-batch    seed 4: 0.349/0.352/0.798 geo 0.851 min 0.721 -> 0.346/0.470/0.918 geo 0.980 min 0.964 | fit 6.0 s, graph 4.2, post 1.4, 10 comm
+  MAGNET hybrid        seed 4: 0.354/0.456/0.527 geo 0.812 min 0.576 -> 0.349/0.486/0.748 geo 0.928 min 0.818 | fit 8.9 s, graph 4.2, post 1.4, 10 comm
+  UMAP                 seed 4: 0.118/0.303/0.783 geo 0.561 min 0.332 -> 0.119/0.451/0.854 geo 0.660 min 0.334 | fit 10.6 s, graph 4.2, post 1.2, 10 comm
+Warning: random state is set to 4.
+  PaCMAP               seed 4: 0.096/0.311/0.797 geo 0.531 min 0.269 -> 0.097/0.469/0.923 geo 0.642 min 0.273 | fit 29.1 s, graph 4.2, post 1.2, 10 comm
+  openTSNE             seed 4: 0.347/0.331/0.670 geo 0.785 min 0.678 -> 0.344/0.462/0.913 geo 0.970 min 0.946 | fit 98.4 s, graph 4.2, post 1.7, 10 comm
+  sklearn t-SNE (BH)   seed 4: 0.350/0.338/0.812 geo 0.846 min 0.693 -> 0.347/0.463/0.917 geo 0.976 min 0.948 | fit 240.8 s, graph 4.2, post 2.3, 10 comm
+  TriMap               seed 4: 0.088/0.179/0.668 geo 0.404 min 0.247 -> 0.089/0.407/0.761 geo 0.558 min 0.249 | fit 63.9 s, graph 4.2, post 1.6, 10 comm
+  h-NNE                seed 4: 0.233/0.321/0.599 geo 0.656 min 0.655 -> 0.232/0.478/0.543 geo 0.724 min 0.594 | fit 9.0 s, graph 4.2, post 1.3, 10 comm
+  densMAP              seed 4: 0.070/0.355/0.838 geo 0.509 min 0.197 -> 0.071/0.469/0.879 geo 0.569 min 0.199 | fit 42.9 s, graph 4.2, post 1.3, 10 comm
+  PCA-2                seed 4: 0.010/0.488/0.242 geo 0.193 min 0.027 -> 0.012/0.568/0.345 geo 0.245 min 0.033 | fit 0.4 s, graph 4.2, post 1.2, 10 comm
+  PCA-2 + pass         seed 4: 0.316/0.397/0.349 geo 0.651 min 0.382 -> 0.302/0.422/0.458 geo 0.716 min 0.501 | fit 6.9 s, graph 4.2, post 1.6, 10 comm
+
+=== fmnist: 70000 points, 10 classes, refs {'knn15': 0.33, 'sp': 0.873, 'ari': 0.483}, 15880 evaluation points excluded from the search sample
+  MAGNET SGD           seed 0: 0.202/0.728/0.437 geo 0.773 min 0.613 -> 0.202/0.703/0.436 geo 0.764 min 0.613 | fit 6.4 s, graph 6.1, post 1.0, 4 comm
+  MAGNET full-batch    seed 0: 0.325/0.699/0.349 geo 0.829 min 0.723 -> 0.325/0.680/0.435 geo 0.884 min 0.779 | fit 8.4 s, graph 6.1, post 1.1, 4 comm
+  MAGNET hybrid        seed 0: 0.330/0.751/0.334 geo 0.841 min 0.691 -> 0.329/0.711/0.417 geo 0.888 min 0.815 | fit 13.6 s, graph 6.1, post 1.1, 4 comm
+  UMAP                 seed 0: 0.134/0.578/0.425 geo 0.618 min 0.405 -> 0.134/0.611/0.460 geo 0.646 min 0.405 | fit 11.4 s, graph 6.1, post 0.9, 4 comm
+Warning: random state is set to 0.
+  PaCMAP               seed 0: 0.098/0.582/0.483 geo 0.583 min 0.298 -> 0.099/0.619/0.468 geo 0.589 min 0.299 | fit 33.0 s, graph 6.1, post 1.1, 4 comm
+  openTSNE             seed 0: 0.323/0.617/0.381 geo 0.817 min 0.707 -> 0.322/0.631/0.449 geo 0.868 min 0.723 | fit 101.6 s, graph 6.1, post 0.9, 4 comm
+  sklearn t-SNE (BH)   seed 0: 0.327/0.634/0.398 geo 0.840 min 0.726 -> 0.326/0.643/0.443 geo 0.874 min 0.737 | fit 221.7 s, graph 6.1, post 0.9, 4 comm
+  TriMap               seed 0: 0.092/0.674/0.443 geo 0.582 min 0.279 -> 0.093/0.671/0.470 geo 0.595 min 0.282 | fit 55.7 s, graph 6.1, post 1.0, 4 comm
+  h-NNE                seed 0: 0.176/0.475/0.433 geo 0.638 min 0.533 -> 0.176/0.550/0.434 geo 0.671 min 0.534 | fit 5.0 s, graph 6.1, post 1.0, 4 comm
+  densMAP              seed 0: 0.071/0.580/0.430 geo 0.503 min 0.215 -> 0.071/0.611/0.436 geo 0.515 min 0.216 | fit 46.2 s, graph 6.1, post 1.5, 4 comm
+  PCA-2                seed 0: 0.018/0.873/0.279 geo 0.315 min 0.054 -> 0.021/0.839/0.352 geo 0.357 min 0.065 | fit 0.4 s, graph 6.1, post 0.9, 4 comm
+  PCA-2 + pass         seed 0: 0.316/0.798/0.302 geo 0.818 min 0.624 -> 0.313/0.755/0.346 geo 0.838 min 0.716 | fit 5.1 s, graph 6.1, post 0.8, 4 comm
+  MAGNET SGD           seed 1: 0.203/0.724/0.436 geo 0.773 min 0.616 -> 0.203/0.686/0.434 geo 0.758 min 0.616 | fit 4.8 s, graph 4.7, post 1.0, 3 comm
+  MAGNET full-batch    seed 1: 0.325/0.696/0.322 geo 0.807 min 0.668 -> 0.325/0.654/0.395 geo 0.845 min 0.750 | fit 6.7 s, graph 4.7, post 1.0, 3 comm
+  MAGNET hybrid        seed 1: 0.329/0.750/0.353 geo 0.855 min 0.730 -> 0.329/0.687/0.418 geo 0.879 min 0.787 | fit 10.5 s, graph 4.7, post 0.9, 3 comm
+  UMAP                 seed 1: 0.134/0.577/0.462 geo 0.636 min 0.407 -> 0.135/0.589/0.478 geo 0.648 min 0.408 | fit 11.4 s, graph 4.7, post 1.0, 3 comm
+Warning: random state is set to 1.
+  PaCMAP               seed 1: 0.099/0.583/0.479 geo 0.583 min 0.300 -> 0.099/0.597/0.468 geo 0.583 min 0.299 | fit 30.5 s, graph 4.7, post 0.9, 3 comm
+  openTSNE             seed 1: 0.322/0.619/0.382 geo 0.817 min 0.709 -> 0.321/0.597/0.422 geo 0.834 min 0.684 | fit 95.1 s, graph 4.7, post 1.0, 3 comm
+  sklearn t-SNE (BH)   seed 1: 0.327/0.634/0.399 geo 0.841 min 0.727 -> 0.326/0.612/0.400 geo 0.831 min 0.701 | fit 204.6 s, graph 4.7, post 1.0, 3 comm
+  TriMap               seed 1: 0.092/0.673/0.434 geo 0.577 min 0.278 -> 0.092/0.637/0.444 geo 0.572 min 0.279 | fit 57.9 s, graph 4.7, post 1.0, 3 comm
+  h-NNE                seed 1: 0.176/0.448/0.452 geo 0.635 min 0.513 -> 0.176/0.511/0.452 geo 0.664 min 0.534 | fit 4.4 s, graph 4.7, post 0.9, 3 comm
+  densMAP              seed 1: 0.072/0.579/0.430 geo 0.505 min 0.219 -> 0.073/0.578/0.432 geo 0.507 min 0.220 | fit 43.8 s, graph 4.7, post 1.0, 3 comm
+  PCA-2                seed 1: 0.018/0.873/0.279 geo 0.315 min 0.054 -> 0.021/0.827/0.333 geo 0.345 min 0.063 | fit 0.5 s, graph 4.7, post 0.8, 3 comm
+  PCA-2 + pass         seed 1: 0.315/0.797/0.301 geo 0.816 min 0.623 -> 0.314/0.736/0.329 geo 0.818 min 0.682 | fit 5.1 s, graph 4.7, post 0.9, 3 comm
+  MAGNET SGD           seed 2: 0.205/0.722/0.450 geo 0.782 min 0.622 -> 0.205/0.691/0.439 geo 0.765 min 0.622 | fit 4.5 s, graph 5.4, post 1.5, 4 comm
+  MAGNET full-batch    seed 2: 0.326/0.697/0.340 geo 0.822 min 0.704 -> 0.325/0.677/0.441 geo 0.887 min 0.775 | fit 6.3 s, graph 5.4, post 0.9, 4 comm
+  MAGNET hybrid        seed 2: 0.329/0.751/0.318 geo 0.827 min 0.659 -> 0.328/0.708/0.423 geo 0.891 min 0.811 | fit 10.1 s, graph 5.4, post 1.0, 4 comm
+  UMAP                 seed 2: 0.132/0.573/0.463 geo 0.632 min 0.401 -> 0.133/0.601/0.464 geo 0.643 min 0.402 | fit 10.4 s, graph 5.4, post 0.9, 4 comm
+Warning: random state is set to 2.
+  PaCMAP               seed 2: 0.100/0.583/0.482 geo 0.586 min 0.302 -> 0.100/0.612/0.473 geo 0.592 min 0.303 | fit 28.8 s, graph 5.4, post 1.0, 4 comm
+  openTSNE             seed 2: 0.323/0.616/0.384 geo 0.819 min 0.706 -> 0.322/0.632/0.450 geo 0.870 min 0.724 | fit 87.1 s, graph 5.4, post 1.0, 4 comm
+  sklearn t-SNE (BH)   seed 2: 0.326/0.634/0.400 geo 0.841 min 0.727 -> 0.325/0.642/0.446 geo 0.875 min 0.736 | fit 188.8 s, graph 5.4, post 0.9, 4 comm
+  TriMap               seed 2: 0.091/0.674/0.434 geo 0.577 min 0.277 -> 0.092/0.667/0.467 geo 0.591 min 0.280 | fit 52.9 s, graph 5.4, post 0.9, 4 comm
+  h-NNE                seed 2: 0.175/0.490/0.393 geo 0.624 min 0.532 -> 0.176/0.551/0.409 geo 0.658 min 0.533 | fit 4.4 s, graph 5.4, post 0.8, 4 comm
+  densMAP              seed 2: 0.070/0.582/0.432 geo 0.502 min 0.212 -> 0.070/0.605/0.431 geo 0.509 min 0.213 | fit 41.7 s, graph 5.4, post 0.9, 4 comm
+  PCA-2                seed 2: 0.018/0.873/0.279 geo 0.315 min 0.054 -> 0.021/0.837/0.353 geo 0.357 min 0.065 | fit 0.4 s, graph 5.4, post 0.8, 4 comm
+  PCA-2 + pass         seed 2: 0.316/0.797/0.294 geo 0.810 min 0.608 -> 0.314/0.753/0.345 geo 0.836 min 0.713 | fit 4.5 s, graph 5.4, post 0.8, 4 comm
+  MAGNET SGD           seed 3: 0.205/0.725/0.392 geo 0.749 min 0.622 -> 0.205/0.701/0.435 geo 0.767 min 0.622 | fit 4.3 s, graph 4.2, post 1.0, 4 comm
+  MAGNET full-batch    seed 3: 0.325/0.696/0.358 geo 0.835 min 0.742 -> 0.324/0.680/0.443 geo 0.888 min 0.778 | fit 8.3 s, graph 4.2, post 1.2, 4 comm
+  MAGNET hybrid        seed 3: 0.329/0.752/0.314 geo 0.824 min 0.651 -> 0.328/0.710/0.415 geo 0.886 min 0.814 | fit 11.3 s, graph 4.2, post 1.3, 4 comm
+  UMAP                 seed 3: 0.133/0.569/0.480 geo 0.638 min 0.402 -> 0.133/0.603/0.479 geo 0.651 min 0.403 | fit 12.9 s, graph 4.2, post 0.9, 4 comm
+Warning: random state is set to 3.
+  PaCMAP               seed 3: 0.099/0.583/0.479 geo 0.585 min 0.301 -> 0.100/0.618/0.472 geo 0.594 min 0.302 | fit 31.2 s, graph 4.2, post 1.2, 4 comm
+  openTSNE             seed 3: 0.321/0.619/0.378 geo 0.814 min 0.709 -> 0.320/0.617/0.448 geo 0.860 min 0.707 | fit 95.3 s, graph 4.2, post 1.8, 4 comm
+  sklearn t-SNE (BH)   seed 3: 0.327/0.634/0.399 geo 0.841 min 0.727 -> 0.326/0.642/0.446 geo 0.875 min 0.735 | fit 361.4 s, graph 4.2, post 2.0, 4 comm
+  TriMap               seed 3: 0.091/0.671/0.441 geo 0.579 min 0.276 -> 0.092/0.667/0.457 geo 0.587 min 0.279 | fit 66.8 s, graph 4.2, post 1.6, 4 comm
+  h-NNE                seed 3: 0.176/0.442/0.482 geo 0.645 min 0.506 -> 0.176/0.546/0.479 geo 0.691 min 0.533 | fit 5.9 s, graph 4.2, post 1.4, 4 comm
+  densMAP              seed 3: 0.072/0.586/0.430 geo 0.506 min 0.217 -> 0.073/0.614/0.430 geo 0.516 min 0.220 | fit 69.7 s, graph 4.2, post 1.4, 4 comm
+  PCA-2                seed 3: 0.018/0.873/0.279 geo 0.315 min 0.054 -> 0.021/0.834/0.348 geo 0.355 min 0.065 | fit 0.7 s, graph 4.2, post 1.5, 4 comm
+  PCA-2 + pass         seed 3: 0.316/0.797/0.300 geo 0.816 min 0.621 -> 0.314/0.733/0.388 geo 0.863 min 0.803 | fit 10.4 s, graph 4.2, post 2.0, 4 comm
+  MAGNET SGD           seed 4: 0.203/0.723/0.413 geo 0.757 min 0.614 -> 0.202/0.706/0.439 geo 0.767 min 0.614 | fit 9.0 s, graph 8.5, post 1.5, 4 comm
+  MAGNET full-batch    seed 4: 0.324/0.696/0.347 geo 0.826 min 0.718 -> 0.324/0.686/0.430 geo 0.882 min 0.786 | fit 12.9 s, graph 8.5, post 1.7, 4 comm
+  MAGNET hybrid        seed 4: 0.328/0.749/0.309 geo 0.817 min 0.639 -> 0.327/0.710/0.420 geo 0.889 min 0.813 | fit 18.1 s, graph 8.5, post 1.6, 4 comm
+  UMAP                 seed 4: 0.133/0.578/0.465 geo 0.635 min 0.402 -> 0.133/0.613/0.461 geo 0.646 min 0.402 | fit 18.5 s, graph 8.5, post 1.4, 4 comm
+Warning: random state is set to 4.
+  PaCMAP               seed 4: 0.098/0.580/0.482 geo 0.582 min 0.297 -> 0.099/0.619/0.473 geo 0.592 min 0.299 | fit 44.0 s, graph 8.5, post 1.5, 4 comm
+  openTSNE             seed 4: 0.323/0.615/0.380 geo 0.816 min 0.705 -> 0.322/0.632/0.448 geo 0.869 min 0.724 | fit 142.4 s, graph 8.5, post 1.4, 4 comm
+  sklearn t-SNE (BH)   seed 4: 0.327/0.634/0.399 geo 0.841 min 0.726 -> 0.326/0.644/0.443 geo 0.875 min 0.738 | fit 318.2 s, graph 8.5, post 1.5, 4 comm
+  TriMap               seed 4: 0.092/0.672/0.441 geo 0.581 min 0.279 -> 0.093/0.669/0.438 geo 0.581 min 0.282 | fit 83.5 s, graph 8.5, post 1.7, 4 comm
+  h-NNE                seed 4: 0.174/0.442/0.445 geo 0.627 min 0.506 -> 0.174/0.539/0.442 geo 0.668 min 0.527 | fit 5.9 s, graph 8.5, post 1.0, 4 comm
+  densMAP              seed 4: 0.072/0.589/0.428 geo 0.507 min 0.218 -> 0.072/0.617/0.430 geo 0.517 min 0.219 | fit 71.1 s, graph 8.5, post 1.7, 4 comm
+  PCA-2                seed 4: 0.018/0.873/0.279 geo 0.315 min 0.054 -> 0.021/0.840/0.343 geo 0.353 min 0.065 | fit 0.6 s, graph 8.5, post 1.6, 4 comm
+  PCA-2 + pass         seed 4: 0.318/0.797/0.305 geo 0.822 min 0.631 -> 0.315/0.753/0.373 geo 0.861 min 0.773 | fit 9.9 s, graph 8.5, post 1.4, 4 comm
+
+==== summary: mean +- sd over replicates, composites per run; ratios to the frozen unprocessed references ====
+
+letter 20k (all 5 runs)
+configuration             plain 15-NN/Sp/ARI           geo           min          post 15-NN/Sp/ARI           geo           min    d geo    vs hybrid+post  t fit t post
+MAGNET SGD          0.470/0.583/0.190       0.772 +- 0.0110.732 +- 0.011          0.468/0.591/0.1600.776 +- 0.0090.729 +- 0.012   +0.004   -0.119 +- 0.008    1.2    2.2
+MAGNET full-batch   0.627/0.531/0.167       0.851 +- 0.0020.741 +- 0.004          0.614/0.531/0.1770.842 +- 0.0030.741 +- 0.006   -0.009   -0.053 +- 0.003    5.2    2.7
+MAGNET hybrid       0.625/0.611/0.162       0.911 +- 0.0020.854 +- 0.004          0.611/0.603/0.1730.895 +- 0.0010.842 +- 0.004   -0.016                      4.4    2.4
+UMAP                0.488/0.286/0.161       0.550 +- 0.0120.399 +- 0.017          0.485/0.361/0.1330.617 +- 0.0150.504 +- 0.022   +0.066   -0.278 +- 0.014    3.7    2.2
+PaCMAP              0.436/0.490/0.209       0.682 +- 0.0020.679 +- 0.002          0.436/0.530/0.1790.708 +- 0.0030.679 +- 0.004   +0.026   -0.187 +- 0.003    6.2    2.2
+openTSNE            0.639/0.453/0.231       0.794 +- 0.0020.633 +- 0.003          0.637/0.475/0.2220.811 +- 0.0020.663 +- 0.004   +0.017   -0.085 +- 0.003   76.4    2.6
+sklearn t-SNE (BH)  0.642/0.480/0.244       0.819 +- 0.0010.671 +- 0.002          0.638/0.490/0.2250.824 +- 0.0020.684 +- 0.003   +0.005   -0.071 +- 0.003   50.1    2.5
+TriMap              0.338/0.459/-0.000      0.581 +- 0.0140.526 +- 0.013          0.360/0.299/0.0000.482 +- 0.0590.418 +- 0.092   -0.099   -0.413 +- 0.059   14.5    2.1
+h-NNE               0.445/0.382/0.163       0.608 +- 0.0000.534 +- 0.000          0.461/0.481/0.1680.695 +- 0.0050.672 +- 0.011   +0.086   -0.201 +- 0.005    9.7    2.2
+densMAP             0.284/0.313/0.176       0.440 +- 0.0200.427 +- 0.025          0.287/0.355/0.1660.471 +- 0.0230.447 +- 0.009   +0.031   -0.425 +- 0.023   13.3    3.4
+PCA-2               0.070/0.716/0.046       0.331 +- 0.0000.109 +- 0.000          0.091/0.719/0.0630.377 +- 0.0030.142 +- 0.003   +0.046   -0.518 +- 0.003    0.0    2.2
+PCA-2 + pass        0.599/0.627/0.093       0.904 +- 0.0010.875 +- 0.001          0.577/0.622/0.1070.884 +- 0.0020.869 +- 0.003   -0.020   -0.012 +- 0.002    3.1    2.7
+
+covertype 20k (all 5 runs)
+configuration             plain 15-NN/Sp/ARI           geo           min          post 15-NN/Sp/ARI           geo           min    d geo    vs hybrid+post  t fit t post
+MAGNET SGD          0.467/0.592/0.033       0.761 +- 0.0040.738 +- 0.005          0.466/0.775/0.0870.870 +- 0.0040.738 +- 0.005   +0.110   -0.044 +- 0.020    2.1    3.9
+MAGNET full-batch   0.625/0.357/0.039       0.684 +- 0.0200.473 +- 0.029          0.623/0.518/0.0870.822 +- 0.0270.686 +- 0.045   +0.138   -0.092 +- 0.041    7.7    4.0
+MAGNET hybrid       0.623/0.536/0.013       0.836 +- 0.0060.710 +- 0.010          0.616/0.648/0.0520.914 +- 0.0200.858 +- 0.036   +0.078                      6.6    4.2
+UMAP                0.451/0.364/0.034       0.586 +- 0.0330.482 +- 0.053          0.450/0.651/0.0770.784 +- 0.0070.712 +- 0.002   +0.198   -0.130 +- 0.022    5.0    3.9
+PaCMAP              0.363/0.408/0.032       0.557 +- 0.0120.540 +- 0.021          0.369/0.716/0.0930.744 +- 0.0080.583 +- 0.005   +0.186   -0.171 +- 0.016    8.0    2.9
+openTSNE            0.630/0.259/0.045       0.585 +- 0.0110.344 +- 0.012          0.628/0.453/0.0810.773 +- 0.0120.601 +- 0.018   +0.188   -0.142 +- 0.024   73.2    3.3
+sklearn t-SNE (BH)  0.632/0.353/0.050       0.684 +- 0.0030.468 +- 0.005          0.631/0.569/0.0980.867 +- 0.0080.753 +- 0.015   +0.183   -0.047 +- 0.013   49.7    4.0
+TriMap              0.374/0.748/0.106       0.766 +- 0.0050.592 +- 0.007          0.374/0.842/0.1030.812 +- 0.0070.592 +- 0.007   +0.046   -0.102 +- 0.019   15.1    3.4
+h-NNE               0.456/0.198/0.074       0.436 +- 0.0000.263 +- 0.000          0.463/0.476/0.1020.680 +- 0.0100.631 +- 0.018   +0.244   -0.235 +- 0.024   12.7    4.2
+densMAP             0.307/0.348/0.026       0.473 +- 0.0180.452 +- 0.027          0.312/0.587/0.0570.619 +- 0.0140.494 +- 0.008   +0.146   -0.295 +- 0.023   17.5    4.0
+PCA-2               0.061/0.397/0.048       0.225 +- 0.0000.096 +- 0.000          0.106/0.624/0.0690.372 +- 0.0090.168 +- 0.007   +0.148   -0.542 +- 0.026    0.1    3.6
+PCA-2 + pass        0.606/0.291/0.034       0.608 +- 0.0020.386 +- 0.003          0.590/0.424/0.0550.723 +- 0.0020.561 +- 0.004   +0.115   -0.191 +- 0.020    4.4    5.0
+
+MNIST 70k (all 5 runs)
+configuration             plain 15-NN/Sp/ARI           geo           min          post 15-NN/Sp/ARI           geo           min    d geo    vs hybrid+post  t fit t post
+MAGNET SGD          0.193/0.416/0.758       0.727 +- 0.0040.543 +- 0.002          0.192/0.500/0.8070.788 +- 0.0120.541 +- 0.005   +0.061   -0.142 +- 0.024    5.4    1.5
+MAGNET full-batch   0.349/0.350/0.791       0.847 +- 0.0050.718 +- 0.005          0.346/0.466/0.9150.976 +- 0.0020.956 +- 0.006   +0.129   +0.046 +- 0.021    6.8    1.6
+MAGNET hybrid       0.354/0.443/0.596       0.836 +- 0.0210.652 +- 0.078          0.350/0.504/0.7280.930 +- 0.0210.796 +- 0.079   +0.094                     11.2    1.6
+UMAP                0.117/0.298/0.774       0.554 +- 0.0070.329 +- 0.003          0.118/0.448/0.8580.659 +- 0.0040.332 +- 0.003   +0.105   -0.271 +- 0.025   16.2    1.7
+PaCMAP              0.094/0.310/0.845       0.537 +- 0.0100.265 +- 0.003          0.096/0.470/0.9080.637 +- 0.0050.269 +- 0.003   +0.099   -0.294 +- 0.023   33.9    1.9
+openTSNE            0.347/0.330/0.711       0.800 +- 0.0120.676 +- 0.003          0.344/0.462/0.9150.971 +- 0.0030.947 +- 0.006   +0.171   +0.041 +- 0.023   98.7    1.5
+sklearn t-SNE (BH)  0.350/0.338/0.825       0.850 +- 0.0020.693 +- 0.000          0.347/0.464/0.9180.976 +- 0.0010.950 +- 0.007   +0.126   +0.046 +- 0.022  233.5    1.6
+TriMap              0.089/0.181/0.672       0.409 +- 0.0050.251 +- 0.004          0.091/0.402/0.7690.562 +- 0.0100.256 +- 0.005   +0.153   -0.368 +- 0.023   56.9    1.4
+h-NNE               0.233/0.321/0.599       0.656 +- 0.0220.635 +- 0.022          0.231/0.473/0.5720.732 +- 0.0210.611 +- 0.040   +0.076   -0.198 +- 0.032    6.6    1.2
+densMAP             0.070/0.355/0.784       0.496 +- 0.0190.195 +- 0.004          0.071/0.464/0.8690.566 +- 0.0060.200 +- 0.003   +0.070   -0.365 +- 0.019   41.3    1.3
+PCA-2               0.010/0.488/0.242       0.193 +- 0.0000.027 +- 0.000          0.012/0.565/0.3370.241 +- 0.0050.033 +- 0.001   +0.048   -0.689 +- 0.020    0.4    1.2
+PCA-2 + pass        0.317/0.398/0.345       0.650 +- 0.0100.377 +- 0.017          0.303/0.418/0.4360.703 +- 0.0140.477 +- 0.031   +0.053   -0.227 +- 0.033    7.1    1.5
+
+Fashion 70k (all 5 runs)
+configuration             plain 15-NN/Sp/ARI           geo           min          post 15-NN/Sp/ARI           geo           min    d geo    vs hybrid+post  t fit t post
+MAGNET SGD          0.204/0.725/0.426       0.767 +- 0.0140.617 +- 0.004          0.204/0.697/0.4370.764 +- 0.0040.617 +- 0.004   -0.003   -0.122 +- 0.003    5.8    1.2
+MAGNET full-batch   0.325/0.697/0.343       0.824 +- 0.0110.711 +- 0.028          0.325/0.675/0.4290.877 +- 0.0180.774 +- 0.014   +0.054   -0.009 +- 0.014    8.5    1.2
+MAGNET hybrid       0.329/0.751/0.325       0.833 +- 0.0150.674 +- 0.037          0.328/0.705/0.4190.886 +- 0.0050.808 +- 0.012   +0.054                     12.7    1.2
+UMAP                0.133/0.575/0.459       0.632 +- 0.0080.404 +- 0.003          0.133/0.603/0.4680.647 +- 0.0030.404 +- 0.003   +0.015   -0.239 +- 0.007   12.9    1.0
+PaCMAP              0.099/0.582/0.481       0.584 +- 0.0010.299 +- 0.002          0.099/0.613/0.4710.590 +- 0.0040.300 +- 0.002   +0.006   -0.296 +- 0.003   33.5    1.1
+openTSNE            0.322/0.617/0.381       0.817 +- 0.0020.707 +- 0.002          0.322/0.622/0.4430.860 +- 0.0150.712 +- 0.018   +0.044   -0.026 +- 0.010  104.3    1.2
+sklearn t-SNE (BH)  0.327/0.634/0.399       0.841 +- 0.0000.726 +- 0.000          0.326/0.637/0.4360.866 +- 0.0200.729 +- 0.016   +0.025   -0.020 +- 0.015  258.9    1.3
+TriMap              0.092/0.673/0.439       0.579 +- 0.0020.278 +- 0.001          0.092/0.662/0.4550.585 +- 0.0090.280 +- 0.002   +0.006   -0.301 +- 0.006   63.3    1.2
+h-NNE               0.175/0.459/0.441       0.634 +- 0.0090.518 +- 0.013          0.176/0.539/0.4430.670 +- 0.0130.532 +- 0.003   +0.037   -0.216 +- 0.014    5.1    1.0
+densMAP             0.071/0.583/0.430       0.505 +- 0.0020.216 +- 0.003          0.072/0.605/0.4320.513 +- 0.0050.218 +- 0.003   +0.008   -0.374 +- 0.005   54.5    1.3
+PCA-2               0.018/0.873/0.279       0.315 +- 0.0000.054 +- 0.000          0.021/0.835/0.3460.353 +- 0.0050.064 +- 0.001   +0.038   -0.533 +- 0.002    0.5    1.1
+PCA-2 + pass        0.316/0.797/0.300       0.816 +- 0.0040.621 +- 0.008          0.314/0.746/0.3560.843 +- 0.0190.737 +- 0.049   +0.027   -0.043 +- 0.017    7.0    1.2
