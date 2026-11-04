@@ -442,15 +442,16 @@ point is in another community may not rise above its initial value + 0.002); the
 contracted about its centroid by 0.7. A contraction keeps the distance order within a community and can only
 change neighbours across its border; k-means recovers the communities more easily by construction, so the ARI
 gain measures how well the graph's communities match the labels, not new clusters. MNIST 70k, `loss="tsne"`,
-three seeds, Spearman evaluated on a sample the search never saw (`k39`, re-run with the 0.7 box): 15-NN 0.349 ->
-0.346, Spearman 0.350 -> 0.464 (+- 0.002; hybrid 0.45, PCA-2 0.49), k-means ARI 0.76 -> 0.89 (0.92 on the two seeds
-whose Louvain finds the ten classes, 0.83 on the seed that splits one; PaCMAP 0.91); triplet accuracy
-(0.627 -> 0.648) and class-centroid Spearman (0.66 -> 0.72), which the step does not fit, rise too; composite against
-the unprocessed panel's bests 0.839 -> 0.968. Placement alone gets the Spearman (0.478) but lowers the ARI to 0.68,
-separation alone gets the ARI (0.918) at Spearman 0.33: the two parts are complementary. Fashion-MNIST (three seeds)
-0.326 / 0.697 / 0.340 -> 0.322 / 0.689 / 0.453 (+- 0.03), composite 0.821 -> 0.879 (hybrid 0.818 -> 0.883); letter (classes are not clusters) within 0.01 of 15-NN and
-Spearman; covertype 20k Spearman 0.386 -> 0.529 at -0.002 of 15-NN. The step is method-agnostic: a Barnes-Hut
-t-SNE layout receives the same gains (MNIST 0.350 / 0.338 / 0.829 -> 0.348 / 0.463 / 0.920, three seeds), so the rows "+ contraction" in
+three seeds, Spearman evaluated on a sample the search never saw (`k39`, final post-process: 0.7 box, strength-ordered
+Louvain, density-contrast merge): 15-NN 0.349 -> 0.347, Spearman 0.350 -> 0.469 (+- 0.001; hybrid 0.48, PCA-2 0.49),
+k-means ARI 0.76 -> 0.914 (+- 0.004; PaCMAP 0.91); triplet accuracy (0.627 -> 0.649) and class-centroid Spearman
+(0.66 -> 0.70), which the step does not fit, rise too; composite against the unprocessed panel's bests 0.839 -> 0.982
+(+- 0.001). Placement alone gets the Spearman (0.482) but lowers the ARI to 0.69, separation alone gets the ARI (0.920)
+at Spearman 0.33: the two parts are complementary. Fashion-MNIST (three seeds, 4 communities after the merge)
+0.326 / 0.697 / 0.340 -> 0.325 / 0.679 / 0.441 (+- 0.004), composite 0.820 -> 0.875 (hybrid 0.830 -> 0.886); letter
+(classes are not clusters) within 0.01 of 15-NN and Spearman; covertype 20k Spearman 0.386 -> 0.545 at -0.002 of
+15-NN, 250k 0.343 -> 0.402 (138 communities, step 6 s after a 25 s layout). The step is method-agnostic: a Barnes-Hut
+t-SNE layout receives the same gains (MNIST 0.350 / 0.338 / 0.829 -> 0.347 / 0.463 / 0.917, three seeds), so the rows "+ contraction" in
 `composite_table.py` (first three places on the mean of both composites) describe the configurations
 tabulated, not a method comparison. 3 s on 70k (2 of Leiden; the layouts themselves take 8 s for MAGNET and
 200 s for sklearn's t-SNE), 9 s on covertype 250k with 141 communities; off by default. Its settings were chosen

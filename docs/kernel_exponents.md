@@ -673,7 +673,19 @@ max-modularity restart would not fix it); separation only 0.346 / 0.328 / 0.918,
 -> 0.322 / 0.689 / 0.423, hybrid 0.329 / 0.749 / 0.308 -> 0.325 / 0.723 / 0.406; covertype 250k 0.610 / 0.343 ->
 0.600 / 0.405 (127 communities, step 3.8 s after a 14.8 s layout). Composite tables (single seed 0): hybrid +
 contraction first on the mean (geo 0.900, min 0.822), quality + contraction 0.884 / 0.789, full-batch + contraction
-0.863 / 0.775 (its MNIST seed-0 run is an 11-community one, ARI 0.79).
+0.863 / 0.775 (its MNIST seed-0 run is an 11-community one, ARI 0.79). Final post-process (strength order, r 0.5,
+merge 0.10; 6.15-6.16), everything re-run: k39 MNIST full-batch 0.349 / 0.350 / 0.761 -> 0.347 / 0.469 / 0.914 +-
+0.004 (10 communities on every seed; frozen composite 0.839 -> 0.982 +- 0.001), separation only 0.346 / 0.329 /
+0.920, placement only 0.345 / 0.482 / 0.685; BH 0.350 / 0.338 / 0.829 -> 0.347 / 0.463 / 0.917; Fashion (4
+communities) 0.326 / 0.697 / 0.340 -> 0.325 / 0.679 / 0.441 +- 0.004, BH 0.398 -> 0.445. k38: full-batch 0.347 /
+0.466 / 0.918 +- 0.001 (geo 0.848 -> 0.981), hybrid 0.347 / 0.483 / 0.636 +- 0.135 (the hybrid's connected cloud:
+the separation at 0.7 does not pull its classes apart for k-means, seed-dependent); Fashion full-batch 0.325 / 0.672
+/ 0.424, hybrid 0.328 / 0.698 / 0.419; generality BH 0.855 -> 0.977, openTSNE 0.809 -> 0.974, UMAP 0.555 -> 0.654,
+PaCMAP 0.552 -> 0.633; covertype 250k 0.610 / 0.343 -> 0.597 / 0.402, 138 communities, step 5.8 s after 24.5 s (the
+first dense merge took 363 s there: O(k^2 n); rewritten with sparse products, O(nnz) per merge, identical
+partitions, 0.9 s for the merge itself). Composite tables (seed 0): quality + contraction 0.895 / 0.811, full-batch
++ contraction 0.888 / 0.801, hybrid + contraction 0.872 / 0.759 (its MNIST ARI fell to 0.50 with the ten-community
+partition: the same k-means instability as in k38).
 
 ### 6.13 Optimisation round (2026-11-04): "fastas hell"
 

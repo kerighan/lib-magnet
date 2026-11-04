@@ -62,33 +62,33 @@ def communities(P, resolution, seed=0, n_iterations=2, backend="louvain", order=
 def interface_merge(P, labels, tau=0.10, min_boundary=20):
     """Merge adjacent communities whose interface shows no density contrast (k43). The boundary nodes of A towards B
     (nodes of A with an edge into B) send on average a share f_AB of their strength into B. A cut through a cloud
-    of uniform density is symmetric and both shares are large (0.14-0.16 on MNIST's graph, whatever the size);
-    a true cluster boundary is a density dip and at least one side reaches little across (0.04-0.09). Modularity
-    cannot see the difference: on a kNN graph every node has about the same strength, so its null model is a
-    size^2 penalty that splits large geometric communities (the field-of-view limit) and swallows small ones (the
-    resolution limit). Louvain at a high resolution avoids the second, this merge undoes the first. Pairs are
-    merged greedily, largest min(f_AB, f_BA) first, while it is >= tau; interfaces with fewer than `min_boundary`
-    boundary nodes on the first side are ignored."""
-    labels = labels.copy(); n = P.shape[0]
+    of uniform density is symmetric and both shares are large (about 0.2 for this graph construction, whatever the
+    size); a true cluster boundary is a density dip and at least one side reaches little across (<= 0.09 on MNIST).
+    Modularity cannot see the difference: on a kNN graph every node has about the same strength, so its null model
+    is a size^2 penalty that splits large geometric communities (the field-of-view limit) and swallows small ones
+    (the resolution limit). Louvain at a high resolution avoids the second, this merge undoes the first. Pairs are
+    merged greedily, largest min(f_AB, f_BA) first, while it is >= tau (0.10 = half the uniform reference, the
+    midpoint between no contrast and a full gap); interfaces with fewer than `min_boundary` boundary nodes on
+    either side are ignored. Sparse throughout: O(nnz(P)) per merge."""
+    labels = np.asarray(labels, dtype=np.int32).copy(); n = P.shape[0]
+    P = sp.csr_matrix(P, dtype=np.float64)
     strength = np.asarray(P.sum(1)).ravel(); strength[strength == 0] = 1.0
+    Frac = sp.diags(1.0 / strength) @ P                       # Frac[i, j] = share of i's strength on the edge to j
     while True:
         k = int(labels.max()) + 1
-        C = sp.csr_matrix((np.ones(n, dtype=np.float32), (np.arange(n), labels)), shape=(n, k))
-        W = np.asarray((P @ C).todense()); frac = W / strength[:, None]
-        best = None
-        for a in range(k):
-            ma = labels == a
-            for b in range(a + 1, k):
-                ia = ma & (W[:, b] > 0)
-                if ia.sum() < min_boundary:
-                    continue
-                ib = (labels == b) & (W[:, a] > 0)
-                f = min(frac[ia, b].mean(), frac[ib, a].mean())
-                if f >= tau and (best is None or f > best[0]):
-                    best = (f, a, b)
-        if best is None:
+        C = sp.csr_matrix((np.ones(n), (np.arange(n), labels)), shape=(n, k))
+        F = sp.csr_matrix(Frac @ C)                            # F[i, c] = share of i's strength going into community c
+        S = np.asarray((C.T @ F).todense())                    # S[a, b] = sum over i in a of F[i, b]
+        Fb = F.copy(); Fb.data[:] = 1.0
+        N = np.asarray((C.T @ Fb).todense())                   # N[a, b] = number of boundary nodes of a towards b
+        with np.errstate(divide="ignore", invalid="ignore"):
+            f = np.where(N > 0, S / np.maximum(N, 1), 0.0)     # f[a, b] = mean crossing share of a's boundary nodes towards b
+        np.fill_diagonal(f, 0.0)
+        m = np.minimum(f, f.T); m[(N < min_boundary) | (N.T < min_boundary)] = 0.0
+        a, b = np.unravel_index(int(np.argmax(m)), m.shape)
+        if m[a, b] < tau:
             return labels
-        labels[labels == best[2]] = best[1]
+        labels[labels == max(a, b)] = min(a, b)
         labels = np.unique(labels, return_inverse=True)[1].astype(np.int32)
 
 

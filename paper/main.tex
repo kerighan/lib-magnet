@@ -44,9 +44,9 @@ while PaCMAP and UMAP are first; the row that is good on all three axes is the s
 mode, first or second on a composite of the three in 8~s against 94 for openTSNE. An optional
 post-process, label-free in execution, translates the communities of the fuzzy graph to raise a sampled
 distance Spearman under an overlap guard, then contracts each about its centroid: across three MNIST seeds
-the full-batch means go from 15-NN / Spearman / ARI 0.349 / 0.350 / 0.761 to 0.346 / 0.464 / 0.887, the
-Spearman evaluated on a sample the search did not see, each axis's mean at 95\% or more of the unprocessed
-panel's best (the ARI of one seed, whose community detection splits a class, at 0.83), in 1--2~s; a Barnes--Hut $t$-SNE layout receives the same gains, so the adjustment is method-agnostic.
+the full-batch means go from 15-NN / Spearman / ARI 0.349 / 0.350 / 0.761 to 0.347 / 0.469 / 0.914 (run
+standard deviations 0.000 / 0.001 / 0.004), the Spearman evaluated on a sample the search did not see, each
+axis at 96\% or more of the unprocessed panel's best, in 1--2~s; a Barnes--Hut $t$-SNE layout receives the same gains, so the adjustment is method-agnostic.
 With every setting frozen, the recipe transfers to five held-out cases (covertype at 20k--250k,
 letter, RCV1): the pass equalises 15-NN across starts and our start keeps the highest pairwise Spearman
 on all five, by 0.07--0.13 over the stiffened PaCMAP start, with two caveats, PCA-2 refined by the same
@@ -94,7 +94,7 @@ The contributions, with their scope stated:
   the fuzzy graph are translated by a coordinate search of a sampled input-vs-layout distance Spearman
   under a community-mixing guard, then contracted about their centroids. On MNIST this raises the
   full-batch layout's Spearman and $k$-means ARI substantially at a small 15-NN cost (three seeds: 0.349 /
-  0.350 / 0.761 to 0.346 / 0.464 / 0.887), with the same gains on a Barnes--Hut $t$-SNE layout. It is
+  0.350 / 0.761 to 0.347 / 0.469 / 0.914), with the same gains on a Barnes--Hut $t$-SNE layout. It is
   method-agnostic, uses no labels in execution, fits one reported metric on an independent sample, and can
   open visual gaps at community boundaries.
 \item \textbf{What the global metric measures} (Sec.~\ref{sec:global}): split by class and by distance
@@ -741,28 +741,27 @@ Table~\ref{tab:placement} is the component ablation (\texttt{k39}): identity, pl
 only, both, on three seeds of the full-batch layout and on the Barnes--Hut $t$-SNE layout of
 \texttt{scikit-learn} with three community-detection and search seeds, same graph communities, Fig.~\ref{fig:placement}
 shows one layout. On MNIST the full-batch means go from 15-NN / Spearman / ARI 0.349 / 0.350 / 0.761 to
-0.346 / 0.464 / 0.887 (run standard deviations 0.000 / 0.002 / 0.039: the ARI is 0.91--0.92 on the two
-seeds whose community detection finds the ten classes and 0.83 on the seed that splits one class in two,
-the one seed-dependent part of the step). Separation alone leaves the Spearman at 0.328 (ARI 0.918);
-placement alone reaches Spearman 0.478 but lowers the ARI to $0.677 \pm 0.039$, because the translations
-bring communities closer together, and the contraction is what separates them again: the Spearman gain is
-the placement's, the ARI gain the separation's. The two global metrics the step does not fit rise with the
-placement (triplet accuracy 0.627 to 0.648, class-centroid Spearman 0.656 to 0.716). Against the frozen
-references of the twelve-method panel (15-NN 0.352, Spearman 0.488, ARI 0.914) the composite goes from
-$0.839 \pm 0.015$ to $0.968 \pm 0.015$ and each axis's mean ends at 95\% or more of its reference. The
-Barnes--Hut layout receives the same gains (0.350 / 0.338 / 0.829 to 0.348 / 0.463 / 0.920 over three
-seeds): the benefit is not specific to \magnet{}; the post-process takes 1--2~s on either layout, the
-layouts themselves 6~s and 200~s. On Fashion-MNIST the pass started from PCA and its arrangement is
-already good: the placement changes the Spearman little, the separation raises the ARI with more
-run-to-run variation ($0.340 \pm 0.008$ to $0.453 \pm 0.027$ at Spearman 0.697 to 0.689; Barnes--Hut
-0.398 to $0.443 \pm 0.011$ at 0.634 to 0.639), triplet accuracy falls by 0.01 and the centroid Spearman
-does not move. On letter, whose classes are not clusters, 15-NN and Spearman stay within 0.01; on
-covertype 20k the placement lifts the full-batch Spearman from 0.386 to 0.529 at a 15-NN cost of 0.002,
-and at 250k (127 communities) from 0.343 to 0.405 at a cost of 0.010, in 4~s after a 15~s layout. The three post-processed \magnet{} rows have the highest
+0.347 / 0.469 / 0.914 (run standard deviations 0.000 / 0.001 / 0.004; the communities are the ten classes on
+every seed). Separation alone leaves the Spearman at 0.329 (ARI 0.920); placement alone reaches Spearman
+0.482 but lowers the ARI to $0.685 \pm 0.012$, because the translations bring communities closer together,
+and the contraction is what separates them again: the Spearman gain is the placement's, the ARI gain the
+separation's. The two global metrics the step does not fit rise with the placement (triplet accuracy 0.627
+to 0.649, class-centroid Spearman 0.656 to 0.700). Against the frozen references of the twelve-method panel
+(15-NN 0.352, Spearman 0.488, ARI 0.914) the composite goes from $0.839 \pm 0.015$ to $0.982 \pm 0.001$ and
+each axis ends at 96\% or more of its reference. The Barnes--Hut layout receives the same gains (0.350 /
+0.338 / 0.829 to 0.347 / 0.463 / 0.917 over three seeds): the benefit is not specific to \magnet{}; the
+post-process takes 1--2~s on either layout, the layouts themselves 6~s and 200~s. On Fashion-MNIST the pass
+started from PCA and its arrangement is already good, and the merge leaves four communities (the touching
+classes have symmetric interfaces): the placement raises the Spearman by 0.02 and the separation then
+lowers it by 0.03, the ARI goes from $0.340 \pm 0.008$ to $0.441 \pm 0.004$ (Barnes--Hut 0.398 to 0.445 at
+0.634 to 0.644), triplet accuracy falls by 0.01 and the centroid Spearman rises from 0.89 to 0.92. On letter,
+whose classes are not clusters, 15-NN and Spearman stay within 0.01; on covertype 20k the placement lifts the
+full-batch Spearman from 0.386 to 0.545 at a 15-NN cost of 0.002, and at 250k (138 communities) from 0.343 to
+0.402 at a cost of 0.013, in 6~s after a 25~s layout. The three post-processed \magnet{} rows have the highest
 mean composites of Tables~\ref{tab:composite_geo} and \ref{tab:composite_min}; since the competitors are
 not post-processed there, these ranks describe the configurations tabulated and are not a method
 comparison, and the references of those tables move when the new rows enter the panel (the post-processed
-hybrid's MNIST Spearman, 0.53, exceeds PCA-2's), so their values are not comparable with the frozen-reference
+hybrid's MNIST Spearman, 0.48, and the full-batch's 0.46 approach PCA-2's 0.49), so their values are not comparable with the frozen-reference
 composites above. What did not work (\texttt{k31}--\texttt{k36}): refining with the KL after the step
 undoes it (30 iterations: 15-NN 0.35 to 0.25); the contraction as a diffusion filter $z = g\,y + (1 -
 g)\,\hat P^t y$ is not a similarity within a community and loses 15-NN at every $t$; soft borders through
@@ -900,9 +899,9 @@ makes the class-centroid geometry of MNIST the worst and the most variable among
 centroid measurements. The hybrid is
 the worst neighbour embedding of the panel for cluster recovery (Sec.~\ref{sec:sep}); an exaggerated
 tail buys separability at a local cost and does not reach PaCMAP's $k$-means ARI. The post-process of
-Sec.~\ref{sec:placement} brings the full-batch layout's MNIST $k$-means ARI to 0.92 on the seeds whose
-community detection finds the ten classes (0.887 mean over three), level with the unprocessed panel's
-PaCMAP (0.914); the post-processed hybrid stays lower (0.66). The placement fits a
+Sec.~\ref{sec:placement} brings the full-batch layout's MNIST $k$-means ARI to $0.918 \pm 0.001$ over
+three seeds, level with the unprocessed panel's PaCMAP (0.914); the post-processed hybrid stays lower and
+unstable ($0.64 \pm 0.14$: its classes form one connected cloud that the separation does not pull apart). The placement fits a
 sampled Spearman directly, and evaluating on a sample the search did not see does not undo the
 benchmark-guided choice of its settings (resolution 0.3, $g = 0.7$, the guard, the candidates): they are
 development choices, with three runs on each image data set and single runs elsewhere, and the frozen-rule
@@ -1143,6 +1142,29 @@ runs MNIST 70k in 6.2~s (8.2 idle before the pass), the sequence in 8.4~s (10.9)
 than Figs.~\ref{fig:layouts} and \ref{fig:layouts_fmnist} keep their unit-box runs; the change is within
 0.004 of 15-NN on the real data sets.
 
+\paragraph{The communities of the post-process.} The modularity's configuration null model expects a weight
+$\gamma k_i k_j / 2m$ between two nodes. On a kNN graph the strengths are nearly uniform (MNIST: mean 6.6,
+coefficient of variation 0.33), so the null model is nearly a constant and the modularity is the internal weight
+minus a penalty in (community size)$^2$; it coincides with the constant Potts model at $\gamma' = \gamma
+\bar{k}^2 / 2m$ (checked: at $2.8 \times 10^{-5}$ the CPM gives 10--11 communities and ARI 0.90--0.93 with the
+same instability). Two known limits follow. A bisection of a uniform cloud of $n_c$ points cuts $O(n_c^{1-1/d})$
+edges while the penalty it saves grows as $n_c^2$, so large geometric communities are split (the field-of-view limit
+of \citet{schaub2012markov}); a handful of boundary edges outweighs the tiny size product of a small community, so
+it is swallowed (the resolution limit of \citet{fortunato2007resolution}). No resolution fixes both (0.2 merges MNIST
+classes, 0.5 splits them). The density across an interface tells an artificial cut from a real boundary: the
+boundary nodes of $A$ towards $B$ (nodes of $A$ with an edge into $B$) send on average a share $f_{AB}$ of their
+strength into $B$. Across the thinnest cut (Fiedler bisection) of a uniform cloud under our graph construction that
+share is about 0.2, weakly dependent on the dimension and on $k$ (simulated on 20\,000 points: 0.17 / 0.18 / 0.19 /
+0.20 / 0.23 / 0.28 for $d = 2 / 3 / 5 / 10 / 20 / 50$ at $k = 15$; 0.22 / 0.19 at $k = 10 / 30$; a random split gives
+0.5), and the Fiedler bisection of each MNIST community gives 0.17--0.19. Across a real class boundary at least one
+side reaches little: on MNIST, $\min(f_{AB}, f_{BA})$ is 0.45--0.53 of the communities' own cut share for the 25 real
+boundaries and 0.77--0.89 for the same-class splits. The post-process runs Louvain (nodes visited by decreasing
+strength, so deterministic) at resolution 0.5 and merges interfaces while $\min(f_{AB}, f_{BA}) \ge 0.10$, largest
+first: half the no-contrast reference, the midpoint between no contrast and a full gap. On MNIST this gives 10
+communities on three graphs at resolutions 0.5 and 1.0 (9--14 without the merge); 0.10--0.12 give the same
+partitions, 0.08 merges real boundaries, 0.14 misses splits; the dimensionless version of the rule (any threshold in
+0.6--0.75 of the community's own cut share) behaves the same at a higher cost (\texttt{k42}, \texttt{k43}).
+
 \paragraph{Sparse inputs.} The sparse NN-descent scatters the row about to be compared against many
 partners into a dense per-thread buffer once; every partner's dot product is then a branch-free gather
 over its own non-zeros. The kNN graph of 20 newsgroups TF-IDF ($18.8\mathrm{k} \times 24\mathrm{k}$, 57
@@ -1192,6 +1214,8 @@ paper says full-batch.
 \bibitem[Sarfraz et al.(2022)]{sarfraz2022hnne} M. S. Sarfraz, M. Koulakis, C. Seibold, R. Stiefelhagen. Hierarchical nearest neighbor graph embedding for efficient dimensionality reduction. CVPR 2022.
 \bibitem[Zhou and Sharpee(2022)]{zhou2022gtsne} Y. Zhou, T. O. Sharpee. Using global $t$-SNE to preserve intercluster data structure. Neural Computation 34(8), 2022.
 \bibitem[Kobak and Berens(2019)]{kobak2019art} D. Kobak, P. Berens. The art of using $t$-SNE for single-cell transcriptomics. Nature Communications 10, 2019.
+\bibitem[Schaub et al.(2012)]{schaub2012markov} M. T. Schaub, J.-C. Delvenne, S. N. Yaliraki, M. Barahona. Markov dynamics as a zooming lens for multiscale community detection: non clique-like communities and the field-of-view limit. PLoS ONE 7(2), 2012.
+\bibitem[Fortunato and Barth\'elemy(2007)]{fortunato2007resolution} S. Fortunato, M. Barth\'elemy. Resolution limit in community detection. PNAS 104(1), 2007.
 \bibitem[Traag et al.(2019)]{traag2019leiden} V. A. Traag, L. Waltman, N. J. van Eck. From Louvain to Leiden: guaranteeing well-connected communities. Scientific Reports 9, 2019.
 \bibitem[Wang et al.(2021)]{wang2021pacmap} Y. Wang, H. Huang, C. Rudin, Y. Shaposhnik. Understanding how dimension reduction tools work: an empirical approach to deciphering $t$-SNE, UMAP, TriMap, and PaCMAP for data visualization. JMLR 22, 2021.
 \end{thebibliography}
