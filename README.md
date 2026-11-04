@@ -7,12 +7,12 @@ and t-SNE do: a neighbour graph pulls close points together, everything else pus
 rebuilds that pipeline from scratch in C++ and makes the one choice that matters explicit: how the
 repulsion is estimated.
 
-* `loss="umap"` (default): negative sampling, lock-free multithreaded SGD. **MNIST 70k in 4.4 s**
+* `loss="umap"` (default): negative sampling, lock-free multithreaded SGD. **MNIST 70k in 4.1 s**
   against 11 s for UMAP 0.5.12, 15-NN preservation 0.19 against 0.12 and a distance correlation of 0.41
   against 0.30: the highest pairwise distance Spearman among the unstaged neighbour embeddings benchmarked (PCA stays ahead).
-* `loss="tsne"`: repulsion over all pairs through FFT interpolation ("exact" below is shorthand for all pairs, not for an exact gradient: the interpolation is accurate to its grid). **MNIST 70k in 9 s**
-  against 102 s for openTSNE and 196 s for scikit-learn's t-SNE, with the same neighbourhood
-  preservation as those two, three times that of UMAP in less time.
+* `loss="tsne"`: repulsion over all pairs through FFT interpolation ("exact" below is shorthand for all pairs, not for an exact gradient: the interpolation is accurate to its grid). **MNIST 70k in 7 s**
+  against 102 s for openTSNE and 196 s for scikit-learn's t-SNE, with the neighbourhood
+  preservation of the second (0.349 against 0.350; openTSNE 0.347), three times UMAP's in less time.
 * 1M points in 44 s and 3.3 GB. Native NN-descent (1.2 s for 70k x 784), spectral initialisation by
   Chebyshev-filtered subspace iteration, `transform()` for new points, sparse inputs, networkx graphs.
 
@@ -212,12 +212,12 @@ sits below the CPU t-SNEs on neighbourhood preservation.
 
 | | time | 15-NN pres. | trustworthiness | dist. Spearman | triplet acc. | 10-NN acc. |
 |---|---|---|---|---|---|---|
-| **MAGNET** | **4.4 s** | 0.193 | 0.957 | **0.413** | **0.644** | 0.967 |
+| **MAGNET** | **4.1 s** | 0.194 | 0.956 | **0.414** | **0.644** | 0.966 |
 | MAGNET, `kernel_b=0.5` (images) | 4.6 s | 0.215 | 0.958 | 0.424 | 0.648 | 0.964 |
 | MAGNET, `repulsion_b=None` (coupled kernel, UMAP's compact look: silhouette 0.51 against 0.52 for UMAP and 0.40 for the default) | 5.5 s | 0.190 | 0.958 | 0.405 | 0.641 | 0.966 |
 | MAGNET, `late_exaggeration=1.5` (compact preset, silhouette 0.51) | 4.7 s | 0.181 | 0.956 | 0.386 | 0.637 | 0.967 |
-| **MAGNET `loss="tsne"`** | 9.2 s | 0.349 | 0.966 | 0.348 | 0.627 | 0.966 |
-| **MAGNET `loss="hybrid"`** | 12.5 s | **0.353** | 0.961 | **0.444** | **0.656** | 0.960 |
+| **MAGNET `loss="tsne"`** | 7.0 s | 0.349 | 0.966 | 0.349 | 0.627 | 0.967 |
+| **MAGNET `loss="hybrid"`** | 8.6 s | **0.355** | 0.960 | **0.445** | **0.652** | 0.962 |
 | UMAP 0.5.12 | 11.2 s | 0.117 | 0.951 | 0.297 | 0.606 | 0.967 |
 | densMAP (umap-learn 0.5.12) | 37.2 s | 0.068 | 0.921 | 0.364 | 0.623 | 0.945 |
 | openTSNE 1.0.4 | 102.5 s | 0.347 | **0.968** | 0.330 | 0.619 | 0.965 |
@@ -229,17 +229,18 @@ sits below the CPU t-SNEs on neighbourhood preservation.
 | t-SNE-CUDA 3.0.1 (GPU) | 13.8 s | 0.169 | 0.967 | 0.169 | 0.567 | 0.957 |
 
 `loss="hybrid"` is the first row of this table to lead both the local and the global columns at once:
-15-NN kept equal to the best t-SNE (0.353 against 0.350), distance correlation above the SGD mode
+15-NN kept equal to the best t-SNE (0.355 against 0.350), distance correlation above the SGD mode
 (0.444 against 0.413), 16 times faster than scikit-learn's t-SNE. Fashion-MNIST: 0.328 / 0.752
 (t-SNE 0.327 / 0.634, SGD 0.202 / 0.730); 20 newsgroups 0.181 / 0.073 (t-SNE 0.192 / 0.232, which
 keeps the global lead there; the global column of that set moves by 0.02 between seeds); blobs
 0.124 / 0.684 (t-SNE 0.114 / 0.381, SGD 0.067 / 0.690). The exact pass refines the SGD layout, it
 does not repair one: the SGD pass must run its full schedule (100 epochs: 15-NN 0.276), and the knobs
 of the exact pass (scale, learning rate, iterations, dof, exaggeration) buy at most 0.005 of 15-NN and 0.015 of Spearman for 5-6 s more, or hurt (`docs/kernel_exponents.md`, section 6.1). The time of the hybrid is the exact pass's
-repulsion (8 of its 9 s on MNIST: the FFT grid is set by the layout's extent, 162 boxes from the first
-iteration). Two presets trade a little local structure for it: `fft_box=1.5` (MNIST 8.5 s, 15-NN
-0.350; Fashion-MNIST 8.1 s, 0.323) and `hybrid_iter=150, tsne_learning_rate=n/6` (6.4 s, 0.344);
-together 5.5 s at 0.341 (section 6.2 of the note).
+repulsion (the FFT grid is set by the layout's extent, 162 boxes from the first iteration; the box width
+is 0.7 since the re-timing of 2026-11-04, see below: FIt-SNE's unit box costs 0.004 of 15-NN for 15 % less
+time). Two presets trade a little local structure for it: `fft_box=1.5` (measured before that change:
+MNIST 8.5 s, 15-NN 0.350; Fashion-MNIST 8.1 s, 0.323) and `hybrid_iter=150, tsne_learning_rate=n/6`
+(6.4 s, 0.344); together 5.5 s at 0.341 (section 6.2 of the note).
 h-NNE is the one fast method that beats the default MAGNET on neighbourhood preservation (0.233
 against 0.193 on MNIST, 0.154 against 0.134 on 20 newsgroups, the other way round on Fashion-MNIST,
 0.173 against 0.202); it pays for it on every other column (trustworthiness 0.940, distance
@@ -291,7 +292,7 @@ neighbours, Annoy index, PCA init, FFT gradient, 250 + 500 iterations at learnin
 24 s of affinities, 2 s of init, 12 s of early exaggeration and 76 s of main phase, 0.15 s per
 iteration. `n_jobs` 10 or 20 and the pynndescent index change nothing; 125 + 250 iterations give 0.329
 of 15-NN kept in 56 s (0.347 at the defaults); uniform k = 15 affinities, MAGNET's graph size, 0.330 in
-100 s. The comparison is fair as it stands: MAGNET's full-batch mode runs 600 iterations in 9 s because
+100 s. The comparison is fair as it stands: MAGNET's full-batch mode runs 600 iterations in 7 s because
 its neighbour search is 20x cheaper (15 neighbours by NN-descent, 1.1 s) and its FFT iteration 10x.
 
 **Graph inputs and UMAP.** The SBM line gives UMAP the graph as a sparse precomputed distance matrix
@@ -352,13 +353,17 @@ costs 0.004 and gains 0.004 of 15-NN for three times the time (the FFT grid foll
 of the SGD layout at 0.349 of 15-NN in 17 s. The mid spring is confirmed fatal inside the pass
 (15-NN 0.04-0.24), the learning rate and the kernel's degrees of freedom buy nothing.
 
-**Seeds.** `benchmarks/seeds.py threads=all` (5 seeds, idle machine, summary by `seeds_summary.py`):
-MNIST 15-NN / Spearman MAGNET SGD 0.192 ± 0.002 / 0.413 ± 0.002, full-batch 0.347 ± 0.001 / 0.351 ± 0.006,
-hybrid 0.353 ± 0.001 / 0.455 ± 0.014, UMAP 0.117 ± 0.001 / 0.299 ± 0.005, openTSNE 0.347 ± 0.001 /
-0.331 ± 0.002, PaCMAP 0.094 ± 0.001 / 0.310 ± 0.006; Fashion-MNIST hybrid 0.328 ± 0.001 / 0.750 ± 0.001,
-SGD 0.205 / 0.724, full-batch 0.323 / 0.698, openTSNE 0.323 / 0.620, UMAP 0.133 / 0.579, PaCMAP 0.099 /
-0.582 (all ± 0.003 or less). Times on the idle machine: hybrid 10.9 s, UMAP 8.4 s, openTSNE 93 s,
-PaCMAP 30 s on MNIST. The one unstable column is the hybrid's centroid Spearman on MNIST (0.51 ± 0.08).
+**Seeds.** `benchmarks/seeds.py threads=all` (5 seeds, summary by `seeds_summary.py`; the baselines on
+an idle machine, the MAGNET rows re-run on 2026-11-04 after the optimisation round and the box-width change
+with a training job sharing the machine, so their times are upper bounds: the SGD row, whose code did not
+change, went from 3.6 to 4.5 s and UMAP control runs took 9.8-11.8 s against 8.4):
+MNIST 15-NN / Spearman MAGNET SGD 0.192 ± 0.002 / 0.416 ± 0.004, full-batch 0.349 ± 0.001 / 0.352 ± 0.003,
+hybrid 0.353 ± 0.002 / 0.446 ± 0.014, UMAP 0.117 ± 0.001 / 0.299 ± 0.005, openTSNE 0.347 ± 0.001 /
+0.331 ± 0.002, PaCMAP 0.094 ± 0.001 / 0.310 ± 0.006; Fashion-MNIST hybrid 0.329 ± 0.000 / 0.750 ± 0.003,
+SGD 0.204 / 0.724, full-batch 0.325 / 0.698, openTSNE 0.323 / 0.620, UMAP 0.133 / 0.579, PaCMAP 0.099 /
+0.582 (all ± 0.003 or less). Times on MNIST: SGD 4.5 s, full-batch 6.2 s, hybrid 8.4 s (3.6 / 8.2 / 10.9
+idle before the round), UMAP 8.4 s, openTSNE 93 s, PaCMAP 30 s. The one unstable column is the hybrid's
+centroid Spearman on MNIST (0.53 ± 0.11).
 
 **Graphs table** (`benchmarks/graph_table.py`, MAGNET against UMAP's `simplicial_set_embedding` on the
 adjacency, 3 seeds, edge preservation = share of a node's graph neighbours among its nearest layout
@@ -429,7 +434,7 @@ lower than the fuzzy graph on MNIST, Fashion-MNIST and 20 newsgroups.
 
 **Community placement and separation** (`contraction=0.7`; `magnet/contraction.py`, docs 6.12,
 `benchmarks/theory/k30`-`k39`). An optional post-process of a finished layout that targets one of the reported
-metrics directly. The communities of the fuzzy graph (Leiden, resolution 0.3; 9-11 on MNIST, ARI 0.85 against the
+metrics directly. The communities of the fuzzy graph (Louvain in C++, resolution 0.3; 10-11 on MNIST, ARI 0.89-0.92 against the
 labels, labels never used in execution) are translated as rigid bodies, largest first and only those above 1 % of
 the points, by a coordinate search of the Spearman correlation between the input distances and the layout
 distances of a 500-point sample under a mixing guard (the fraction of a 5000-point sample whose nearest sample
@@ -437,13 +442,14 @@ point is in another community may not rise above its initial value + 0.002); the
 contracted about its centroid by 0.7. A contraction keeps the distance order within a community and can only
 change neighbours across its border; k-means recovers the communities more easily by construction, so the ARI
 gain measures how well the graph's communities match the labels, not new clusters. MNIST 70k, `loss="tsne"`,
-three seeds, Spearman evaluated on a sample the search never saw (`k39`): 15-NN 0.347 -> 0.346, Spearman 0.350 ->
-0.465 (+- 0.001; hybrid 0.46, PCA-2 0.49), k-means ARI 0.79 -> 0.92 (+- 0.01; PaCMAP 0.91); triplet accuracy
-(0.627 -> 0.648) and class-centroid Spearman (0.65 -> 0.70), which the step does not fit, rise too; composite against
-the unprocessed panel's bests 0.848 -> 0.976. Placement alone gets the Spearman (0.478) but lowers the ARI to 0.71,
-separation alone gets the ARI (0.916) at Spearman 0.33: the two parts are complementary. Fashion-MNIST (three seeds)
-0.324 / 0.698 / 0.340 -> 0.321 / 0.682 / 0.430 (+- 0.03), composite 0.822 -> 0.88 (hybrid 0.847 -> 0.920); letter (classes are not clusters) within 0.01 of 15-NN and
-Spearman; covertype 20k Spearman 0.383 -> 0.524 at -0.003 of 15-NN. The step is method-agnostic: a Barnes-Hut
+three seeds, Spearman evaluated on a sample the search never saw (`k39`, re-run with the 0.7 box): 15-NN 0.349 ->
+0.346, Spearman 0.350 -> 0.464 (+- 0.002; hybrid 0.45, PCA-2 0.49), k-means ARI 0.76 -> 0.89 (0.92 on the two seeds
+whose Louvain finds the ten classes, 0.83 on the seed that splits one; PaCMAP 0.91); triplet accuracy
+(0.627 -> 0.648) and class-centroid Spearman (0.66 -> 0.72), which the step does not fit, rise too; composite against
+the unprocessed panel's bests 0.839 -> 0.968. Placement alone gets the Spearman (0.478) but lowers the ARI to 0.68,
+separation alone gets the ARI (0.918) at Spearman 0.33: the two parts are complementary. Fashion-MNIST (three seeds)
+0.326 / 0.697 / 0.340 -> 0.322 / 0.689 / 0.453 (+- 0.03), composite 0.821 -> 0.879 (hybrid 0.818 -> 0.883); letter (classes are not clusters) within 0.01 of 15-NN and
+Spearman; covertype 20k Spearman 0.386 -> 0.529 at -0.002 of 15-NN. The step is method-agnostic: a Barnes-Hut
 t-SNE layout receives the same gains (MNIST 0.350 / 0.338 / 0.829 -> 0.348 / 0.463 / 0.920, three seeds), so the rows "+ contraction" in
 `composite_table.py` (first three places on the mean of both composites) describe the configurations
 tabulated, not a method comparison. 3 s on 70k (2 of Leiden; the layouts themselves take 8 s for MAGNET and
@@ -472,9 +478,25 @@ iteration at 8 threads (4.8 at 20), early grid 4.4 -> 2.1 ms. The contraction st
 ARI of the communities on MNIST, seed-dependent like Leiden: a class is split in two in some runs) and the
 fuzzy graph's bandwidth search by a C++ per-row binary search (112 -> 16 ms). MNIST 70k on a loaded
 machine (load 3-4), 8 threads: `loss="tsne"` 8.9 -> 5.3 s, hybrid 11.3 -> 7.0 s, `loss="tsne",
-contraction=0.7` 10.6 -> 6.4 s (step 1.2 s), SGD unchanged at 4.3 s; 20 threads: 4.6 / 6.5 / 5.6 s. Quality
-unchanged (full-batch 0.346 / 0.349 / 0.80; with contraction 0.343 / 0.459 / 0.916). The benchmark tables
-above predate this round.
+contraction=0.7` 10.6 -> 6.4 s (step 1.2 s), SGD unchanged at 4.3 s; 20 threads: 4.6 / 6.5 / 5.6 s
+(all with the unit box, see next paragraph).
+
+**Re-timing, and the FFT box width (`k40`, 2026-11-04).** Re-running the tables after the round showed the
+fixed unit box (FIt-SNE's convention, adopted in the round so that the kernel spectrum could be cached)
+had cost 15-NN: 0.126 -> 0.118 on the blobs, 0.001 on MNIST. The earlier grid, whose width followed the
+layout's extent, had been an accidental middle ground, and the cause is the interpolation itself: three
+Lagrange points on a unit box leave a force error of 3.5 % RMS on MNIST's final layout (1.2 % on the
+blobs'), and 15-NN rises monotonically as the box narrows (blobs 0.118 / 0.129 / 0.133 / 0.136 / 0.136 at
+widths 1 / 0.8 / 0.7 / 0.6 / 0.5; MNIST 0.346 / 0.348 / 0.350 / 0.349 / 0.350) while the FFT cost grows
+as 1 / width^2. Four or five points per box reach the same accuracy at a higher cost (the scatter and
+gather touch 16-25 cells per point), dithering the grid's origin does nothing, and the finer grid matters
+over the whole post-exaggeration phase (0.7 for its last 200 iterations only: 0.129). Box width 0.7 is
+the default since (`fft_box`): MNIST full-batch 0.346 -> 0.349 = Barnes-Hut's 0.350, Fashion 0.3215 ->
+0.325, hybrid 0.3525 -> 0.355, for ~15 % more time (the column FFT passes, 4 ms of the 12 per iteration
+on the final grid). The box count is rounded up to a multiple of four so that the spectrum survives a
+few iterations of growth (120 -> 31 recomputations on MNIST), and the kernel spectra are stored real
+(the kernels are even). The benchmark tables above are re-measured with it, on a machine shared with a
+training job (the SGD row, unchanged in code, serves as the control: 3.6 -> 4.5 s on the seeds table).
 
 **Where the SGD time goes, and `parallel="owner"`.** On MNIST 70k the default fit is 1.1 s of kNN graph,
 0.9 s of graph construction and spectral init, and 2-3 s of SGD. One thread runs the SGD at 47 cycles per
@@ -530,9 +552,9 @@ Any networkx graph or sparse adjacency matrix is laid out directly, in linear ti
 | `repulsion_b` | 1.0 | repulsion exponent (Cauchy tail); None couples it to `kernel_b` (UMAP's compact look, 20% slower) |
 | `kernel` | `"power"` | or `"gaussian"`, `"sech"` (exponential tails, for comparison) |
 | `hybrid_tail`, `tsne_early_exaggeration` | (0, 1.0), 12 | exaggerated tail (iterations, factor) of the full-batch pass (`n_epochs=900, hybrid_tail=(100, 1.5)` = quality preset; `(100, 2.0)` compacts clusters at a local cost, superseded by `contraction`); early-exaggeration factor of `loss="tsne"` |
-| `contraction` | None | community placement and separation of the final layout (needs python-igraph): a float g = the graph's Leiden communities are translated as rigid bodies by a label-free ascent of the input-vs-layout distance Spearman (overlap guard), then each contracted towards its centroid by g (0.7 = the "clusters" preset); a dict passes `resolution`, `separation`, `placement`, `n_sample`, `tol`, `sweeps` |
+| `contraction` | None | community placement and separation of the final layout: a float g = the graph's Louvain communities are translated as rigid bodies by a label-free ascent of the input-vs-layout distance Spearman (overlap guard), then each contracted towards its centroid by g (0.7 = the "clusters" preset); a dict passes `resolution`, `separation`, `placement`, `n_sample`, `tol`, `sweeps` |
 | `tsne_dof` | 1.0 | Student-t degrees of freedom of `loss="tsne"` (< 1 = heavier tail, Kobak et al. 2019) |
-| `fft_interp`, `fft_box` | 3, 1.0 | grid of the exact repulsion (`fft_box=1.5` is the fast preset: -3% 15-NN in `loss="tsne"`, -1% in `loss="hybrid"` for 30% less time) |
+| `fft_interp`, `fft_box` | 3, 0.7 | grid of the exact repulsion (FIt-SNE's unit box: -0.004 of 15-NN on MNIST for 15% less time; `fft_box=1.5` is the fast preset: -3% 15-NN in `loss="tsne"`, -1% in `loss="hybrid"` for 30% less time) |
 | `mid_scale` | `"fixed"` | or `"spread"` / `"rolewalk"`: per-node length of the mid-range walks from the graph's diffusion spread or from RoleWalk roles |
 | `component_placement` | `"centroid"` | or `"rolewalk"`: disconnected components of a graph placed by their structural-role signature |
 | `optimizer`, `clip` | `"sgd"`, `"coord"` | or `"adam"`; `"norm"` clips the step norm |

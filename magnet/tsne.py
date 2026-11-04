@@ -10,10 +10,12 @@ import scipy.sparse as sp
 
 class FFTRepulsion2D:
     """Potentials sum_j K(|y_i - y_j|) c_j for the two t-SNE kernels K1 = 1/(1+r^2), K2 = K1^2,
-    by Lagrange interpolation on boxes of fixed width (unit by default, as FIt-SNE) and FFT
-    convolution on the equispaced nodes. Kernel spectra are cached per grid size."""
+    by Lagrange interpolation on boxes of fixed width (0.7 by default; FIt-SNE uses 1, which leaves a
+    1.2 % RMS error on the force and costs 0.004 of 15-NN on MNIST, 0.015 on Gaussian blobs: the
+    interpolation error, not the FFT, is the accuracy floor) and FFT convolution on the equispaced
+    nodes. Kernel spectra are cached per grid size."""
 
-    def __init__(self, n_interp=3, box_width=1.0, min_boxes=20, max_boxes=1000, n_threads=-1, dof=1.0, kernels=None):
+    def __init__(self, n_interp=3, box_width=0.7, min_boxes=20, max_boxes=1000, n_threads=-1, dof=1.0, kernels=None):
         self.dof = float(dof)   # Student-t degrees of freedom of the kernel (1 = Cauchy, < 1 = heavier tail)
         self.kernels = kernels  # optional callable r2 -> (K1, K2): K1 summed for sumQ, K2 weights the force
         self.n_interp = n_interp
@@ -36,6 +38,7 @@ class FFTRepulsion2D:
             hi = Y.max(0) + 1e-3
         span = float((hi - lo).max())
         n_boxes = int(np.clip(np.ceil(span / self.box_width), self.min_boxes, self.max_boxes))
+        n_boxes = min(self.max_boxes, -(-n_boxes // 4) * 4)   # multiple of 4: the kernel spectrum and the FFT plan then survive a few iterations of growth
         # the box keeps its nominal width (FIt-SNE's convention) unless the clip binds: the kernel spectrum then
         # depends on n_boxes only and is reused across iterations instead of being recomputed at every change of
         # the layout's extent (two 2-D FFTs and a pow per call)
@@ -80,7 +83,7 @@ class FFTRepulsion2D:
         conv = self._convs.get((int(M), round(width, 6)))
         if conv is None:
             conv = FFTConv2D(int(M), self.n_interp)
-            conv.set_kernels(K1h.view(np.float32).reshape(M, -1, 2), K2h.view(np.float32).reshape(M, -1, 2))
+            conv.set_kernels(np.ascontiguousarray(K1h.real), np.ascontiguousarray(K2h.real))   # even kernels: real spectra
             if len(self._convs) > 4: self._convs.pop(next(iter(self._convs)))
             self._convs[(int(M), round(width, 6))] = conv
         sumQ, F = conv.compute(Y, xmin, ymin, width, n_boxes, self.n_threads)
@@ -127,7 +130,7 @@ class FFTRepulsion2D:
 
 
 def optimize_tsne(P, Y, n_iter=750, early_iter=250, early_exaggeration=12.0, exaggeration=1.0,
-                  learning_rate=None, momentum=(0.5, 0.8), n_interp=3, box_width=1.0, n_threads=-1,
+                  learning_rate=None, momentum=(0.5, 0.8), n_interp=3, box_width=0.7, n_threads=-1,
                   mid_pairs=None, mid_weight=0.0, mid_phase=0.5, dof=1.0, verbose=False, callback=None,
                   far_weight=0.0, far_r0=0.1, far_a=1.74, mid_form="mean", mid_c=0.3):
     """Full-batch t-SNE gradient descent. P: symmetric CSR affinities (will be normalised to sum 1),

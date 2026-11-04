@@ -44,14 +44,14 @@ class FFTConv2D {
 public:
     FFTConv2D(int M, int n_interp) : M_(M), Mh_(M / 2 + 1), n_interp_(n_interp),
         W_((size_t)3 * M * M, 0.f), phi_((size_t)4 * M * M, 0.f), Wh_((size_t)3 * M * Mh_), Ph_((size_t)4 * M * Mh_),
-        K1h_((size_t)M * Mh_), K2h_((size_t)M * Mh_), tmp_((size_t)4 * M * Mh_) {}
+        K1h_((size_t)M * Mh_), K2h_((size_t)M * Mh_) {}
 
-    // spectra of the two kernels on the padded torus, as complex64 (M, Mh) arrays
+    // spectra of the two kernels on the padded torus, as float32 (M, Mh) arrays: the kernels are even in both axes,
+    // their DFT is real (the imaginary part is rounding noise), so the products below are real x complex
     void set_kernels(arr<float> K1_, arr<float> K2_) {
-        require(K1_.ndim() == 3 && K1_.shape(0) == M_ && K1_.shape(1) == Mh_ && K1_.shape(2) == 2, "K1h must be (M, M/2+1, 2)");
-        require(K2_.ndim() == 3 && K2_.shape(0) == M_ && K2_.shape(1) == Mh_ && K2_.shape(2) == 2, "K2h must be (M, M/2+1, 2)");
-        const float* a = K1_.data(); const float* b = K2_.data();
-        for (size_t k = 0; k < (size_t)M_ * Mh_; ++k) { K1h_[k] = {a[2 * k], a[2 * k + 1]}; K2h_[k] = {b[2 * k], b[2 * k + 1]}; }
+        require(K1_.ndim() == 2 && K1_.shape(0) == M_ && K1_.shape(1) == Mh_, "K1h must be (M, M/2+1) real");
+        require(K2_.ndim() == 2 && K2_.shape(0) == M_ && K2_.shape(1) == Mh_, "K2h must be (M, M/2+1) real");
+        std::copy(K1_.data(), K1_.data() + (size_t)M_ * Mh_, K1h_.begin()); std::copy(K2_.data(), K2_.data() + (size_t)M_ * Mh_, K2h_.begin());
     }
 
     // returns (sumQ, F (n, 2)); the live grid is N = n_boxes * n_interp nodes per side (N <= M)
@@ -154,20 +154,18 @@ public:
             lap("forward columns");
             // ---- products: Ph0 = K1h W0, Ph1..3 = K2h W0..2 (one linear sweep; memory-bound)
             std::complex<float>* Ph = Ph_.data();
-            {   // explicit real / imaginary arithmetic: std::complex's operator* calls __mulsc3 (inf / nan handling) and does not vectorise
-                const float* wh = reinterpret_cast<const float*>(Wh); const float* k1 = reinterpret_cast<const float*>(K1h_.data());
-                const float* k2 = reinterpret_cast<const float*>(K2h_.data()); float* ph = reinterpret_cast<float*>(Ph);
+            {   // real kernel spectra x complex data, in plain float arithmetic (std::complex's operator* calls __mulsc3 and does not vectorise)
+                const float* wh = reinterpret_cast<const float*>(Wh); const float* k1 = K1h_.data(); const float* k2 = K2h_.data();
+                float* ph = reinterpret_cast<float*>(Ph);
                 pool_run(nt, [&](int t) {
                     const size_t k0 = L * t / nt, k1_ = L * (t + 1) / nt;
                     for (size_t k = k0; k < k1_; ++k) {
-                        const float ar = k1[2 * k], ai = k1[2 * k + 1], br = k2[2 * k], bi = k2[2 * k + 1];
+                        const float a = k1[k], b = k2[k];
                         const float w0r = wh[2 * k], w0i = wh[2 * k + 1];
-                        ph[2 * k] = ar * w0r - ai * w0i; ph[2 * k + 1] = ar * w0i + ai * w0r;
-                        ph[2 * (L + k)] = br * w0r - bi * w0i; ph[2 * (L + k) + 1] = br * w0i + bi * w0r;
-                        const float w1r = wh[2 * (L + k)], w1i = wh[2 * (L + k) + 1];
-                        ph[2 * (2 * L + k)] = br * w1r - bi * w1i; ph[2 * (2 * L + k) + 1] = br * w1i + bi * w1r;
-                        const float w2r = wh[2 * (2 * L + k)], w2i = wh[2 * (2 * L + k) + 1];
-                        ph[2 * (3 * L + k)] = br * w2r - bi * w2i; ph[2 * (3 * L + k) + 1] = br * w2i + bi * w2r;
+                        ph[2 * k] = a * w0r; ph[2 * k + 1] = a * w0i;
+                        ph[2 * (L + k)] = b * w0r; ph[2 * (L + k) + 1] = b * w0i;
+                        ph[2 * (2 * L + k)] = b * wh[2 * (L + k)]; ph[2 * (2 * L + k) + 1] = b * wh[2 * (L + k) + 1];
+                        ph[2 * (3 * L + k)] = b * wh[2 * (2 * L + k)]; ph[2 * (3 * L + k) + 1] = b * wh[2 * (2 * L + k) + 1];
                     }
                 });
             }
@@ -232,7 +230,8 @@ public:
 private:
     int M_, Mh_, n_interp_;
     std::vector<float> W_, phi_;
-    std::vector<std::complex<float>> Wh_, Ph_, K1h_, K2h_, tmp_;
+    std::vector<std::complex<float>> Wh_, Ph_;
+    std::vector<float> K1h_, K2h_;
 };
 
 void bind_fftconv(py::module_& m) {

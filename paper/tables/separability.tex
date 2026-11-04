@@ -2,22 +2,22 @@
 \toprule
 data set & layout & 15-NN & Spearman & silhouette & ARI $k$-means & ARI HDBSCAN & clusters / noise & geo.\ mean & min \\
 \midrule
-MNIST & \magnet{} full-batch & 0.348 & 0.342 & 0.349 & 0.802 & 0.330 & 6 / 0.47 & \textbf{0.848} & \textbf{0.70} \\
-MNIST & openTSNE (FIt-SNE) & 0.348 & 0.329 & 0.345 & 0.726 & 0.260 & 5 / 0.42 & 0.810 & 0.68 \\
-MNIST & \magnet{} hybrid & \textbf{0.351} & 0.461 & 0.185 & 0.509 & 0.193 & 2 / 0.77 & 0.807 & 0.56 \\
-MNIST & \magnet{} SGD & 0.193 & 0.418 & 0.388 & 0.748 & \textbf{0.789} & 8 / 0.19 & 0.728 & 0.55 \\
-MNIST & PCA-2 + pass & 0.317 & 0.398 & 0.084 & 0.366 & 0.032 & 2 / 0.23 & 0.665 & 0.40 \\
-MNIST & UMAP 0.5.12 & 0.117 & 0.296 & 0.537 & 0.778 & 0.553 & 6 / 0.00 & 0.556 & 0.33 \\
-MNIST & PaCMAP & 0.094 & 0.306 & \textbf{0.580} & \textbf{0.914} & 0.657 & 7 / 0.00 & 0.552 & 0.27 \\
-MNIST & PCA-2 & 0.010 & \textbf{0.488} & 0.026 & 0.242 & 0.071 & 2 / 0.38 & 0.194 & 0.03 \\
+MNIST & \magnet{} full-batch & 0.349 & 0.348 & 0.347 & 0.792 & 0.080 & 3 / 0.41 & \textbf{0.847} & \textbf{0.71} \\
+MNIST & \magnet{} hybrid & \textbf{0.355} & 0.454 & 0.255 & 0.579 & 0.041 & 2 / 0.35 & 0.839 & 0.63 \\
+MNIST & openTSNE (FIt-SNE) & 0.348 & 0.329 & 0.345 & 0.726 & 0.260 & 5 / 0.42 & 0.807 & 0.68 \\
+MNIST & \magnet{} SGD & 0.193 & 0.418 & 0.388 & 0.748 & \textbf{0.789} & 8 / 0.19 & 0.725 & 0.54 \\
+MNIST & PCA-2 + pass & 0.316 & 0.399 & 0.084 & 0.347 & 0.029 & 2 / 0.24 & 0.652 & 0.38 \\
+MNIST & UMAP 0.5.12 & 0.117 & 0.296 & 0.537 & 0.778 & 0.553 & 6 / 0.00 & 0.554 & 0.33 \\
+MNIST & PaCMAP & 0.094 & 0.306 & \textbf{0.580} & \textbf{0.914} & 0.657 & 7 / 0.00 & 0.551 & 0.27 \\
+MNIST & PCA-2 & 0.010 & \textbf{0.488} & 0.026 & 0.242 & 0.071 & 2 / 0.38 & 0.193 & 0.03 \\
 \midrule
-Fashion-MNIST & openTSNE (FIt-SNE) & 0.323 & 0.619 & 0.119 & 0.388 & 0.143 & 3 / 0.35 & \textbf{0.824} & \textbf{0.71} \\
-Fashion-MNIST & \magnet{} full-batch & 0.323 & 0.700 & 0.102 & 0.333 & 0.099 & 2 / 0.51 & 0.816 & 0.69 \\
-Fashion-MNIST & PCA-2 + pass & 0.315 & 0.800 & 0.029 & 0.295 & 0.135 & 2 / 0.62 & 0.813 & 0.61 \\
-Fashion-MNIST & \magnet{} hybrid & \textbf{0.328} & 0.755 & 0.107 & 0.288 & 0.117 & 2 / 0.53 & 0.802 & 0.60 \\
-Fashion-MNIST & \magnet{} SGD & 0.203 & 0.730 & 0.140 & 0.415 & 0.246 & 4 / 0.25 & 0.763 & 0.62 \\
-Fashion-MNIST & UMAP 0.5.12 & 0.133 & 0.572 & 0.195 & 0.427 & 0.302 & 4 / 0.00 & 0.616 & 0.40 \\
-Fashion-MNIST & PaCMAP & 0.098 & 0.582 & \textbf{0.210} & \textbf{0.483} & 0.217 & 3 / 0.00 & 0.584 & 0.30 \\
-Fashion-MNIST & PCA-2 & 0.018 & \textbf{0.873} & -0.040 & 0.279 & \textbf{0.328} & 4 / 0.38 & 0.316 & 0.05 \\
+Fashion-MNIST & openTSNE (FIt-SNE) & 0.323 & 0.619 & 0.119 & 0.388 & 0.143 & 3 / 0.35 & \textbf{0.823} & \textbf{0.71} \\
+Fashion-MNIST & PCA-2 + pass & 0.316 & 0.798 & 0.030 & 0.301 & 0.097 & 2 / 0.37 & 0.818 & 0.62 \\
+Fashion-MNIST & \magnet{} hybrid & \textbf{0.330} & 0.753 & 0.105 & 0.306 & 0.136 & 2 / 0.59 & 0.817 & 0.63 \\
+Fashion-MNIST & \magnet{} full-batch & 0.325 & 0.701 & 0.100 & 0.320 & 0.074 & 3 / 0.47 & 0.806 & 0.66 \\
+Fashion-MNIST & \magnet{} SGD & 0.203 & 0.730 & 0.140 & 0.415 & 0.246 & 4 / 0.25 & 0.762 & 0.62 \\
+Fashion-MNIST & UMAP 0.5.12 & 0.133 & 0.572 & 0.195 & 0.427 & 0.302 & 4 / 0.00 & 0.615 & 0.40 \\
+Fashion-MNIST & PaCMAP & 0.098 & 0.582 & \textbf{0.210} & \textbf{0.483} & 0.217 & 3 / 0.00 & 0.583 & 0.30 \\
+Fashion-MNIST & PCA-2 & 0.018 & \textbf{0.873} & -0.040 & 0.279 & \textbf{0.328} & 4 / 0.38 & 0.315 & 0.05 \\
 \bottomrule
 \end{tabular}

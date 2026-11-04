@@ -661,9 +661,19 @@ separation only 0.346 / 0.331 / 0.916 -> both 0.346 / 0.465 / 0.916 (sd 0.000 / 
 centroid Spearman 0.652 -> 0.703); BH t-SNE 0.350 / 0.338 / 0.829 -> 0.348 / 0.463 / 0.920; Fashion full-batch
 0.324 / 0.698 / 0.340 -> 0.321 / 0.682 / 0.430 +- 0.03 (triplet -0.01, centroid unchanged), BH 0.327 / 0.634 / 0.398
 -> 0.324 / 0.639 / 0.443. Shipped as
-`MAGNET(contraction=0.7)` (needs python-igraph; 3 s on 70k: one Leiden run plus
+`MAGNET(contraction=0.7)` (3 s on 70k with Leiden, 1.1 s with the C++ Louvain of 6.13: one community run plus
 ~250 Spearman evaluations on the 500 sample coordinates, 8 threads), off by default; `contraction=dict(...)` passes resolution, separation,
-placement, n_sample, tol, sweeps.
+placement, n_sample, tol, sweeps. Re-run with the 0.7 FFT box (6.14; `k38`, `k39`): MNIST full-batch identity
+0.349 / 0.350 / 0.761 -> both 0.346 / 0.464 / 0.887 +- 0.039 (the ARI is 0.91-0.92 on the two seeds whose Louvain
+finds the ten classes, 0.83 on the seed that splits one: the community split is the seed-dependent part, and the
+modularity does not single it out, Q 0.9313 for the 11-community run against 0.9305-0.9313 for the others, so a
+max-modularity restart would not fix it); separation only 0.346 / 0.328 / 0.918, placement only 0.345 / 0.478 /
+0.677; frozen composite 0.839 -> 0.968 +- 0.015; `k38` 3 seeds: full-batch 0.349 / 0.350 / 0.783 -> 0.346 / 0.463 /
+0.860 +- 0.055, hybrid 0.353 / 0.443 / 0.508 -> 0.347 / 0.500 / 0.657; Fashion full-batch 0.326 / 0.697 / 0.337
+-> 0.322 / 0.689 / 0.423, hybrid 0.329 / 0.749 / 0.308 -> 0.325 / 0.723 / 0.406; covertype 250k 0.610 / 0.343 ->
+0.600 / 0.405 (127 communities, step 3.8 s after a 14.8 s layout). Composite tables (single seed 0): hybrid +
+contraction first on the mean (geo 0.900, min 0.822), quality + contraction 0.884 / 0.789, full-batch + contraction
+0.863 / 0.775 (its MNIST seed-0 run is an 11-community one, ARI 0.79).
 
 ### 6.13 Optimisation round (2026-11-04): "fastas hell"
 
@@ -698,6 +708,31 @@ on a loaded machine (load 3-4), 8 threads: tsne 8.9 -> 5.3 s, hybrid 11.3 -> 7.0
 quality preset + contraction 10.2; 20 threads 4.6 / 6.5 / 5.6 / 8.6. SGD mode untouched (4.3 s; its hogwild
 kernel is memory-bound, `parallel="owner"` halves it). Remaining floor of the full-batch pass: the column FFT
 passes (~3 ms of the 6) and the kNN graph (1.2 s of the 5.3). Tests: `tests/test_magnet.py`, 35 passed.
+
+### 6.14 Re-timing, and the FFT box width (`k40_fft_box_width.py`)
+
+Re-running the tables after the round (`seeds.py threads=all`, the MAGNET rows of the main table) showed
+the fixed unit box of 6.13 had cost 15-NN: blobs full-batch 0.126 -> 0.118 (5 seeds each: 0.1260 +- 0.0013
+against 0.1192 +- 0.0000), MNIST 0.347 -> 0.346. Bisection by monkey-patching `_grid`: the early phase
+(where the clip at 20 boxes binds and the old grid was 2-7x finer) is not the cause (0.119 with the old
+width there); the late phase is, where the old width = extent / n_boxes differed from 1 by under 1 % but
+changed every iteration (0.126 with it, 0.120 with a constant 0.99 or 0.95, 0.118 with a padding box):
+the old grid was an accidental middle ground, not a better one. The cause is the interpolation error:
+three Lagrange points on a unit box give a force error of 3.5 % RMS on MNIST's final layout (20k
+subset; 1.2 % on the blobs'), and the trajectory's 15-NN rises monotonically with the grid's resolution:
+blobs 0.118 / 0.129 / 0.133 / 0.136 / 0.136 at widths 1 / 0.8 / 0.7 / 0.6 / 0.5, MNIST 0.346 / 0.348 /
+0.350 / 0.349 / 0.350 (2 seeds), Fashion 0.3215 / - / 0.3256 / - / 0.3260. Negatives: dithering the grid's
+origin each iteration (0.1196), four or five points per box (as accurate per node but 16-25 cells per
+point in the scatter / gather: MNIST 0.350 at 8.3 s against 6.5 s for width 0.7), a width of 1.3 with
+four points (0.346 on MNIST), the fine grid only in the last 100 / 200 iterations (0.122 / 0.129) or only
+during exaggeration (0.120): accuracy is needed over the whole post-exaggeration phase. Width 0.7 is the
+knee and the default: MNIST 0.349 +- 0.001 over 5 seeds (BH t-SNE 0.350, openTSNE 0.347), Fashion 0.325,
+hybrid 0.353 / 0.329 (main table 0.355), blobs 0.133; cost 15-20 % (MNIST 5.2 -> 6.2 s at 8 threads in `k40`; the column c2c passes go from 2 to 4 ms
+per iteration, M 840 -> 1200). The box count is rounded up to a multiple of 4 (spectrum recomputed 31
+instead of 120 times on MNIST), the kernel spectra are stored real (even kernels; products 1.5 -> 1.3 ms).
+Timing of the re-measured tables: a training job shared the machine; the SGD row (code unchanged) went
+from 3.6 to 4.5 s on the seeds table and UMAP control runs took 9.8-11.8 s against 8.4 idle. Full-batch
+6.2 +- 0.7 s, hybrid 8.4 +- 0.2 s on MNIST (8.2 / 10.9 idle before the round).
 
 ## Scripts (`benchmarks/theory/`)
 

@@ -67,11 +67,13 @@ class MAGNET:
     metric : "euclidean" or "cosine" (hnswlib spaces).
     min_dist, spread : shape of the low-dimensional kernel (same meaning as in UMAP; 0.05 preserves
         neighbourhoods better than UMAP's 0.1 at every other metric equal).
-    fft_interp, fft_box : interpolation points per box and box width for loss="tsne" (3 and 1.0, as
-        FIt-SNE; fft_box=1.5 halves the FFT cost for about 3% less 15-NN preservation).
+    fft_interp, fft_box : interpolation points per box and box width for loss="tsne" (3 and 0.7;
+        FIt-SNE uses 1.0, which costs 0.004 of 15-NN on MNIST (0.346 against 0.350) for 15 % less
+        time: the interpolation error at unit width is 1.2 % RMS of the force, 0.4 % at 0.7, and 0.5
+        buys nothing more; fft_box=1.5 halves the FFT cost again for about 3% less 15-NN).
     tsne_early : early-exaggeration iterations for loss="tsne" (default min(250, n_epochs // 3));
         with loss="tsne", n_epochs is the number of iterations (default 600 = 200 + 400; 450 with
-        fft_box=1.5 is a fast preset at 7 s instead of 11 s on MNIST 70k, 750 the FIt-SNE schedule).
+        fft_box=1.5 is a fast preset, 750 the FIt-SNE schedule).
     kernel : low-dimensional similarity family of the SGD mode: "power" (1 / (1 + a d^2b), heavy tail),
         "gaussian" (exp(-a d^2)), "sech" (1 / cosh(a d)) or "tanh" (1 - tanh(a d^2)); the last three
         have exponential or lighter tails (kept for comparison).
@@ -124,7 +126,7 @@ class MAGNET:
         centroid by g ("separation" dial: 0.7 = compact clusters). A similarity within a community keeps the
         neighbourhoods: MNIST 70k full-batch 15-NN 0.348 -> 0.346, Spearman 0.342 -> 0.46, k-means ARI 0.80 ->
         0.90 at g=0.7, 3 s (benchmarks/theory/k30-k38). A dict passes the arguments of hierarchical_contraction
-        (resolution, separation, placement, n_sample, tol, sweeps). Needs python-igraph.
+        (resolution, separation, placement, n_sample, tol, sweeps; backend="leiden" needs python-igraph).
     tsne_init_scale, tsne_learning_rate, tsne_far, tsne_mid : research knobs of the exact mode (warm start
         scale and learning rate, constant far-field repulsion, bounded mid-range springs; docs/kernel_exponents.md).
     tsne_dof : degrees of freedom of the Student-t kernel of loss="tsne" (1 = Cauchy, the t-SNE kernel;
@@ -197,7 +199,7 @@ class MAGNET:
 
     def __init__(self, n_components=2, n_neighbors=15, metric="euclidean", min_dist=0.05, spread=1.0,
                  n_epochs=None, learning_rate=1.0, negative_sample_rate=5, repulsion_strength=2.0,
-                 kernel="power", kernel_b=0.6, repulsion_b=1.0, fft_interp=3, fft_box=1.0, tsne_early=None, loss="umap", exaggeration=1.0,
+                 kernel="power", kernel_b=0.6, repulsion_b=1.0, fft_interp=3, fft_box=0.7, tsne_early=None, loss="umap", exaggeration=1.0,
                  late_exaggeration=1.0, late_phase=0.2, tsne_dof=1.0, optimizer="sgd", clip="coord", beta1=0.9, beta2=0.999,
                  walk_len=4, mid_weight=None, mid_rate=0.25, mid_phase=0.5, mid_scale="fixed", mid_source="auto",
                  n_mid_pairs=5, mid_jump=0.5,
