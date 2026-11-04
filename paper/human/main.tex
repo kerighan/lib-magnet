@@ -31,25 +31,27 @@ In the configurations we test, neighbourhood overlap and pairwise-distance rank 
 operating points of a neighbour embedding. \magnet{} is a recipe that serves them in sequence: a sampled
 stochastic pass with decoupled attraction and repulsion kernels and a transient mid-range attraction places the
 clusters, 300 iterations of a full-batch, FFT-interpolated $t$-SNE objective on the same fuzzy graph refine the
-neighbourhoods, and an optional post-process, label-free in execution, translates and contracts the graph's
-communities to optimise a sampled distance-rank correlation under an overlap guard. On MNIST 70k the standalone
-full-batch mode obtains a \knn{} overlap of 0.349 against 0.350 for Barnes--Hut $t$-SNE in 4.9~s against 175
-(interleaved timings on a quiet 20-thread machine), and the unprocessed sequence has a higher mean pairwise
-Spearman than UMAP, PaCMAP, openTSNE and Barnes--Hut $t$-SNE on MNIST and Fashion-MNIST at a similar \knn{}. In a
-matched control in which every method of a twelve-configuration panel receives the identical post-process on five
-runs, the sequence has the highest four-data-set mean composite of \knn{}, Spearman and $k$-means ARI against
-frozen references, winning three data-set means; its paired difference from the post-processed Barnes--Hut layout
-is $0.023 \pm 0.047$ across 20 runs and reverses on MNIST, where the three standalone $t$-SNE-type layouts converge
-after the step (0.971--0.976) above the sequence (0.930). We also report the operational findings behind the
-defaults: a sample-size-dependent attraction exponent, an interpolation box of 0.7, and a merge heuristic for
-Louvain communities on kNN graphs. The companion report, the code and the result files are public.
+neighbourhoods, and an optional post-process, label-free in execution, translates the graph's communities to increase a
+sampled distance-rank correlation under a sampled cross-community nearest-neighbour guard, then contracts each by
+a fixed factor; its settings were selected on the development benchmarks. On MNIST 70k the standalone full-batch
+mode obtains a \knn{} overlap of 0.349 against 0.350 for Barnes--Hut $t$-SNE in 4.9~s against 175 (interleaved
+timings on a quiet 20-thread machine, graph construction included); on MNIST and Fashion-MNIST the unprocessed
+sequence has a higher mean pairwise Spearman than UMAP, PaCMAP, openTSNE and Barnes--Hut $t$-SNE, with a \knn{}
+overlap comparable to the $t$-SNE baselines' and above UMAP's and PaCMAP's. In a matched control in which every
+configuration of a twelve-configuration panel receives the identical post-process on five runs, the sequence has
+the highest observed four-development-set mean composite (\knn{} overlap and Spearman throughout, $k$-means ARI
+added on the image sets) against frozen references and wins three data-set means; its paired difference from the
+post-processed Barnes--Hut layout is $0.023 \pm 0.047$ across 20 runs (sd across paired runs) and reverses on
+MNIST ($-0.046 \pm 0.022$), where the three standalone $t$-SNE-type layouts converge after the step (0.971--0.976)
+above the sequence (0.930). The companion report, the implementation and the experiment artifacts are public at a
+pinned revision.
 \end{abstract}
 
 \section{Introduction}
-A 2-D layout of a data set is asked for two things that, in every configuration we measured, trade against each
-other: the neighbours of a point should stay its neighbours (we measure the overlap of 15-nearest-neighbour sets),
-and the distances between points of different clusters should keep their order (we measure the Spearman
-correlation of pairwise distances). $t$-SNE \citep{vandermaaten2008tsne, vandermaaten2014bh} and UMAP
+A 2-D layout of a data set is asked for two things that, in the configurations we measured, favour different
+operating points: the neighbours of a point should stay its neighbours (we measure the overlap of
+15-nearest-neighbour sets), and the ordering of sampled pairwise input distances should be kept (we measure their
+Spearman correlation in the layout). $t$-SNE \citep{vandermaaten2008tsne, vandermaaten2014bh} and UMAP
 \citep{mcinnes2018umap} sit at the local end; PCA at the global one; PaCMAP and TriMap \citep{wang2021pacmap,
 amid2019trimap} add mid-range or triplet terms to a single objective and land between; the attraction--repulsion
 spectrum of \citet{bohm2022spectrum} and the initialisation studies of \citet{kobak2021init} explain much of the
@@ -80,42 +82,46 @@ Sec.~\ref{sec:results} gives it to every method. Times are for MNIST 70k on a qu
 \citep{dong2011nndescent}, UMAP's per-row bandwidth calibration and symmetrisation \citep{mcinnes2018umap};
 1.2~s on MNIST 70k.
 
-\paragraph{Sampled pass.} UMAP's negative-sampling SGD \citep{mcinnes2018umap, damrich2021umap} on the graph,
-100 epochs from a spectral start, lock-free across threads, with two changes. First, the attraction kernel
+\paragraph{Sampled pass.} UMAP's negative-sampling SGD \citep{mcinnes2018umap, damrich2021umap} on the graph:
+300 epochs at 70k points (500 at $n \le 10$k, 200 above 100k), initial learning rate 1 with linear decay, five
+negatives per positive sample, repulsive gradient multiplied by 2, gradient clipped at 4, lock-free across
+threads, from a spectral start; two changes. First, the attraction kernel
 $\phi_b(d) = 1 / (1 + a d^{2b})$ carries its own exponent $b$, separate from the repulsion's Cauchy tail ($b_r =
 1$; $a$ is UMAP's fit for the spread and \texttt{min\_dist}). The radial force of the positive-edge loss $-\log
 \phi_b$ is $2ab\,d^{2b-1} / (1 + a d^{2b})$: $\sim d^{2b-1}$ at short range, $\sim 1/d$ at long range for every
 $b$. Sweeping $b$ with the repulsion fixed, \knn{} overlap peaks at $b = 0.5$--$0.7$ on our data sets in one, two
 and three target dimensions (companion report, Sec.~5); the heavy-tailed $t$-SNE kernels of \citet{kobak2019heavy}
-change both kernels and are a different operation. Second, a transient mid-range attraction on a sample of pairs
-at intermediate input distance: this term, not the exponent, supplies the first pass's global advantage; without
-it the sampled layout's Spearman falls below openTSNE's (companion report, Sec.~3). The pass takes 3.6~s on MNIST
-70k.
+change both kernels and are a different operation. Second, a transient mid-range attraction on PaCMAP-style mid-near pairs \citep{wang2021pacmap}: for every
+point, five partners, each the second closest in the input of six rows drawn at random; with probability 0.25 a
+positive-edge update $(u, v)$ is followed by a spring pull of $u$ towards one of its partners with stiffness
+$\kappa$, annealed linearly to zero over the first half of the epochs. $\kappa = 0.1$ in the standalone sampled
+mode; the sequence uses the stiffer $\kappa = 0.5$, which costs the first stage 0.015 of \knn{} that the second
+stage erases and buys 0.02--0.04 of Spearman that it keeps. This term, not the exponent, supplies the first pass's
+global advantage; without it the sampled layout's Spearman falls below openTSNE's (companion report, Sec.~3).
+The pass takes 3.6~s on MNIST 70k, graph construction included.
 
-\paragraph{The exponent depends on the sample size.} The heavy tail that maximises \knn{} overlap at 70k
-fragments small data sets: on MNIST subsamples HDBSCAN \citep{campello2013hdbscan} finds 55--78 density clusters
-in the layout at $n \le 10$k against 8--26 at $n \ge 20$k, with 20--29\% of the points as noise, while UMAP's
-layouts give 6--7 everywhere; USPS (7k) 60, phonemes (4.5k) 34. $b = 0.8$ holds the layout together there at a
-\knn{} cost of 0.02--0.03 (USPS: 9 clusters, HDBSCAN ARI 0.79 against 0.74 for UMAP, \knn{} 0.337 against 0.316;
-three runs), and $b = 1$ gives 3 HDBSCAN clusters on MNIST 70k. Epochs, learning rate, $k$, threads, the coupled
-kernel and two per-point exponent schemes did not remove the effect over the ranges tested. The default is an
-empirical rule, $b = 0.6$ at $n \ge 20$k, $0.8$ at $n \le 10$k, log-linear between (Appendix~\ref{app:small}).
-An optional label-free criterion raises $b$ until the layout's HDBSCAN clusters agree with the graph's own
-communities (adjusted Rand index $\ge 0.7$, a heuristic operating point); it selects a similar range but differs
-from the size rule on USPS (0.7) and Fashion-MNIST (0.7, where the labels prefer 0.6).
+\paragraph{An empirical size-dependent exponent.} The heavy tail that maximises \knn{} overlap at 70k
+fragments the small data sets we tried: on MNIST subsamples at $n \le 10$k, HDBSCAN \citep{campello2013hdbscan,
+mcinnes2017hdbscan} finds 55--78 density clusters in the layout with 20--29\% of the points as noise, against
+8--26 at $n \ge 20$k and 6--7 for UMAP's layouts (Appendix~\ref{app:small}). $b = 0.8$ holds those layouts
+together at a \knn{} cost of 0.02--0.03 and $b = 1$ gives 3 HDBSCAN clusters on MNIST 70k, so the default is an
+empirical rule: $b = 0.6$ at $n \ge 20$k, $0.8$ at $n \le 10$k, log-linear in $\log n$ between. An optional
+label-free criterion raises $b$ until the layout's HDBSCAN clusters agree with the graph's own communities
+(adjusted Rand index $\ge 0.7$, a heuristic operating point); it selects a similar range but differs from the
+size rule on USPS (0.7) and Fashion-MNIST (0.7, where the labels prefer 0.6). The companion report has the
+sweeps and the settings that did not remove the effect.
 
-\paragraph{Hand-over.} The sampled layout is centred and scaled to a standard deviation of $31 \sqrt{n /
-70\,000}$, an empirical finite-budget reference set on MNIST 70k. A radial derivative identity of the full-batch
-objective (Appendix~\ref{app:virial}) diagnoses the scale pressure at a given shape and explains why the pass
-expands every start, but it does not select this operating point: the stationary dilation gives a worse
-trade-off than 31 at five times the cost. From $t$-SNE's tiny initialisation the pass re-expands and loses the
+\paragraph{Hand-over.} The sampled layout is centred and scaled so that the standard deviation of its first
+coordinate is $31 \sqrt{n / 70\,000}$, an empirical finite-budget reference set on MNIST 70k. A radial derivative
+identity of the full-batch objective (Appendix~\ref{app:virial}) diagnoses the scale pressure at a given layout
+but does not select this operating point: starting at the stationary dilation costs about five times as much and
+gives 0.349 / 0.460 overlap / Spearman against 0.350 / 0.450 at scale 31. From $t$-SNE's tiny initialisation the pass re-expands and loses the
 arrangement (Spearman 0.29--0.39); from the sampled layout's own scale it loses it too.
 
 \paragraph{Full-batch pass.} $t$-SNE's Kullback--Leibler objective \citep{vandermaaten2008tsne} on the same fuzzy
 graph (no perplexity calibration), the repulsion by FIt-SNE's interpolation \citep{linderman2019fitsne} with three
 Lagrange points per box, momentum and gains as in openTSNE \citep{policar2019opentsne}. As the second stage: 300
-iterations without exaggeration and without the mid-range term (which is fatal at this scale), 4~s more on
-MNIST 70k. Standalone (\texttt{loss="tsne"}): 600 iterations with early exaggeration from a PCA start, 4.9~s.
+iterations without exaggeration and without the mid-range term (which is fatal at this scale), 3.7~s more on MNIST 70k. Standalone (\texttt{loss="tsne"}): 600 iterations with early exaggeration from a PCA start, 4.9~s.
 The box width is 0.7 in layout units: against the exact all-pairs sum on the audited MNIST layout, FIt-SNE's unit
 box leaves a 3.5\% relative RMS force error (1.2\% at 0.7, 0.4\% at 0.5), and narrowing the box raises \knn{} overlap
 from 0.346 to 0.349--0.350 on MNIST and from 0.118 to 0.136 on Gaussian blobs while the FFT cost grows as the
@@ -133,31 +139,35 @@ graph's neighbourhood size, and not at $k = 5$ or $k \ge 50$ (companion report, 
 \section{Community placement and separation}\label{sec:post}
 A $t$-SNE-like layout keeps neighbourhoods and spreads classes apart, but its clusters are placed by the history
 of the optimisation: the pairwise Spearman of the standalone full-batch layout is 0.35 on MNIST where PCA reaches
-0.49. The post-process moves clusters as rigid bodies.
+0.49. The post-process translates communities and contracts each uniformly about its centroid.
 
-\paragraph{Communities.} Louvain \citep{blondel2008louvain} on the fuzzy graph, with the nodes visited by
-decreasing strength (deterministic; the random order split a class on MNIST in one run of three, and Leiden
-\citep{traag2019leiden} had the same instability), at resolution 0.5, followed by a merge heuristic. The
-motivation: on the graphs we use the strengths are nearly uniform (MNIST: mean 6.6, coefficient of variation
-0.33), so the modularity's null model is nearly a constant and the objective approximates a constant Potts model
-\citep{traag2011cpm} with its known geometric scale limitations \citep{fortunato2007resolution, schaub2012markov}:
-large geometric communities are split, small ones swallowed, and no resolution in the tested sweep fixed both. The
-heuristic merges adjacent communities whose interface shows no density contrast: the boundary nodes of $A$ towards
-$B$ send on average a share $f_{AB}$ of their strength into $B$; we merge while $\min(f_{AB}, f_{BA}) \ge 0.10$,
-largest first. The threshold is set heuristically to half the share measured across the Fiedler bisection of a
-uniform cloud under our graph construction (about 0.20, weakly dependent on dimension and $k$ in simulations;
-0.17--0.19 for the Fiedler bisection of each MNIST community); on MNIST the four same-class splits of
-over-partitioned runs sit at 0.13--0.16 and the real class boundaries below 0.10 (Appendix~\ref{app:merge}). With
-it MNIST has 10 communities on every graph and resolution tried (label agreement 0.92--0.93 ARI), letter and
-covertype are left almost untouched, and Fashion-MNIST's touching classes are merged into four, which is what
-this graph-based criterion returns and not an independent fact about the data.
+\paragraph{Communities.} Louvain \citep{blondel2008louvain} on the fuzzy graph for the modularity
+\citep{newman2004modularity} at resolution 0.5, the nodes visited by decreasing strength (deterministic for a
+fixed graph, ties broken by index; the random order split a class on MNIST in one run of three, and Leiden
+\citep{traag2019leiden} had the same instability), followed by a merge heuristic. On the graphs we use the
+strengths are nearly uniform (MNIST: mean 6.6, coefficient of variation 0.33), so the modularity's null model is
+nearly a constant and the objective approximates a constant Potts model \citep{traag2011cpm}, which keeps the
+resolution and field-of-view limits \citep{fortunato2007resolution, schaub2012markov}: in the tested sweep no
+single resolution avoided both splitting large communities and swallowing small ones. The heuristic merges
+adjacent communities whose interface shows no density contrast: the boundary nodes of $A$ towards $B$ (nodes of
+$A$ with an edge into $B$) send on average a share $f_{AB}$ of their strength into $B$; we merge while
+$\min(f_{AB}, f_{BA}) \ge 0.10$, largest first. We choose 0.10 heuristically as half a simulated reference: across
+the Fiedler bisection of a uniform cloud under our graph construction the share is 0.17--0.28 over dimensions
+2--50 and about 0.20 below dimension 20 (0.17--0.19 for the Fiedler bisection of each MNIST community); on MNIST
+the same-class splits of over-partitioned runs sit at 0.13--0.16 and the different-class interfaces below 0.10
+(Appendix~\ref{app:merge}). With it MNIST has 10 communities on every graph and resolution tried (ARI 0.92--0.93
+against the labels), letter and covertype are left almost untouched, and Fashion-MNIST's touching classes are
+merged into four, which is what this graph-based criterion returns and not an independent fact about the data.
 
-\paragraph{Placement.} Each community with at least 1\% of the points, largest first, is translated by the
-candidate (five radial scalings of its centroid offset, eight grid steps) that most raises the Spearman
+\paragraph{Placement.} A constrained relative of nonmetric MDS \citep{kruskal1964mds}, fitting distance ranks by
+community translations rather than pointwise. Each community with at least 1\% of the points, largest first, is
+translated by the candidate (scalings 0.7, 0.85, 1.15, 1.3 and 1.6 of its centroid offset from the layout's centre,
+and the eight steps of a square grid of side 0.15 times the layout's RMS radius) that most raises the Spearman
 correlation between the input and the layout distances of 500 sampled points, provided a guard holds: the fraction
 of a 5000-point sample whose nearest sample point belongs to another community may not rise by more than 0.002
-above its value in the original layout. Two sweeps, about 250 evaluations on the sample coordinates. The guard is
-a sampled nearest-neighbour statistic, not a bound on the full \knn{} loss.
+above its value in the original layout. Two sweeps, about 250 evaluations on the sample coordinates; communities below 1\% are not translated but are
+contracted. The guard is a sampled nearest-neighbour statistic, not a bound on the full \knn{} loss, and it is not
+rechecked after the contraction.
 
 \paragraph{Separation.} Every community is then contracted about its centroid by $g = 0.7$, a setting chosen on
 the development sets with the scores in view. A similarity within a community preserves its internal distance
@@ -170,24 +180,30 @@ the standalone full-batch layout's \knn{} / Spearman / $k$-means ARI go from 0.3
 separation alone reaches ARI 0.92 at Spearman 0.33: the Spearman gain is the placement's, the ARI gain the
 separation's. Two global statistics the step does not fit move with it (triplet accuracy 0.627 $\to$ 0.649,
 class-centroid Spearman 0.66 $\to$ 0.70). Applying the same procedure to a Barnes--Hut layout gives 0.350 / 0.338 /
-0.829 $\to$ 0.347 / 0.463 / 0.917. The step takes 0.8--4.5~s on 70k points in the control runs, 6~s at 250k. It can
+0.829 $\to$ 0.347 / 0.463 / 0.917. The step takes 1.0--1.9~s per 70k-point configuration on average in the control runs (replicates 0.8--4.5~s),
+6~s at 250k. It can
 open visual gaps at community boundaries of connected data (Fig.~\ref{fig:pipeline}, Fashion-MNIST), and a
 higher ARI is not evidence of clusters in the input. The variants that did not work are in the companion report.
 
 \begin{figure*}[t]
 \centering\includegraphics[width=\textwidth]{fig_pipeline.png}
 \caption{MNIST and Fashion-MNIST 70k (raw pixels, euclidean), 20\,000 points drawn uniformly at random and
-coloured by class (labels unused by every method), single runs with seed 0; each panel is scaled to its own
-extent. Left to right: UMAP as shipped, Barnes--Hut $t$-SNE as shipped, Barnes--Hut $t$-SNE with our post-process,
+coloured by class (class labels are not supplied during embedding or post-processing; development and
+evaluation used label-derived scores); display runs separate from the control runs, seed 0 for the seeded
+methods; each panel is scaled to its own extent. Left to right: UMAP as shipped, Barnes--Hut $t$-SNE as shipped, Barnes--Hut $t$-SNE with our post-process,
 the complete \magnet{} pipeline (sequence, $b$ by size, post-process). Under each panel: \knn{} overlap and pairwise
-Spearman of that run; the $k$-means ARI of the complete pipeline on MNIST is $0.73 \pm 0.07$ over five runs
-(Table~\ref{tab:raw}). The post-process moves the zeros away from the other digits on both $t$-SNE-type layouts;
+Spearman of that run; the $k$-means ARI of the complete pipeline on MNIST is $0.73 \pm 0.07$ over the five control runs
+(Table~\ref{tab:configs}, \texttt{k41}; the unprocessed sequence's is $0.60 \pm 0.07$, Table~\ref{tab:raw}). The post-process moves the zeros away from the other digits on both $t$-SNE-type layouts;
 the step raises the class-centroid Spearman (0.66 $\to$ 0.70), which does not by itself establish that the
 input distances demand it.}
 \label{fig:pipeline}
 \end{figure*}
 
 \section{Matched evaluation}\label{sec:results}
+\paragraph{Panel.} The twelve configurations of Table~\ref{tab:raw}: our three modes, Barnes--Hut $t$-SNE
+(scikit-learn), openTSNE, UMAP, PaCMAP, TriMap, h-NNE \citep{sarfraz2022hnne}, densMAP \citep{narayan2021densmap},
+PCA-2 and PCA-2 refined by our full-batch pass, each at its library defaults.
+
 \paragraph{Data and preprocessing.} MNIST and Fashion-MNIST, 70\,000 raw pixel vectors (784 dimensions, values
 in $[0, 255]$, euclidean); letter (20\,000 $\times$ 16, euclidean) and covertype (a fixed random subsample of
 20\,000 $\times$ 54, euclidean, seed 0), whose classes are not clusters; all four are development sets. The
@@ -206,20 +222,27 @@ panel on each axis in the calibration runs of the companion report (MNIST 0.356 
 0.330 / 0.873 / 0.483, letter 0.642 / 0.716, covertype 0.632 / 0.755; ratios may exceed one); composites are
 computed per run, then averaged over runs, then over data sets with equal weight.
 
-\paragraph{Runs and provenance.} Three experiment families are quoted. The matched control (\texttt{k41}): the
-twelve configurations of Table~\ref{tab:raw}, five end-to-end runs each (seeds 0--4; UMAP and densMAP unseeded,
-as seeding serialises their layout), every run then given the identical post-process with the graph and
-communities of that run, the same search sample excluding the evaluation points and every setting frozen. The
+\paragraph{Runs and provenance.} Three principal evaluation families are quoted; the early-stop trajectory,
+the matched-start ranges, the small-$n$ study and the force audit are further experiments of the companion report
+(\texttt{k15}, \texttt{k27}, \texttt{k45}, \texttt{k40}). The matched control (\texttt{k41}): the twelve
+configurations of Table~\ref{tab:raw}, five end-to-end runs each (seeds 0--4; UMAP and densMAP unseeded, as
+seeding serialises their layout). Within replicate $s$ every configuration is post-processed with one shared
+instance: the fuzzy graph of \magnet{}'s own run with seed $s$, its communities, and the search and guard samples
+drawn with seed $s$ excluding the evaluation points; the pairing key is $s$. The control matches the
+post-processing procedure, not the embedding objectives, budgets or every source of randomness. The
 post-process demonstration of Sec.~\ref{sec:post}: three runs of the standalone full-batch layout (\texttt{k39}).
 The timing suite (\texttt{timing.py}): fits only, all 20 threads, numba warm-up before the clock, the eight
 configurations interleaved and repeated three times on a machine with load average 1.5 before the suite; the
-times include graph construction and exclude the post-process unless stated. Standard deviations are over runs;
-``0.000'' means below 0.0005.
+times include graph construction and exclude the post-process unless stated. The frozen references are the
+per-axis maxima of the sixteen unprocessed configurations of the calibration runs of
+\texttt{benchmarks/composite\_table.py} (seed 0; MNIST: \knn{} from the full-batch quality preset, Spearman from
+PCA-2, ARI from PaCMAP). Standard deviations are over runs; ``0.000'' means below 0.0005.
 
 \begin{table*}[t]
 \centering\footnotesize
-\caption{Raw axes of every configuration as shipped, mean over five runs (the matched-control runs; sd in the
-companion report, 0.000--0.01 except the sequence's MNIST ARI, 0.07). Bold: best of the column.}
+\caption{Raw axes of every configuration as shipped, mean over the five matched-control runs. Run standard
+deviations (\texttt{k41}): at most 0.01 on \knn{} everywhere, at most 0.04 on Spearman (covertype UMAP) and at most
+0.07 on ARI (MNIST sequence 0.07, densMAP 0.07, PaCMAP 0.06, h-NNE 0.04, openTSNE 0.03). Bold: best of the column.}
 \label{tab:raw}
 \setlength{\tabcolsep}{4pt}
 \input{tables/raw_axes.tex}
@@ -234,10 +257,10 @@ openTSNE's (0.639); on covertype its Spearman (0.536) is below the sampled pass'
 pairwise Spearman of the sequence exceeds PCA-2's on covertype (0.536 against 0.397) and stays below it on the
 three other sets.
 
-\paragraph{The matched control} (Fig.~\ref{fig:control}, Table~\ref{tab:control}). As shipped, the sequence has
+\paragraph{The matched control} (Fig.~\ref{fig:control}; Table~\ref{tab:control} in Appendix~\ref{app:configs}). As shipped, the sequence has
 the highest four-set mean composite (0.854; Barnes--Hut 0.799, full-batch 0.801, openTSNE 0.749, PaCMAP 0.590,
 UMAP 0.581). With the identical post-process given to every configuration it keeps the highest mean (0.907;
-Barnes--Hut 0.884, full-batch 0.879, openTSNE 0.854, UMAP 0.677, PaCMAP 0.670; minimum composite 0.826 against
+Barnes--Hut 0.883, full-batch 0.879, openTSNE 0.854, UMAP 0.677, PaCMAP 0.670; minimum composite 0.826 against
 0.779) and wins three data-set means of four, but its paired difference from the post-processed Barnes--Hut
 layout is $0.023 \pm 0.047$ across the 20 runs (sd across paired runs, which mixes between-data-set
 heterogeneity with run variability) and reverses on MNIST: $-0.046 \pm 0.022$ there, $+0.020 \pm 0.015$ on
@@ -245,7 +268,8 @@ Fashion-MNIST, $+0.071 \pm 0.003$ on letter, $+0.047 \pm 0.013$ on covertype. On
 configurations, our full-batch mode, openTSNE and Barnes--Hut, reach 0.976, 0.971 and 0.976 after the step
 against 0.930 for the sequence, whose Spearman is higher (0.504 against 0.464) and whose $k$-means ARI lower
 ($0.73 \pm 0.07$ against 0.918). The control measures post-processing increments and final rankings; it does not
-decompose causes. It does show that the step changes the rankings substantially, that it lifts most
+decompose causes, and the sequence's MNIST loss is the composite of a higher Spearman and a substantially lower
+ARI, not a negligible convergence effect. It does show that the step changes the rankings substantially, that it lifts most
 configuration--data-set combinations (exceptions: letter for the sequence, the full-batch mode, PCA-2 + pass and
 TriMap, $-0.01$ to $-0.10$; the sampled pass on Fashion-MNIST, $-0.003$), and that UMAP, PaCMAP, TriMap and densMAP
 remain far below with it (0.54--0.68), their \knn{} deficit being what the step does not reconstruct.
@@ -256,24 +280,17 @@ remain far below with it (0.54--0.68), their \knn{} deficit being what the step 
 axes on the image sets, two on letter and covertype), each configuration as shipped (circle, mean $\pm$ sd over
 five runs) and with the identical post-process (diamond; the small dots are the five runs), sorted by the latter;
 under each panel, the sequence-minus-Barnes--Hut paired difference after the step, mean $\pm$ sd over the five
-paired runs.}
+paired runs. The references are those of Sec.~\ref{sec:results}, Metrics.}
 \label{fig:control}
 \end{figure*}
 
-\begin{table*}[t]
-\centering\footnotesize
-\caption{Geometric composite of every configuration as shipped (plain) and with the identical post-process
-(+ post), mean over five runs, and the four-set mean of the post-processed values. Run standard deviations range
-from below 0.0005 to 0.059 (TriMap on letter after the step); the companion report lists them.}
-\label{tab:control}
-\setlength{\tabcolsep}{3.5pt}
-\input{tables/control_geo.tex}
-\end{table*}
+
 
 \paragraph{Time} (Table~\ref{tab:time}). On MNIST 70k the sampled pass takes 3.6~s, the standalone full-batch mode
 4.9~s and the sequence 7.3~s, 9.0~s with the post-process; UMAP 8.5, PaCMAP 31, openTSNE 93, Barnes--Hut $t$-SNE
-175 (Fashion-MNIST: 3.7 / 4.9 / 6.7 / 7.5 against 8.4 / 30 / 85 / 174). The ranges over the three interleaved rounds
-are within 5\% except Barnes--Hut's (156--184). The ratios are those
+175 (Fashion-MNIST: 3.7 / 4.9 / 6.7 / 7.5 against 8.4 / 30 / 85 / 174). Over the three interleaved rounds the ranges
+are 3.2--4.5~s for the sampled pass and 6.4--7.2 for the sequence on Fashion-MNIST, 171--181 and 156--184 for
+Barnes--Hut on MNIST and Fashion-MNIST, and within 3\% elsewhere. The ratios are those
 of the shipped defaults of each library on this machine; the companion report audits openTSNE phase by phase
 (24~s of affinities, 0.15~s per iteration).
 
@@ -298,29 +315,33 @@ one text set where every neighbour embedding is weak. The MNIST class-centroid g
 and variable before the post-process, and its $k$-means ARI varies by $\pm 0.07$ across runs with or without
 it. The post-process optimises a sampled version of one reported metric, with settings chosen on the development
 sets; its communities come from a heuristic whose threshold has a reference but not a derivation; classes that
-are not density clusters are merged or left alone by it. Below 15k points the sampled pass needs the lighter
-attraction and remains behind PaCMAP for HDBSCAN clustering on phonemes (4.5k); the HDBSCAN use case is a clear
-win at 70k (ARI 0.92 against 0.66 for UMAP's layout) and mixed elsewhere. The full-batch pass is accurate to its
+are not density clusters are merged or left alone by it. On the tested small-data cases, raising the attraction exponent reduces the observed fragmentation but does not
+remove every clustering failure (the sampled pass stays behind PaCMAP for HDBSCAN clustering on phonemes, 4.5k);
+HDBSCAN on the post-processed sampled layout of MNIST 70k reaches an ARI of 0.92 against 0.66 on UMAP's layout
+(three runs, \texttt{k44}), and the same comparison is mixed on the other data sets tried. The full-batch pass is accurate to its
 grid, early-stopped, and $k$-specific. Timings are those of one machine and one set of library versions.
 
 \section{Conclusion}
 The recipe combines a sampled pass with an empirical size-dependent exponent and a transient mid-range
 attraction, a 300-iteration full-batch refinement with an interpolation box of 0.7 at an empirical hand-over scale,
-and an optional community post-process. It obtains a \knn{} overlap similar to Barnes--Hut $t$-SNE's on the image
-benchmarks in a fraction of the time, improves pairwise Spearman over the named default comparators on MNIST and
-Fashion-MNIST, and, with identical post-processing, has the highest observed four-set mean composite of a
-twelve-configuration panel, winning three data-set means and losing to the post-processed Barnes--Hut layout on
-MNIST by $0.046 \pm 0.022$. For the tested graphs, a density-contrast merge reduces selected over-partitioning
+and an optional community post-process. On the two image benchmarks the unprocessed sequence obtains a \knn{} overlap similar to Barnes--Hut
+$t$-SNE's in 7.3 and 6.7~s against 175 and 174 in the interleaved suite with graph construction included (9.0 and
+7.5~s with the post-process), and a higher pairwise Spearman than UMAP, PaCMAP, openTSNE and Barnes--Hut $t$-SNE;
+with identical post-processing it has the highest observed four-development-set mean composite of a
+twelve-configuration panel and wins three data-set means, its paired difference from the post-processed
+Barnes--Hut layout being $0.023 \pm 0.047$ across 20 runs and $-0.046 \pm 0.022$ on MNIST, both run standard
+deviations. For the tested graphs, a density-contrast merge reduces selected over-partitioning
 failures of modularity-based community detection; whether that heuristic holds beyond kNN graphs of this kind is
 open.
 
-\paragraph{Reproducibility.} Code: \url{https://github.com/kerighan/lib-magnet} (package \texttt{magnet-learn};
-this paper corresponds to commit \texttt{2242d27} and later). Companion report: \texttt{paper/main.tex} of the
-same repository, with the result files of every experiment under \texttt{benchmarks/theory/k*.json} and the
-scripts that produced each table and figure (\texttt{benchmarks/theory/k41\_matched\_postprocess.py},
-\texttt{benchmarks/timing.py}, \texttt{paper/human/make\_fig\_*.py}). Hardware: one 10-core / 20-thread i9-9900X,
-64~GB; library versions umap-learn 0.5.12, openTSNE 1.0.4, scikit-learn's \texttt{TSNE}, pacmap, trimap, hnne as
-installed in November 2026 (the companion report lists them). Data: MNIST and Fashion-MNIST from OpenML and
+\paragraph{Reproducibility.} Code, companion report (\texttt{paper/main.tex}), result files
+(\texttt{benchmarks/theory/k*.json}, \texttt{benchmarks/cache/timing\_quiet.json}) and the scripts that produced
+every table and figure (\texttt{benchmarks/theory/k41\_matched\_postprocess.py}, \texttt{benchmarks/timing.py},
+\texttt{paper/human/make\_*.py}) are in \url{https://github.com/kerighan/lib-magnet} at the tag
+\texttt{short-paper-v3}, which is the revision this manuscript describes; the dependency manifest is
+\texttt{paper/human/requirements-frozen.txt} (Python 3.10.8, numpy 2.2.6, scipy 1.13.1, scikit-learn 1.7.2,
+umap-learn 0.5.12, pynndescent 0.7.0, openTSNE 1.0.4, pacmap 0.9.1, trimap 1.2.0, hnne 2.0.1, hdbscan 0.8.40).
+Hardware: one 10-core / 20-thread i9-9900X, 64~GB. Data: MNIST and Fashion-MNIST from OpenML and
 Keras, letter and covertype from OpenML, subsampled with seed 0.
 
 \bibliographystyle{plainnat}
@@ -331,14 +352,19 @@ Keras, letter and covertype from OpenML, subsampled with seed 0.
 \bibitem[Campello et al.(2013)]{campello2013hdbscan} R. J. G. B. Campello, D. Moulavi, J. Sander. Density-based clustering based on hierarchical density estimates. PAKDD, 2013.
 \bibitem[Chenebaux(2026)]{chenebaux2026report} M. Chenebaux. \magnet{}: a sampled pass for the global structure, a full-batch pass for the local one. Companion report, \texttt{paper/main.tex} in \url{https://github.com/kerighan/lib-magnet}, 2026.
 \bibitem[Damrich and Hamprecht(2021)]{damrich2021umap} S. Damrich, F. A. Hamprecht. On UMAP's true loss function. NeurIPS, 2021.
-\bibitem[Dong et al.(2011)]{dong2011nndescent} W. Dong, C. Moses, K. Li. Efficient $k$-nearest neighbor graph construction for generic similarity measures. WWW, 2011.
+\bibitem[Dong et al.(2011)]{dong2011nndescent} W. Dong, M. Charikar, K. Li. Efficient $k$-nearest neighbor graph construction for generic similarity measures. WWW, 2011.
 \bibitem[Fortunato and Barth\'elemy(2007)]{fortunato2007resolution} S. Fortunato, M. Barth\'elemy. Resolution limit in community detection. PNAS 104(1), 2007.
 \bibitem[Hubert and Arabie(1985)]{hubert1985ari} L. Hubert, P. Arabie. Comparing partitions. Journal of Classification 2, 1985.
 \bibitem[Kobak et al.(2019)]{kobak2019heavy} D. Kobak, G. Linderman, S. Steinerberger, Y. Kluger, P. Berens. Heavy-tailed kernels reveal a finer cluster structure in $t$-SNE visualisations. ECML PKDD, 2019.
 \bibitem[Kobak and Linderman(2021)]{kobak2021init} D. Kobak, G. C. Linderman. Initialization is critical for preserving global data structure in both $t$-SNE and UMAP. Nature Biotechnology 39, 2021.
 \bibitem[Linderman et al.(2019)]{linderman2019fitsne} G. C. Linderman, M. Rachh, J. G. Hoskins, S. Steinerberger, Y. Kluger. Fast interpolation-based $t$-SNE for improved visualization of single-cell RNA-seq data. Nature Methods 16, 2019.
+\bibitem[Kruskal(1964)]{kruskal1964mds} J. B. Kruskal. Nonmetric multidimensional scaling: a numerical method. Psychometrika 29, 1964.
+\bibitem[McInnes et al.(2017)]{mcinnes2017hdbscan} L. McInnes, J. Healy, S. Astels. hdbscan: hierarchical density based clustering. Journal of Open Source Software 2(11), 2017.
 \bibitem[McInnes et al.(2018)]{mcinnes2018umap} L. McInnes, J. Healy, J. Melville. UMAP: uniform manifold approximation and projection for dimension reduction. arXiv:1802.03426, 2018.
+\bibitem[Narayan et al.(2021)]{narayan2021densmap} A. Narayan, B. Berger, H. Cho. Assessing single-cell transcriptomic variability through density-preserving data visualization. Nature Biotechnology 39, 2021.
+\bibitem[Newman and Girvan(2004)]{newman2004modularity} M. E. J. Newman, M. Girvan. Finding and evaluating community structure in networks. Physical Review E 69, 2004.
 \bibitem[Poli\v{c}ar et al.(2019)]{policar2019opentsne} P. G. Poli\v{c}ar, M. Stra\v{z}ar, B. Zupan. openTSNE: a modular Python library for $t$-SNE dimensionality reduction and embedding. bioRxiv, 2019.
+\bibitem[Sarfraz et al.(2022)]{sarfraz2022hnne} S. Sarfraz, M. Koulakis, C. Seibold, R. Stiefelhagen. Hierarchical nearest neighbor graph embedding for efficient dimensionality reduction. CVPR, 2022.
 \bibitem[Schaub et al.(2012)]{schaub2012markov} M. T. Schaub, J.-C. Delvenne, S. N. Yaliraki, M. Barahona. Markov dynamics as a zooming lens for multiscale community detection: non clique-like communities and the field-of-view limit. PLoS ONE 7(2), 2012.
 \bibitem[Traag et al.(2011)]{traag2011cpm} V. A. Traag, P. Van Dooren, Y. Nesterov. Narrow scope for resolution-limit-free community detection. Physical Review E 84, 2011.
 \bibitem[Traag et al.(2019)]{traag2019leiden} V. A. Traag, L. Waltman, N. J. van Eck. From Louvain to Leiden: guaranteeing well-connected communities. Scientific Reports 9, 2019.
@@ -355,8 +381,9 @@ excluded, and $u_{ij} = s^2 d_{ij}^2 / (1 + s^2 d_{ij}^2)$. Differentiating $F(s
 p_{ij} \log k_{ij} + \log Z$ in $\log s$ gives $\partial F / \partial \log s = 2(\mathbb{E}_p[u] -
 \mathbb{E}_q[u])$: at a stationary point along the ray the $p$-weighted mean of $u$ over the edges equals its
 $q$-weighted mean over all pairs. The attractive side is an edge sum, the repulsive side one evaluation of the
-interpolated potentials. The root along the ray $sY_0$ is a stationary dilation of a frozen shape, not a jointly
-optimal scale; a 13-point scan confirmed it as the minimum of $F(sY_0)$ for the starts tested (companion report,
+interpolated potentials. The identity diagnoses radial pressure at the specified layout; the trajectory also depends on the shape
+changes, momentum and gains. The root along the ray $sY_0$ is a stationary dilation of a frozen shape, not a
+jointly optimal scale; a 13-point scan confirmed it as the minimum of $F(sY_0)$ for the starts tested (companion report,
 Table~3): 85--102 for our sampled starts, 10 for PCA-2, about 120 for UMAP, with the full-batch layout after 600
 iterations still far from its own stationary dilation, which is the radial component of the slow expansion seen
 when the pass is continued. Handed over at its stationary dilation, the stiff start gives \knn{} / Spearman 0.349 /
@@ -366,8 +393,8 @@ when the pass is continued. Handed over at its stationary dilation, the stiff st
 \begin{figure}[h]
 \centering\includegraphics[width=\columnwidth]{fig_small_n.png}
 \caption{MNIST subsamples drawn uniformly at random without nesting (seed 0), one run each. Left: clusters found
-by HDBSCAN (\texttt{min\_cluster\_size} $= \max(15, n / 200)$, \texttt{min\_samples} default, excess-of-mass
-selection, noise points counted as none) on the sampled-pass layout for three exponents, UMAP dashed. Right:
+by HDBSCAN (\texttt{hdbscan} 0.8.40, \texttt{min\_cluster\_size} $= \max(15, n / 200)$, \texttt{min\_samples} equal to it
+by default, excess-of-mass selection, noise points counted as none) on the sampled-pass layout for three exponents, UMAP dashed. Right:
 \knn{} overlap. Single runs: the HDBSCAN counts move by 5--10 across runs of the lock-free SGD.}
 \label{fig:small_n}
 \end{figure}
@@ -377,32 +404,38 @@ over the ranges tested (epochs 30--300, learning rate, $k = 30$, one thread, the
 exponent schemes).
 
 \section{The interpolation box}\label{app:box}
-\begin{figure}[h]
-\centering\includegraphics[width=\columnwidth]{fig_box_width.png}
-\caption{Left: MNIST 70k, middle: 15 Gaussian blobs (10k $\times$ 200), \knn{} overlap of the standalone full-batch
-mode against the box width, mean $\pm$ sd over 2 (MNIST) and 3 (blobs) runs. Right: time on MNIST 70k at 8 threads
-on the shared machine, labelled with the RMS force error of the interpolation relative to the RMS of the exact
-all-pairs force on the first 20\,000 points of the final MNIST layout.}
-\label{fig:box}
-\end{figure}
+The audit (\texttt{k40}, companion report Sec.~6.14 and its figure): \knn{} overlap of the standalone full-batch
+mode against the box width, 2 runs on MNIST and 3 on the blobs; the force error is the RMS over points of the
+error of the repulsive force vector, relative to the RMS of the exact all-pairs repulsive force, on the 20\,000-point
+subsystem made of the first 20\,000 points of the final MNIST layout; the times are 8-thread fits on the shared
+machine, graph construction included.
 
 \section{The merge heuristic}\label{app:merge}
 \begin{figure}[h]
 \centering\includegraphics[width=\columnwidth]{fig_interfaces.png}
-\caption{MNIST's fuzzy graph, communities of the strength-ordered Louvain at resolutions 0.5 and 1.0 (11 and 13
-communities), interfaces with at least 20 boundary nodes on each side, pooled over the two resolutions (119
-interfaces between communities of different majority class, 4 between communities of the same majority class).
-Left: the smaller of the two crossing shares of each interface. Right: the same divided by the smaller of the two
-communities' own Fiedler-bisection shares (the bisection at the median of the Fiedler vector of the community's
-normalised Laplacian).}
+\caption{MNIST's fuzzy graph (seed 0), communities of the strength-ordered Louvain at resolutions 0.5 (11
+communities) and 1.0 (13). One observation per unordered pair of adjacent communities with at least 20 boundary
+nodes on the $A$ side: 51 different-class and 1 same-class pairs at resolution 0.5, 68 and 3 at 1.0, pooled (119
+and 4; majority class of each community). Left: the smaller of the two crossing shares of each interface; the
+dashed line is the 0.10 merge threshold. Right: the same divided by the smaller of the two communities' own
+Fiedler-bisection shares (the bisection at the median of the Fiedler vector of the community's normalised
+Laplacian).}
 \label{fig:interfaces}
 \end{figure}
-The 25 real boundaries quoted in Sec.~\ref{sec:post} are the adjacent pairs at resolution 0.5; the figure pools
-both resolutions. The uniform-cloud reference: 20\,000 points uniform in $[0, 1]^d$ under our graph construction,
+The uniform-cloud reference: 20\,000 points uniform in $[0, 1]^d$ under our graph construction,
 share across a hyperplane cut 0.18 / 0.20 / 0.22 / 0.20 / 0.23 / 0.32 and across the Fiedler cut 0.17 / 0.18 / 0.19 /
 0.20 / 0.23 / 0.28 for $d = 2 / 3 / 5 / 10 / 20 / 50$ at $k = 15$; 0.22 / 0.19 at $k = 10 / 30$ for $d = 10$.
 
-\section{All \magnet{} configurations}\label{app:configs}
+\section{All configurations}\label{app:configs}
+\begin{table*}[t]
+\centering\footnotesize
+\caption{Geometric composite of every configuration as shipped (plain) and with the identical post-process
+(+ post), mean over five runs, and the four-set mean of the post-processed values. Run standard deviations range
+from below 0.0005 to 0.059 (TriMap on letter after the step); the companion report lists them.}
+\label{tab:control}
+\setlength{\tabcolsep}{3.5pt}
+\input{tables/control_geo.tex}
+\end{table*}
 \begin{table*}[t]
 \centering\footnotesize
 \caption{Every \magnet{} configuration on the four data sets: the three modes as shipped and with the post-process
