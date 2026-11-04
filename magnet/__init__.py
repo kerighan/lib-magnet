@@ -1,18 +1,26 @@
-"""MAGNET v3 - fast graph-based dimensionality reduction.
+"""MAGNET - fast two-pass neighbour embeddings and graph layout.
 
-Pipeline: kNN graph (hnswlib) -> fuzzy neighbourhood graph -> spectral init (power iteration)
--> multithreaded Hogwild SGD with negative sampling and random-walk mid-range attraction.
-Accepts a data matrix (n, d), a networkx graph or a scipy sparse adjacency matrix.
+One fuzzy kNN graph (NN-descent), then a sampled SGD pass (UMAP-style negative sampling with a decoupled,
+heavy-tailed attraction and a transient mid-range attraction), a full-batch pass (t-SNE objective with
+FFT-interpolated repulsion), or the two in sequence; optionally a label-free community post-process.
+Accepts a data matrix (n, d), a sparse CSR matrix, a networkx graph or a scipy sparse adjacency matrix.
+The estimator follows the scikit-learn API (fit / transform / fit_transform, get_params / set_params).
 """
 import time
 import numpy as np
 import scipy.sparse as sp
 
+from sklearn.base import BaseEstimator, TransformerMixin
+
 from .knn import knn_hnsw, knn_nndescent, knn_search, fuzzy_graph, prepare_data, smooth_knn, choose_landmarks
 from .spectral import spectral_init
+from .contraction import hierarchical_contraction
 
 __version__ = "3.0.0"
-__all__ = ["MAGNET", "find_ab_params"]
+__all__ = ["MAGNET", "hierarchical_contraction", "find_ab_params", "__version__"]
+
+_LOSSES = ("umap", "tsne", "hybrid", "infonce", "umap_exact")
+_KERNEL_B_MODES = ("size", "consistent", "auto", "auto_dim", "local", "adaptive")
 
 
 def find_ab_params(spread=1.0, min_dist=0.1, b=None, kernel="power"):
@@ -58,8 +66,20 @@ def _sampling_frequencies(w, target):
     return np.minimum(1.0, s * w)
 
 
-class MAGNET:
-    """
+class MAGNET(BaseEstimator, TransformerMixin):
+    """Two-pass neighbour embedding (scikit-learn estimator).
+
+    Main parameters (everything else is a research knob documented below):
+    loss : "umap" (default, sampled pass), "tsne" (full-batch pass), "hybrid" (the two in sequence).
+    n_components, n_neighbors, metric ("euclidean" or "cosine"), min_dist, spread : as in UMAP.
+    n_epochs : epochs of the sampled pass, iterations of the full-batch pass.
+    kernel_b : attraction exponent ("size" by default: 0.6 at n >= 20k, 0.8 at n <= 10k).
+    contraction : None, or a float g in (0, 1] (0.7 recommended) for the community post-process.
+    init, pca : initialisation and optional PCA front end.
+    n_threads, random_state, verbose.
+    Fitted attributes: embedding_, graph_, knn_indices_, knn_dists_, kernel_b_, and contraction_log_ when
+    the post-process ran.
+
     Parameters
     ----------
     n_components : output dimension (2 or 3 for visualisation; any value <= 64 works).
@@ -399,9 +419,30 @@ class MAGNET:
         ari = float(adjusted_rand_score(lab[idx], la))
         return ari >= threshold, ari, int(len(set(cl[~noise])))
 
+    def _validate(self):
+        """Reject invalid parameter values with an explicit message (called at the start of fit)."""
+        if self.loss not in _LOSSES:
+            raise ValueError(f"loss must be one of {_LOSSES}, got {self.loss!r}")
+        kb = self.kernel_b
+        if isinstance(kb, str):
+            if kb not in _KERNEL_B_MODES:
+                raise ValueError(f"kernel_b must be a number in (0, 8], an array of per-point exponents, None, or one of {_KERNEL_B_MODES}; got {kb!r}")
+        elif kb is not None and np.isscalar(kb) and not (0.0 < float(kb) <= 8.0):
+            raise ValueError(f"kernel_b must be in (0, 8], got {kb!r}")
+        c = self.contraction
+        if c is not None and not isinstance(c, dict):
+            if not np.isscalar(c) or not (0.0 < float(c) <= 1.0):
+                raise ValueError(f"contraction must be None, a float in (0, 1] (the separation g; 0.7 recommended) or a dict of hierarchical_contraction arguments; got {c!r}")
+        if not (isinstance(self.n_components, (int, np.integer)) and self.n_components >= 1):
+            raise ValueError(f"n_components must be a positive integer, got {self.n_components!r}")
+        if self.loss in ("tsne", "hybrid", "umap_exact") and self.n_components != 2:
+            raise ValueError(f"loss={self.loss!r} (FFT repulsion) is implemented for n_components=2 only")
+
     def fit(self, X, y=None):
+        """Fit the layout of X (array (n, d), sparse CSR, networkx graph or sparse adjacency); y is ignored."""
         from _magnet import optimize_layout
 
+        self._validate()
         if isinstance(self.kernel_b, str) and self.kernel_b == "consistent" and self.loss in ("umap", "hybrid"):
             # the attraction exponent chosen by graph-layout consistency (k45-k46): the heaviest tail (0.6, the best
             # local fidelity) whose SGD layout does not tear the graph's communities into density clusters they do
@@ -753,6 +794,7 @@ class MAGNET:
         self.n_epochs_ = e + anneal
 
     def fit_transform(self, X, y=None):
+        """Fit and return the layout (n, n_components)."""
         return self.fit(X).embedding_
 
     # ------------------------------------------------------------------ out-of-sample

@@ -66,7 +66,19 @@ Y = MAGNET().fit_transform(A)                        # scipy sparse adjacency (w
 m = MAGNET().fit(X)
 Y_new = m.transform(X_new)                           # out-of-sample points, training layout fixed
 m.embedding_, m.graph_, m.knn_indices_, m.knn_dists_
+
+# scikit-learn estimator: clone / get_params / set_params, pipelines, grid searches
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+Y = make_pipeline(StandardScaler(), MAGNET(loss="hybrid")).fit_transform(X)
+
+# the community post-process on any layout (here a UMAP one), with MAGNET's graph
+from magnet import hierarchical_contraction
+Z, log = hierarchical_contraction(Y_umap, MAGNET().fit(X).graph_, X=X)
 ```
+
+Invalid parameters raise a `ValueError` that names the accepted values. The fit is reproducible for a fixed
+`random_state` with `n_threads=1`; with more threads the lock-free SGD gives slightly different layouts per run.
 
 ## Two regimes, one knob
 

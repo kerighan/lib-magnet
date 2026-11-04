@@ -399,3 +399,39 @@ def test_owner_parallel_mode():
     assert acc > 0.95
     with pytest.raises(ValueError):
         MAGNET(parallel="owner", loss="infonce", random_state=0).fit(X.astype(np.float32))
+
+
+def test_sklearn_api():
+    """MAGNET is a scikit-learn estimator: clone / get_params / set_params, a Pipeline, and the parameter checks of
+    sklearn's estimator_checks that apply to a stochastic embedding."""
+    from sklearn.base import clone
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.utils import estimator_checks as ec
+    m = MAGNET(n_neighbors=10, loss="tsne", random_state=0)
+    c = clone(m)
+    assert c.get_params() == m.get_params() and c is not m
+    assert c.set_params(n_neighbors=12).n_neighbors == 12
+    X = np.random.default_rng(0).normal(size=(600, 8)).astype(np.float32)
+    Y = make_pipeline(StandardScaler(), MAGNET(random_state=0, n_threads=1)).fit_transform(X)
+    assert Y.shape == (600, 2) and np.isfinite(Y).all()
+    for check in (ec.check_parameters_default_constructible, ec.check_no_attributes_set_in_init,
+                  ec.check_get_params_invariance, ec.check_set_params):
+        check("MAGNET", MAGNET())
+
+
+def test_parameter_validation():
+    X = np.random.default_rng(0).normal(size=(300, 5)).astype(np.float32)
+    for bad in (dict(loss="foo"), dict(kernel_b="foo"), dict(kernel_b=0.0), dict(contraction=2.0),
+                dict(contraction="yes"), dict(n_components=0), dict(loss="tsne", n_components=3), dict(metric="manhattan")):
+        with pytest.raises(ValueError):
+            MAGNET(**bad).fit(X)
+
+
+def test_post_process_is_exported():
+    import magnet
+    assert "hierarchical_contraction" in magnet.__all__ and callable(magnet.hierarchical_contraction)
+    X = np.random.default_rng(0).normal(size=(800, 6)).astype(np.float32)
+    m = MAGNET(random_state=0, n_threads=1).fit(X)
+    Z, log = magnet.hierarchical_contraction(m.embedding_, m.graph_, X=X, random_state=0, n_threads=1)
+    assert Z.shape == m.embedding_.shape and np.isfinite(Z).all() and "communities" in log

@@ -26,7 +26,11 @@ def two_step_effective_size(P, max_nnz=200_000_000):
 def rolewalk_embedding(P, walk_len=3, n_samples=10):
     """RoleWalk signature of every node of the (symmetric) graph P, computed on the sparse matrix
     directly (same construction as RoleWalk.transform: lazy walk on I + A)."""
-    from rolewalk import RoleWalk, compute_embedding
+    try:
+        from rolewalk import RoleWalk, compute_embedding
+    except ImportError as e:
+        raise ImportError("mid_scale='rolewalk' and component_placement='rolewalk' need the rolewalk package "
+                          "(the author's research library, not on PyPI)") from e
 
     rw = RoleWalk(walk_len=walk_len, n_samples=n_samples)
     A = sp.csr_matrix(P, dtype=np.float32)
@@ -46,7 +50,11 @@ def adaptive_walk_lengths(P, mode="spread", base=4, low=2, high=6, n_roles=None)
         ranks = np.argsort(np.argsort(-eff)) / max(1, n - 1)       # 0 = widest spread
         return np.rint(low + (high - low) * ranks).astype(np.int32)
     if mode == "rolewalk":
-        from rolewalk import RoleWalk
+        try:
+            from rolewalk import RoleWalk
+        except ImportError as e:
+            raise ImportError("mid_scale='rolewalk' and component_placement='rolewalk' need the rolewalk package "
+                              "(the author's research library, not on PyPI)") from e
         X = rolewalk_embedding(P)
         rw = RoleWalk()
         labels = rw.fit_predict(X, n_roles=n_roles) if n_roles else rw.fit_predict(X)
