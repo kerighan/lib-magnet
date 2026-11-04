@@ -47,6 +47,7 @@ for kind in ("geo", "min"):
          " & " + " & ".join("plain & + post" for _ in DS) + r" & + post \\", r"\midrule"]
     print(f"\n==== composite {kind} (mean +- sd over seeds; paired difference of the post-processed configuration against MAGNET full-batch + post and MAGNET sequence + post)")
     print(f"{'configuration':<22}" + "".join(f"{t:>26}" for _, t in DS) + f"{'mean post':>11}{'d vs fb+post':>14}{'d vs seq+post':>15}")
+    rows_tex = []
     for m in METHODS:
         cells, means, diffs_fb, diffs_hy = [], [], [], []
         for ds, _ in DS:
@@ -56,9 +57,16 @@ for kind in ("geo", "min"):
                 ks = [s for s in range(5) if f"{ds}/{m}/{s}" in res and f"{ds}/{ref}/{s}" in res]
                 acc.extend([res[f"{ds}/{m}/{s}"]["post"][kind] - res[f"{ds}/{ref}/{s}"]["post"][kind] for s in ks])
         if all(np.isnan(c[1][0]) for c in cells): continue
-        L.append(LABEL.get(m, m).replace("MAGNET", r"\magnet{}") + " & " + " & ".join(f"{pp[0]:.3f} & {qq[0]:.3f}" if qq[2] else "-- & --" for pp, qq in cells) + f" & {np.nanmean(means):.3f} \\\\")
+        rows_tex.append((LABEL.get(m, m).replace("MAGNET", r"\magnet{}"), [c[0][0] for c in cells], [c[1][0] for c in cells], float(np.nanmean(means))))
         print(f"{LABEL.get(m, m):<22}" + "".join(f"{pp[0]:.3f}+-{pp[1]:.2f} > {qq[0]:.3f}+-{qq[1]:.2f}".rjust(26) if qq[2] else "".rjust(26) for pp, qq in cells)
               + f"{np.nanmean(means):>11.3f}" + (f"{np.mean(diffs_fb):>+10.3f}+-{np.std(diffs_fb, ddof=1) if len(diffs_fb) > 1 else 0:.3f}" if diffs_fb else "".rjust(14)) + (f"{np.mean(diffs_hy):>+10.3f}+-{np.std(diffs_hy, ddof=1) if len(diffs_hy) > 1 else 0:.3f}" if diffs_hy else ""))
+    import sys; sys.path.insert(0, os.path.join(ROOT, "benchmarks")); from rankmarks import marks, latex
+    cols = [[r[1][j] for r in rows_tex] for j in range(len(DS))] + [[r[2][j] for r in rows_tex] for j in range(len(DS))] + [[r[3] for r in rows_tex]]
+    mk = [marks(c, True, 3) for c in cols]   # best in bold, second underlined, per column, at the printed precision
+    for i, (lab, pl, po, mean) in enumerate(rows_tex):
+        cells = []
+        for j in range(len(DS)): cells += [latex(f"{pl[j]:.3f}", mk[j][i]), latex(f"{po[j]:.3f}", mk[len(DS) + j][i])]
+        L.append(lab + " & " + " & ".join(cells) + " & " + latex(f"{mean:.3f}", mk[-1][i]) + r" \\")
     L += [r"\bottomrule", r"\end{tabular}"]
     open(os.path.join(TAB, f"control_{kind}.tex"), "w").write("\n".join(L) + "\n")
 print("\nwritten:", os.path.join(OUT, "fig_control.png"), "and tables/control_{geo,min}.tex")

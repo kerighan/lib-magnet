@@ -249,7 +249,7 @@ times include graph construction and exclude the post-process unless stated. Sta
 \centering\footnotesize
 \caption{Raw axes of every configuration as shipped, mean over the five matched-control runs. Run standard
 deviations (\texttt{k41}): at most 0.01 on \knn{} everywhere, at most 0.04 on Spearman (covertype UMAP) and at most
-0.07 on ARI (MNIST sequence 0.07, densMAP 0.07, PaCMAP 0.06, h-NNE 0.04, openTSNE 0.03). Bold: best of the column.}
+0.07 on ARI (MNIST sequence 0.07, densMAP 0.07, PaCMAP 0.06, h-NNE 0.04, openTSNE 0.03). Bold: best of the column, underlined: second.}
 \label{tab:raw}
 \setlength{\tabcolsep}{4pt}
 \input{tables/raw_axes.tex}
@@ -305,7 +305,7 @@ of the shipped defaults of each library on this machine; the companion report au
 \begin{table}[t]
 \centering\footnotesize
 \caption{Interleaved timings, seconds, mean (min--max) over three rounds, all threads, graph construction
-included, post-process excluded unless stated.}
+included, post-process excluded unless stated; fastest in bold, second underlined.}
 \label{tab:time}
 \resizebox{\columnwidth}{!}{\input{tables/timing.tex}}
 \end{table}
@@ -443,7 +443,7 @@ share across a hyperplane cut 0.18 / 0.20 / 0.22 / 0.20 / 0.23 / 0.32 and across
 \begin{table*}[t]
 \centering\footnotesize
 \caption{Geometric composite of every configuration as shipped (plain) and with the identical post-process
-(+ post), mean over five runs, and the four-set mean of the post-processed values. Run standard deviations range
+(+ post), mean over five runs, and the four-set mean of the post-processed values; best per column in bold, second underlined. Run standard deviations range
 from below 0.0005 to 0.059 (TriMap on letter after the step); the companion report lists them.}
 \label{tab:control}
 \setlength{\tabcolsep}{3.5pt}

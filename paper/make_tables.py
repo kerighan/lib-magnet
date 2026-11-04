@@ -9,7 +9,9 @@ COLS = {"mnist": 7, "fmnist": 7, "news20": 7, "blobs": 5}   # columns kept (blob
 def cell(x):
     x = x.strip()
     m = re.match(r"\*\*(.*)\*\*", x)
-    return r"\textbf{%s}" % m.group(1) if m else x
+    if m: return r"\textbf{%s}" % m.group(1)
+    m = re.match(r"<ins>(.*)</ins>", x)
+    return r"\underline{%s}" % m.group(1) if m else x
 
 def name(x):
     x = x.replace('loss="tsne"', r'\texttt{loss="tsne"}').replace('loss="hybrid"', r'\texttt{loss="hybrid"}')

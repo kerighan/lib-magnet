@@ -2,17 +2,17 @@
 \toprule
 method & time (s) & 15-NN pres. & trust. & dist. Spearman \\
 \midrule
-MAGNET (SGD, default) & 1.5 & 0.053 & 0.971 & 0.697 \\
-MAGNET (\texttt{loss="tsne"}) & \textbf{1.4} & \textbf{0.133} & 0.974 & 0.460 \\
-MAGNET (\texttt{loss="hybrid"}) & 1.8 & 0.128 & 0.974 & \textbf{0.708} \\
+MAGNET (SGD, default) & \underline{1.5} & 0.053 & 0.971 & \underline{0.697} \\
+MAGNET (\texttt{loss="tsne"}) & \textbf{1.4} & \textbf{0.133} & \underline{0.974} & 0.460 \\
+MAGNET (\texttt{loss="hybrid"}) & 1.8 & \underline{0.128} & \underline{0.974} & \textbf{0.708} \\
 UMAP 0.5.12 & 2.4 & 0.047 & 0.971 & 0.079 \\
 densMAP  & 7.5 & 0.032 & 0.968 & 0.127 \\
-openTSNE 1.0.4 & 19.4 & 0.109 & 0.975 & 0.382 \\
+openTSNE 1.0.4 & 19.4 & 0.109 & \textbf{0.975} & 0.382 \\
 PaCMAP & 4.1 & 0.033 & 0.971 & 0.666 \\
 TriMap & 7.6 & 0.033 & 0.972 & 0.648 \\
 PHATE 2.0 & 24.8 & 0.033 & 0.968 & 0.232 \\
 h-NNE & 5.9 & 0.083 & 0.969 & 0.307 \\
 sklearn t-SNE (Barnes-Hut) & 17.6 & 0.114 & \textbf{0.975} & 0.381 \\
-t-SNE-CUDA 3.0.1 (GPU) & 7.7 & 0.074 & 0.974 & 0.127 \\
+t-SNE-CUDA 3.0.1 (GPU) & 7.7 & 0.074 & \underline{0.974} & 0.127 \\
 \bottomrule
 \end{tabular}

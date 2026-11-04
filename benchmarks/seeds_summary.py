@@ -13,6 +13,7 @@ out, L = {}, [r"\begin{tabular}{llrrrrrrrr}", r"\toprule", r"data set & method &
 for ds, label in (("mnist70000", "MNIST"), ("fmnist70000", "Fashion-MNIST")):
     print(f"\n{label}")
     print(f"{'method':<16}{'n':>3}" + "".join(f"{h:>18}" for _, h in KEYS))
+    pending = []
     for m in ORDER:
         R = [r for r in rows if r["dataset"] == ds and r["method"] == m]
         if not R:
@@ -23,7 +24,11 @@ for ds, label in (("mnist70000", "MNIST"), ("fmnist70000", "Fashion-MNIST")):
         out[f"{ds}/{m}"] = dict(n=len(R), **{k: v for k, v in st.items()})
         fmt = lambda k: (f"{st[k][0]:.1f} $\\pm$ {st[k][1]:.1f}" if k == "time" else f"{st[k][0]:.3f} $\\pm$ {st[k][1]:.3f}")
         print(f"{m:<16}{len(R):>3}" + "".join((f"{st[k][0]:>11.1f} ±{st[k][1]:.1f}  " if k == "time" else f"{st[k][0]:>11.3f} ±{st[k][1]:.3f}") for k, _ in KEYS))
-        L.append(f"{label} & {LABEL[m]} & {len(R)} & " + " & ".join(fmt(k) for k, _ in KEYS) + r" \\")
+        pending.append((m, len(R), st, fmt))
+    from rankmarks import marks, latex   # best in bold, second underlined, compared at the printed precision
+    mk = {k: marks([st[k][0] for _, _, st, _ in pending], k != "time", 1 if k == "time" else 3) for k, _ in KEYS}
+    for i, (m, nr, st, fmt) in enumerate(pending):
+        L.append(f"{label} & {LABEL[m]} & {nr} & " + " & ".join(latex(fmt(k), mk[k][i]) for k, _ in KEYS) + r" \\")
     L.append(r"\midrule")
 L[-1] = r"\bottomrule"; L.append(r"\end{tabular}")
 json.dump(out, open(os.path.join(HERE, "cache", "seeds_summary.json"), "w"), indent=1)

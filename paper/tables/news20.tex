@@ -3,13 +3,13 @@
 method & time (s) & 15-NN pres. & trust. & dist. Spearman & triplet acc. & 10-NN acc. \\
 \midrule
 MAGNET (SGD, default) & \textbf{2.0} & 0.134 & 0.759 & 0.039 & 0.524 & 0.509 \\
-MAGNET (\texttt{loss="tsne"}) & 2.8 & 0.184 & \textbf{0.775} & 0.115 & 0.542 & 0.525 \\
+MAGNET (\texttt{loss="tsne"}) & 2.8 & 0.184 & \textbf{0.775} & 0.115 & 0.542 & \underline{0.525} \\
 MAGNET (\texttt{loss="hybrid"}) & 3.1 & 0.181 & 0.768 & 0.089 & 0.532 & 0.512 \\
-UMAP 0.5.12 & 2.7 & 0.098 & 0.718 & 0.099 & 0.537 & 0.497 \\
-densMAP  & 10.7 & 0.068 & 0.658 & 0.123 & 0.545 & 0.443 \\
-openTSNE 1.0.4 & 38.8 & 0.187 & 0.772 & 0.106 & 0.542 & \textbf{0.535} \\
+UMAP 0.5.12 & \underline{2.7} & 0.098 & 0.718 & 0.099 & 0.537 & 0.497 \\
+densMAP  & 10.7 & 0.068 & 0.658 & \underline{0.123} & 0.545 & 0.443 \\
+openTSNE 1.0.4 & 38.8 & \underline{0.187} & \underline{0.772} & 0.106 & 0.542 & \textbf{0.535} \\
 PaCMAP & 6.6 & 0.057 & 0.683 & -0.086 & 0.499 & 0.440 \\
-TriMap & 12.7 & 0.059 & 0.690 & 0.051 & 0.546 & 0.443 \\
+TriMap & 12.7 & 0.059 & 0.690 & 0.051 & \underline{0.546} & 0.443 \\
 PHATE 2.0 & 20.3 & 0.066 & 0.622 & -0.005 & 0.524 & 0.337 \\
 h-NNE & 5.7 & 0.154 & 0.732 & 0.102 & 0.535 & 0.470 \\
 sklearn t-SNE (Barnes-Hut) & 48.6 & \textbf{0.192} & 0.742 & \textbf{0.232} & \textbf{0.576} & 0.455 \\

@@ -2,17 +2,17 @@
 \toprule
 method & time (s) & 15-NN pres. & trust. & dist. Spearman & triplet acc. & 10-NN acc. \\
 \midrule
-MAGNET (SGD, default) & \textbf{4.1} & 0.194 & 0.956 & 0.414 & 0.644 & 0.966 \\
-MAGNET (\texttt{loss="tsne"}) & 7.0 & 0.349 & 0.966 & 0.349 & 0.627 & 0.967 \\
+MAGNET (SGD, default) & \textbf{4.1} & 0.194 & 0.956 & \underline{0.414} & \underline{0.644} & 0.966 \\
+MAGNET (\texttt{loss="tsne"}) & \underline{7.0} & 0.349 & 0.966 & 0.349 & 0.627 & \underline{0.967} \\
 MAGNET (\texttt{loss="hybrid"}) & 8.6 & \textbf{0.355} & 0.960 & \textbf{0.445} & \textbf{0.652} & 0.962 \\
-UMAP 0.5.12 & 11.2 & 0.117 & 0.951 & 0.297 & 0.606 & 0.967 \\
+UMAP 0.5.12 & 11.2 & 0.117 & 0.951 & 0.297 & 0.606 & \underline{0.967} \\
 densMAP  & 37.2 & 0.068 & 0.921 & 0.364 & 0.623 & 0.945 \\
-openTSNE 1.0.4 & 102.5 & 0.347 & 0.968 & 0.330 & 0.619 & 0.965 \\
+openTSNE 1.0.4 & 102.5 & 0.347 & \textbf{0.968} & 0.330 & 0.619 & 0.965 \\
 PaCMAP & 24.8 & 0.093 & 0.946 & 0.307 & 0.614 & \textbf{0.976} \\
 TriMap & 57.0 & 0.088 & 0.933 & 0.184 & 0.597 & 0.964 \\
 PHATE 2.0 & 43.2 & 0.080 & 0.865 & 0.291 & 0.611 & 0.861 \\
 h-NNE & 9.1 & 0.233 & 0.940 & 0.261 & 0.601 & 0.949 \\
-sklearn t-SNE (Barnes-Hut) & 195.7 & 0.350 & \textbf{0.968} & 0.338 & 0.622 & 0.967 \\
-t-SNE-CUDA 3.0.1 (GPU) & 13.8 & 0.169 & 0.967 & 0.169 & 0.567 & 0.957 \\
+sklearn t-SNE (Barnes-Hut) & 195.7 & \underline{0.350} & \textbf{0.968} & 0.338 & 0.622 & \underline{0.967} \\
+t-SNE-CUDA 3.0.1 (GPU) & 13.8 & 0.169 & \underline{0.967} & 0.169 & 0.567 & 0.957 \\
 \bottomrule
 \end{tabular}
