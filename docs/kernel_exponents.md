@@ -840,21 +840,29 @@ handles sparse input natively too) is a later test.
 
 k44's weak spot explained. MNIST subsamples, HDBSCAN ARI (clusters, noise) / 15-NN at kernel_b 0.6 / 0.7 / 0.8 / 0.9,
 UMAP as the reference:
-* n = 3k: UMAP 0.507 (6, 0.01) / 0.388; 0.6: 0.181 (70, 0.20) / 0.410; 0.8: 0.400 (23, 0.16) / 0.404; 0.9: 0.356 (10) / 0.397
-* n = 5k: UMAP 0.508 (6) / 0.339; 0.6: 0.094 (78, 0.22) / 0.383; 0.8: 0.578 (7, 0.01) / 0.367; 0.9: 0.589 (7) / 0.351
-* n = 10k: UMAP 0.610 (7) / 0.282; 0.6: 0.176 (56, 0.28) / 0.338; 0.7: 0.729 (12) / 0.323; 0.8: 0.727 (8) / 0.306
-* n = 20k: UMAP 0.745 (8) / 0.203; 0.6: 0.739 (8, 0.01) / 0.278; 0.7: 0.749 (10) / 0.255; 0.8: 0.631 (8) / 0.230
-* n = 35k: UMAP 0.617 (7) / 0.162; 0.6: 0.747 (8) / 0.240; 0.7: 0.813 (9) / 0.210
+* n = 3k: UMAP 0.507 (6, 0.01) / 0.388; 0.6: 0.100 (75, 0.21) / 0.409; 0.8: 0.515 (12, 0.05) / 0.406; 0.9: 0.510 (12) / 0.397
+* n = 5k: UMAP 0.507 (6) / 0.336; 0.6: 0.134 (62, 0.20) / 0.377; 0.8: 0.510 (13, 0.08) / 0.355; 0.9: 0.516 (10) / 0.341
+* n = 10k: UMAP 0.524 (6) / 0.273; 0.6: 0.163 (55, 0.29) / 0.336; 0.7: 0.515 (21) / 0.322; 0.8: 0.625 (7, 0.01) / 0.302
+* n = 20k: UMAP 0.537 (6) / 0.210; 0.6: 0.637 (26, 0.12) / 0.285; 0.7: 0.769 (10) / 0.262; 0.8: 0.659 (8) / 0.238
+* n = 35k: UMAP 0.649 (7) / 0.163; 0.6: 0.748 (8, 0.00) / 0.245; 0.7: 0.791 (11) / 0.217; 0.8: 0.744 (8) / 0.194
 * n = 70k: 0.6: 0.901 (11) / 0.191; 0.8: 0.920 (10) / 0.140; 1.0: 0.105 (3) / 0.109.
-USPS 7k: 0.6 60 clusters (ARI 0.25), 0.8 8 (0.743; UMAP 0.740), 1.0 8 (0.737); phonemes 4.5k: 0.6 34 (0.36), 0.8 3
-(0.63), 1.0 4 (0.79; PaCMAP 0.80). The mechanism: the attractive force on a neighbour is ~ d^(2b-1), steep at short
+(Single runs; the SGD mode is not bitwise reproducible across runs, hogwild, so single-run HDBSCAN numbers move by
+0.05-0.1.) USPS 7k: 0.6 60 clusters (ARI 0.25), 0.8 8 (0.743; UMAP 0.740), 1.0 8 (0.737); phonemes 4.5k: 0.6 34
+(0.36), 0.8 3 (0.63), 1.0 4 (0.79; PaCMAP 0.80). At 20k the heavy tail is borderline (15-26 clusters, 6-12 % noise,
+ARI 0.64-0.78 against 0.77 at b = 0.7): the knee of the rule could be 35k rather than 20k at a 15-NN cost of 0.02 on
+the 20k tables; kept at 20k. The mechanism: the attractive force on a neighbour is ~ d^(2b-1), steep at short
 range for b < 1, so neighbours glue into tight clumps that only the redundancy of a dense graph knits together;
 below ~15k points the clumps drift apart. Not the cause (USPS, each tested): one thread or `parallel="owner"`
 (hogwild collisions), n_epochs 30 / 300, learning rate 0.3 (worse: 82 clusters), n_neighbors 30, mid_weight 0, the
 coupled kernel (27 clusters), `kernel_b="adaptive"` (58) or `"local"` (82). Rule shipped (`kernel_b="size"`, the
-default): 0.6 at n >= 20k, 0.8 at n <= 10k, log-linear in log n between (0.7 at 14k); graph inputs stay at 0.6. The
-15-NN cost of 0.8 at small n is 0.02-0.03 (USPS 0.365 -> 0.336, still above UMAP's 0.316). Re-run with it: the blobs
-(10k) and 20 newsgroups (18.8k) SGD rows of the main table, the k44 SGD rows.
+default): 0.6 at n >= 20k, 0.8 at n <= 10k, log-linear in log n between (0.7 at 14k); graph inputs stay at 0.6. The rule
+over 3 seeds against b = 0.6 (HDBSCAN ARI, clusters / 15-NN): USPS 0.793 (9) / 0.337 against 0.306 (57) / 0.365;
+phonemes 0.625 (3) / 0.217 against 0.422 (31) / 0.250; MNIST 5k 0.526 (12) / 0.355 against 0.133 (66) / 0.373; MNIST
+10k 0.591 (7) / 0.301 against 0.456 (39) / 0.334; MNIST 20k identical (b = 0.6 both). The 15-NN cost at small n is
+0.02-0.03 (USPS 0.365 -> 0.337, still above UMAP's 0.316). Re-run with it: the blobs (10k) and 20 newsgroups
+(18.8k) SGD rows of the main table (blobs 15-NN 0.066 -> 0.053, Spearman 0.695 -> 0.697), the k44 SGD rows (USPS
+SGD 0.813 against UMAP 0.741, but SGD + post-process 0.509: the merge fuses touching digit classes at 7k; phonemes
+SGD 0.625, PaCMAP 0.795).
 
 ## Scripts (`benchmarks/theory/`)
 

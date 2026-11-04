@@ -505,13 +505,14 @@ strongest practical argument) showed the SGD mode tearing small data sets into m
 clusters with 23 % noise, phonemes 4.5k 34, MNIST subsamples 56-78 at n <= 10k against 8 at n >= 20k, while
 UMAP gives 6-8 everywhere. The cause is the attraction exponent: the force on a neighbour is ~ d^(2b-1), steep at
 short range for b = 0.6, so neighbours glue into tight clumps that only the graph's redundancy knits together,
-which small data sets lack; b = 0.8 holds them together (USPS 8 clusters, HDBSCAN ARI 0.743 = UMAP's 0.740 with
-15-NN 0.336 against 0.316; MNIST 10k 8 clusters, 0.727 against UMAP's 0.610) at a 15-NN cost of 0.02-0.03, and
-b = 1.0 collapses MNIST 70k into 3 clusters. Nothing else fixes it (n_epochs, learning rate, n_neighbors, one
+which small data sets lack; b = 0.8 holds them together (USPS 9 clusters, HDBSCAN ARI 0.79 against UMAP's 0.74 with
+15-NN 0.337 against 0.316; MNIST 10k 7 clusters, 0.59-0.63 against UMAP's 0.52-0.61; 3 seeds) at a 15-NN cost of
+0.02-0.03, and b = 1.0 collapses MNIST 70k into 3 clusters. Nothing else fixes it (n_epochs, learning rate, n_neighbors, one
 thread, the coupled kernel, `"adaptive"`, `"local"`: tested). Default since: `kernel_b="size"`, 0.6 at n >= 20k,
 0.8 at n <= 10k, log-linear between; the 70k and 20k tables are unchanged, the blobs (10k) and 20 newsgroups
-(18.8k) SGD rows were re-run. With it, HDBSCAN on MAGNET's layout matches UMAP at 7k and beats it at 10k and 70k
-(MNIST 70k: SGD + post-process 0.92 against 0.66), loses on phonemes 4.5k to PaCMAP (0.80).
+(18.8k) SGD rows were re-run. With it, HDBSCAN on the SGD layout beats UMAP at 7k (0.81 against 0.74), 10k and 70k
+(MNIST 70k: SGD + post-process 0.92 against 0.66), loses on phonemes 4.5k to PaCMAP (0.63 against 0.80); the
+post-process does not help below 10k (it fuses touching classes: USPS 0.51).
 
 **A deterministic Louvain (`k42`, 2026-11-04).** The random visiting order of the Louvain was the one seed-dependent
 part of the post-process, with a spectacular failure mode (a class split in two: MNIST ARI after the step 0.83 instead

@@ -1,0 +1,68 @@
+2026-11-04 12:17:07.308467: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1793791027.328180 1843972 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1793791027.334031 1843972 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2026-11-04 12:17:07.359703: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+
+MNIST subsample n=3000
+  UMAP             HDBSCAN ARI 0.507 ( 6 clusters, noise 0.01)  knn15 0.388  sp 0.324  18.0 s
+  kernel_b=0.6     HDBSCAN ARI 0.100 (75 clusters, noise 0.21)  knn15 0.409  sp 0.418  0.5 s
+  kernel_b=0.7     HDBSCAN ARI 0.252 (54 clusters, noise 0.21)  knn15 0.409  sp 0.417  0.5 s
+  kernel_b=0.8     HDBSCAN ARI 0.515 (12 clusters, noise 0.05)  knn15 0.406  sp 0.387  0.5 s
+  kernel_b=0.9     HDBSCAN ARI 0.510 (12 clusters, noise 0.09)  knn15 0.397  sp 0.379  0.5 s
+
+MNIST subsample n=5000
+  UMAP             HDBSCAN ARI 0.507 ( 6 clusters, noise 0.00)  knn15 0.336  sp 0.314  30.4 s
+  kernel_b=0.6     HDBSCAN ARI 0.134 (62 clusters, noise 0.20)  knn15 0.377  sp 0.397  0.7 s
+  kernel_b=0.7     HDBSCAN ARI 0.436 (19 clusters, noise 0.09)  knn15 0.370  sp 0.422  0.6 s
+  kernel_b=0.8     HDBSCAN ARI 0.510 (13 clusters, noise 0.08)  knn15 0.355  sp 0.410  0.7 s
+  kernel_b=0.9     HDBSCAN ARI 0.516 (10 clusters, noise 0.06)  knn15 0.341  sp 0.421  0.6 s
+
+MNIST subsample n=10000
+  UMAP             HDBSCAN ARI 0.524 ( 6 clusters, noise 0.00)  knn15 0.273  sp 0.308  14.5 s
+  kernel_b=0.6     HDBSCAN ARI 0.163 (55 clusters, noise 0.29)  knn15 0.336  sp 0.437  1.1 s
+  kernel_b=0.7     HDBSCAN ARI 0.515 (21 clusters, noise 0.13)  knn15 0.322  sp 0.442  1.1 s
+  kernel_b=0.8     HDBSCAN ARI 0.625 ( 7 clusters, noise 0.01)  knn15 0.302  sp 0.439  1.1 s
+  kernel_b=0.9     HDBSCAN ARI 0.526 ( 6 clusters, noise 0.01)  knn15 0.286  sp 0.447  1.2 s
+
+MNIST subsample n=20000
+  UMAP             HDBSCAN ARI 0.537 ( 6 clusters, noise 0.00)  knn15 0.210  sp 0.284  13.2 s
+  kernel_b=0.6     HDBSCAN ARI 0.637 (26 clusters, noise 0.12)  knn15 0.285  sp 0.450  1.4 s
+  kernel_b=0.7     HDBSCAN ARI 0.769 (10 clusters, noise 0.03)  knn15 0.262  sp 0.447  1.3 s
+  kernel_b=0.8     HDBSCAN ARI 0.659 ( 8 clusters, noise 0.02)  knn15 0.238  sp 0.407  1.4 s
+  kernel_b=0.9     HDBSCAN ARI 0.631 ( 7 clusters, noise 0.02)  knn15 0.218  sp 0.458  1.4 s
+
+MNIST subsample n=35000
+  UMAP             HDBSCAN ARI 0.649 ( 7 clusters, noise 0.00)  knn15 0.163  sp 0.286  22.8 s
+  kernel_b=0.6     HDBSCAN ARI 0.748 ( 8 clusters, noise 0.00)  knn15 0.245  sp 0.389  2.5 s
+  kernel_b=0.7     HDBSCAN ARI 0.791 (11 clusters, noise 0.04)  knn15 0.217  sp 0.397  2.6 s
+  kernel_b=0.8     HDBSCAN ARI 0.744 ( 8 clusters, noise 0.02)  knn15 0.194  sp 0.390  2.8 s
+  kernel_b=0.9     HDBSCAN ARI 0.745 ( 8 clusters, noise 0.01)  knn15 0.172  sp 0.392  2.6 s
+
+(b) the shipped default kernel_b="size" against 0.6, 3 seeds
+
+usps 7k
+  size (default) (b=0.80) HDBSCAN ARI 0.793 (9.0 clusters, noise 0.02)  knn15 0.337  sp 0.539  0.7 s
+  0.6 (b=0.60)     HDBSCAN ARI 0.306 (57.0 clusters, noise 0.21)  knn15 0.365  sp 0.542  0.7 s
+
+phonemes 4.5k
+  size (default) (b=0.80) HDBSCAN ARI 0.625 (3.0 clusters, noise 0.00)  knn15 0.217  sp 0.878  0.5 s
+  0.6 (b=0.60)     HDBSCAN ARI 0.422 (31.333333333333332 clusters, noise 0.19)  knn15 0.250  sp 0.864  0.4 s
+
+mnist 5000
+  size (default) (b=0.80) HDBSCAN ARI 0.526 (11.666666666666666 clusters, noise 0.06)  knn15 0.355  sp 0.430  0.6 s
+  0.6 (b=0.60)     HDBSCAN ARI 0.133 (65.66666666666667 clusters, noise 0.25)  knn15 0.373  sp 0.428  0.6 s
+
+mnist 10000
+  size (default) (b=0.80) HDBSCAN ARI 0.591 (6.666666666666667 clusters, noise 0.01)  knn15 0.301  sp 0.435  1.0 s
+  0.6 (b=0.60)     HDBSCAN ARI 0.456 (39.0 clusters, noise 0.17)  knn15 0.334  sp 0.440  1.0 s
+
+mnist 20000
+  size (default) (b=0.60) HDBSCAN ARI 0.762 (15.0 clusters, noise 0.06)  knn15 0.282  sp 0.448  1.1 s
+  0.6 (b=0.60)     HDBSCAN ARI 0.777 (16.666666666666668 clusters, noise 0.06)  knn15 0.282  sp 0.439  1.3 s
