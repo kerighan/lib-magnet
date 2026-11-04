@@ -38,8 +38,7 @@ community post-process. (Shorter: "Two passes and a post-process".)
 - fig_placement.png: MNIST full-batch before / after (regenerate with the final step).
 - fig_layouts.png: reuse layouts_mnist.png.
 
-## Open decisions (Maixent)
-- Format: single-column arXiv (~10-12 pages + references) or two-column conference style (8 pages)?
-- Language: English (the long version is).
-- Keep the virial / scale identity and the staged-refinement section? Proposal: one paragraph each, pointing
-  to the long version.
+## Decisions (Maixent, 2026-11-04)
+- Format: two-column conference style, 8 pages + references; appendix allowed.
+- Language: English.
+- Virial / scale identity and staged refinement: one paragraph each in the body, an appendix with the details.
