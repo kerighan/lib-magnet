@@ -1,6 +1,5 @@
-"""The complete pipeline next to the two reference methods: UMAP, Barnes-Hut t-SNE (cached layouts of the long version)
-and MAGNET sequence + post-process (fit here, seed 0), MNIST and Fashion-MNIST 70k, 20k points shown, coloured by
-class (labels unused by every method). Usage: python paper/human/make_fig_pipeline.py"""
+"""Before / after the post-process for Barnes-Hut t-SNE (cached layout of the long version) and the MAGNET sequence (fit
+here, seed 0), MNIST and Fashion-MNIST 70k, 20k points shown, coloured by class. Usage: python paper/human/make_fig_pipeline.py"""
 import os, sys, time, warnings; warnings.filterwarnings("ignore")
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(os.path.dirname(HERE)); sys.path.insert(0, ROOT); sys.path.insert(0, os.path.join(ROOT, "benchmarks"))
 import numpy as np, matplotlib
@@ -17,10 +16,9 @@ for row, (ds, loader, name) in enumerate((("mnist", mnist, "MNIST"), ("fmnist", 
     bh = np.load(os.path.join(ROOT, "benchmarks", "cache", "layouts", f"{ds}_sklearn_t-SNE_BH.npz"))["Y"].astype(np.float32)
     P = sp.load_npz(os.path.join(ROOT, "benchmarks", "cache", f"P_{ds}.npz")); excl = np.unique(np.concatenate([_idx(n, 2000, 1), _idx(n, 5000, 0), _idx(n, 10000, 2)]))
     bh_post, _ = hierarchical_contraction(bh, P, X=X, random_state=0, exclude=excl, n_threads=8)
-    cols = [("UMAP", np.load(os.path.join(ROOT, "paper", "figures", "cache", f"{ds}_umap0512.npz"))["Y"], None),
-            ("Barnes-Hut t-SNE", bh, None), ("Barnes-Hut + our post-process", bh_post, None)]
-    t = time.time(); Y = MAGNET(loss="hybrid", contraction=0.7, random_state=0, n_threads=8).fit_transform(X); dt = time.time() - t
-    cols.append(("MAGNET complete", Y, dt))
+    t = time.time(); seq = MAGNET(loss="hybrid", random_state=0, n_threads=8).fit_transform(X); dt = time.time() - t
+    t = time.time(); seq_post, _ = hierarchical_contraction(seq, P, X=X, random_state=0, exclude=excl, n_threads=8); dp = time.time() - t
+    cols = [("Barnes-Hut t-SNE", bh, None), ("Barnes-Hut + post-process", bh_post, None), ("MAGNET sequence", seq, dt), ("MAGNET sequence + post-process", seq_post, dt + dp)]
     for col, (label, lay, dt) in enumerate(cols):
         lay = np.asarray(lay, dtype=np.float32); e = evaluate(X, lay, y, cache_key=key); ax = axes[row, col]
         ax.scatter(lay[show, 0], lay[show, 1], c=y[show], cmap="tab10", s=1.0, linewidths=0, alpha=0.8); ax.set_aspect("equal"); ax.set_xticks([]); ax.set_yticks([]); [sp.set_visible(False) for sp in ax.spines.values()]
