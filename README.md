@@ -20,7 +20,7 @@ seeds, the sequence keeps the best composite balance of local, global and cluste
 of four (on MNIST the post-processed t-SNE layouts converge). Two papers: the exhaustive document
 (`paper/main.tex`, every experiment and negative result) and the short one (`paper/human/main.tex`).
 
-![The complete pipeline next to UMAP and Barnes-Hut t-SNE](benchmarks/plots/pipeline_mnist_fmnist.png)
+![The complete pipeline next to UMAP and Barnes-Hut t-SNE](https://raw.githubusercontent.com/kerighan/lib-magnet/master/benchmarks/plots/pipeline_mnist_fmnist.png)
 
 * `loss="umap"` (default): negative sampling, lock-free multithreaded SGD. **MNIST 70k in 4.1 s**
   against 11 s for UMAP 0.5.12, 15-NN preservation 0.19 against 0.12 and a distance correlation of 0.41
@@ -31,9 +31,9 @@ of four (on MNIST the post-processed t-SNE layouts converge). Two papers: the ex
 * 1M points in 44 s and 3.3 GB. Native NN-descent (1.2 s for 70k x 784), spectral initialisation by
   Chebyshev-filtered subspace iteration, `transform()` for new points, sparse inputs, networkx graphs.
 
-![MNIST 70k: UMAP, MAGNET, MAGNET with exact repulsion](benchmarks/plots/compare_mnist70000_tsne.png)
+![MNIST 70k: UMAP, MAGNET, MAGNET with exact repulsion](https://raw.githubusercontent.com/kerighan/lib-magnet/master/benchmarks/plots/compare_mnist70000_tsne.png)
 
-![quality against time](benchmarks/plots/tradeoff.png)
+![quality against time](https://raw.githubusercontent.com/kerighan/lib-magnet/master/benchmarks/plots/tradeoff.png)
 
 ## Install
 
@@ -596,7 +596,7 @@ Regenerate everything with `benchmarks/full_table.py`, `benchmarks/render_table.
 Any networkx graph or sparse adjacency matrix is laid out directly, in linear time: communities of
 25 to 3000 nodes in 1.4 s, an 8k-node power-law graph in 1.1 s, a 60 x 60 grid comes out as a sheet.
 
-![graphs](benchmarks/plots/graph_demo.png)
+![graphs](https://raw.githubusercontent.com/kerighan/lib-magnet/master/benchmarks/plots/graph_demo.png)
 
 ## Parameters
 

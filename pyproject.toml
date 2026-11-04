@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61", "wheel", "pybind11>=2.6"]
+requires = ["setuptools>=77", "wheel", "pybind11>=2.6"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,6 +8,15 @@ version = "3.0.0"
 description = "Fast dimensionality reduction and graph layout (kNN graph, spectral init, attraction/repulsion in C++)"
 readme = "README.md"
 requires-python = ">=3.8"
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: C++",
+  "Topic :: Scientific/Engineering :: Visualization",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Intended Audience :: Science/Research",
+]
 authors = [{ name = "Maixent Chenebaux" }]
 dependencies = ["numpy", "scipy", "scikit-learn", "tqdm"]
 
@@ -21,6 +30,7 @@ bench = ["umap-learn", "openTSNE", "pacmap", "trimap", "scikit-learn", "matplotl
 
 [project.urls]
 Homepage = "https://github.com/kerighan/lib-magnet"
+Issues = "https://github.com/kerighan/lib-magnet/issues"
 
 [tool.setuptools]
 packages = ["magnet"]
