@@ -22,7 +22,7 @@ def runs(ds, m, which, key="geo"):
 def stat(v): v = np.asarray(v, float); return (v.mean(), v.std(ddof=1) if len(v) > 1 else 0.0, len(v)) if len(v) else (np.nan, np.nan, 0)
 
 # ---- figure: geometric composite per data set, plain (grey/blue) and post-processed (orange marker), mean +- sd
-fig, axes = plt.subplots(1, 4, figsize=(11, 3.4), sharey=False)
+fig, axes = plt.subplots(1, 4, figsize=(11, 3.7), sharey=False)
 for ax, (ds, title) in zip(axes, DS):
     rows = [(m, stat(runs(ds, m, "plain")), stat(runs(ds, m, "post"))) for m in METHODS]
     rows = [r for r in rows if r[2][2] > 0]
@@ -31,10 +31,12 @@ for ax, (ds, title) in zip(axes, DS):
     for i, (m, p, q) in enumerate(rows):
         col = C["magnet"] if m.startswith("MAGNET") else C["other"]
         ax.plot([p[0], q[0]], [i, i], color="#CCCCCC", lw=1.2, zorder=1)
-        ax.errorbar(p[0], i, xerr=p[1], fmt="o", color=col, ms=4, capsize=2, lw=1, zorder=2)
+        ax.errorbar(p[0], i, xerr=p[1], fmt="o", color=col, ms=4, capsize=2, lw=1, zorder=2); ax.scatter(runs(ds, m, "post"), [i] * len(runs(ds, m, "post")), color=C["post"], s=5, alpha=0.5, zorder=2.5)
         ax.errorbar(q[0], i, xerr=q[1], fmt="D", color=C["post"], ms=4, capsize=2, lw=1, zorder=3)
     ax.set_yticks(y); ax.set_yticklabels([LABEL.get(r[0], r[0]) for r in rows], fontsize=7.5)
-    ax.set_title(title, loc="left", fontsize=9); ax.set_xlabel("geometric composite (frozen references)", fontsize=8); ax.grid(axis="y", visible=False)
+    d = np.array([res[f"{ds}/MAGNET hybrid/{s}"]["post"]["geo"] - res[f"{ds}/sklearn t-SNE (BH)/{s}"]["post"]["geo"] for s in range(5) if f"{ds}/MAGNET hybrid/{s}" in res and f"{ds}/sklearn t-SNE (BH)/{s}" in res])
+    if len(d): ax.set_xlabel(f"geometric composite (frozen references)\nsequence minus Barnes-Hut, both post-processed: {d.mean():+.3f} +- {d.std(ddof=1):.3f} (sd, {len(d)} paired runs)", fontsize=7.5)
+    ax.set_title(title, loc="left", fontsize=9); ax.grid(axis="y", visible=False)
 axes[0].plot([], [], "o", color=C["magnet"], label="MAGNET, as shipped"); axes[0].plot([], [], "o", color=C["other"], label="comparator, as shipped"); axes[0].plot([], [], "D", color=C["post"], label="+ the same post-process")
 fig.legend(loc="lower center", ncol=3, fontsize=8, bbox_to_anchor=(0.5, -0.01))
 fig.tight_layout(rect=(0, 0.06, 1, 1)); fig.savefig(os.path.join(OUT, "fig_control.png"), dpi=200); plt.close(fig)
