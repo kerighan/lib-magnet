@@ -9,8 +9,14 @@ nodes of A towards B send on average a share f_AB of their strength into B; a cu
 symmetric and large on both sides (0.14-0.16 on the MNIST graph, whatever the sizes), a true boundary is a density
 dip and at least one side reaches little across (<= 0.09). Merge while min(f_AB, f_BA) >= tau.
 (a) interface statistics of the Louvain partitions; (b) CPM at the matched scale; (c) tau x resolution scan on the
-four graphs and three MNIST graphs; (d) downstream through the post-process on the cached full-batch layouts.
-Usage: python benchmarks/theory/k43_interface_merge.py [part=interfaces,cpm,scan,downstream]"""
+four graphs and three MNIST graphs; (d) downstream through the post-process on the cached full-batch layouts;
+(e) the reference: crossing share of the thinnest cut (Fiedler bisection) and of a hyperplane cut of MAGNET's kNN
+graph on uniform clouds of dimension 2-50 (~0.2, weakly dependent on d and k), the same statistic for the Fiedler
+bisection of each MNIST community (0.17-0.19), and the dimensionless version of the rule (interface share divided
+by the community's own Fiedler cut share: real class boundaries sit at 0.45-0.53 of it, same-class splits at
+0.77-0.89; a threshold anywhere in 0.6-0.75 gives the 10 MNIST classes on every graph). tau = 0.10 is half the
+uniform reference: the midpoint between "no density contrast" (0.2) and "a full gap" (0).
+Usage: python benchmarks/theory/k43_interface_merge.py [part=interfaces,cpm,scan,downstream,uniform,ratio]"""
 import os, sys, json, time, random, warnings; warnings.filterwarnings("ignore")
 os.environ.setdefault("OMP_NUM_THREADS", "8")
 HERE = os.path.dirname(os.path.abspath(__file__)); B = os.path.dirname(HERE); sys.path.insert(0, os.path.dirname(B)); sys.path.insert(0, B); sys.path.insert(0, HERE)
@@ -92,3 +98,51 @@ if "downstream" in PART:
                     r = score(np.ascontiguousarray(Z, dtype=np.float32)); r["comm"] = int(log["communities"]); r["t"] = dt; res[k_] = r; json.dump(res, open(OUT, "w"), indent=1)
                 rows.append(res[k_])
             print(f"  {name:<36} comm {[r['comm'] for r in rows]}  " + "/".join(f"{np.mean([r[a] for r in rows]):.3f}" for a in ("knn15", "sp", "ari")) + f"  composite {np.mean([r['geo'] for r in rows]):.3f} +- {np.std([r['geo'] for r in rows]):.3f}  step {np.mean([r['t'] for r in rows]):.1f} s", flush=True)
+
+from scipy.sparse.linalg import eigsh
+from scipy.sparse.csgraph import laplacian
+def cut_share(A, side):
+    d = np.asarray(A.sum(1)).ravel()
+    W = np.column_stack([np.asarray(A[:, side == 0].sum(1)).ravel(), np.asarray(A[:, side == 1].sum(1)).ravel()]); fr = W / np.maximum(d, 1e-12)[:, None]
+    b0 = (side == 0) & (W[:, 1] > 0); b1 = (side == 1) & (W[:, 0] > 0); return fr[b0, 1].mean(), fr[b1, 0].mean()
+def fiedler_side(A):
+    L = laplacian(A, normed=True)
+    try: vals, vecs = eigsh(L, k=2, which="SM", tol=1e-3, maxiter=5000)
+    except Exception: vals, vecs = eigsh(L, k=2, sigma=-1e-3, tol=1e-3)
+    f = vecs[:, np.argsort(vals)[1]]; return (f > np.median(f)).astype(int)
+
+if "uniform" in PART:
+    print("\n(e) reference: crossing share of the boundary nodes across a hyperplane cut and across the Fiedler cut, uniform clouds, MAGNET's graph")
+    rng = np.random.default_rng(0)
+    print(f"{'cloud':<28}{'k':>4}{'strength':>10}{'hyperplane cut':>16}{'Fiedler cut':>14}")
+    for d in (2, 3, 5, 10, 20, 50):
+        for k in (15,):
+            X = rng.random((20000, d)).astype(np.float32)
+            A = sp.csr_matrix(MAGNET(n_neighbors=k, random_state=0, n_threads=8).fit(X).graph_, dtype=np.float32); st = np.asarray(A.sum(1)).ravel()
+            h = cut_share(A, (X[:, 0] > 0.5).astype(int)); f = cut_share(A, fiedler_side(A))
+            print(f"{'uniform cube d=' + str(d):<28}{k:>4}{st.mean():>10.2f}{min(h):>16.3f}{min(f):>14.3f}", flush=True)
+    X = rng.standard_normal((20000, 10)).astype(np.float32); A = sp.csr_matrix(MAGNET(random_state=0, n_threads=8).fit(X).graph_, dtype=np.float32)
+    print(f"{'gaussian d=10':<28}{15:>4}{np.asarray(A.sum(1)).mean():>10.2f}{min(cut_share(A, (X[:, 0] > 0).astype(int))):>16.3f}{min(cut_share(A, fiedler_side(A))):>14.3f}")
+    for k in (10, 30):
+        X = rng.random((20000, 10)).astype(np.float32); A = sp.csr_matrix(MAGNET(n_neighbors=k, random_state=0, n_threads=8).fit(X).graph_, dtype=np.float32)
+        print(f"{'uniform cube d=10':<28}{k:>4}{np.asarray(A.sum(1)).mean():>10.2f}{min(cut_share(A, (X[:, 0] > 0.5).astype(int))):>16.3f}{min(cut_share(A, fiedler_side(A))):>14.3f}", flush=True)
+    X, y, key = load("mnist"); P = graph("mnist"); lab = communities(P, 0.5)
+    print("  MNIST r=0.5 communities, Fiedler-cut share: " + ", ".join(f"{min(cut_share(P[idx][:, idx], fiedler_side(P[idx][:, idx]))):.3f}" for idx in (np.where(lab == c)[0] for c in range(lab.max() + 1))))
+
+if "ratio" in PART:
+    print("\n(f) dimensionless rule: interface min share / min of the two communities' Fiedler-cut shares")
+    for ds in ("mnist", "fmnist"):
+        X, y, key = load(ds); y = np.asarray(y).astype(int); P = graph(ds); strength = np.asarray(P.sum(1)).ravel(); n = P.shape[0]
+        for r in ((0.5, 1.0) if ds == "mnist" else (0.5,)):
+            lab = communities(P, r); k = lab.max() + 1; C = sp.csr_matrix((np.ones(n), (np.arange(n), lab)), shape=(n, k)); W = (P @ C).toarray(); frac = W / strength[:, None]
+            fint = {c: min(cut_share(P[idx][:, idx], fiedler_side(P[idx][:, idx]))) for c in range(k) for idx in [np.where(lab == c)[0]] if len(idx) >= 100}
+            comp = [np.bincount(y[lab == c], minlength=y.max() + 1).argmax() for c in range(k)]; same, diff = [], []
+            for a in range(k):
+                for b in range(a + 1, k):
+                    if a not in fint or b not in fint: continue
+                    ia = (lab == a) & (W[:, b] > 0); ib = (lab == b) & (W[:, a] > 0)
+                    if ia.sum() < 20 or ib.sum() < 20: continue
+                    (same if comp[a] == comp[b] else diff).append(min(frac[ia, b].mean(), frac[ib, a].mean()) / min(fint[a], fint[b]))
+            res[f"ratio/{ds}/{r}"] = dict(same=sorted(same, reverse=True), diff=sorted(diff, reverse=True))
+            print(f"  {ds} r={r}: same-class splits {np.round(sorted(same, reverse=True), 2).tolist()}, real boundaries (top 6) {np.round(sorted(diff, reverse=True)[:6], 2).tolist()}")
+    json.dump(res, open(OUT, "w"), indent=1)

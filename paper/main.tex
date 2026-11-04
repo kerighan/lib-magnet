@@ -719,8 +719,11 @@ large and symmetric through a uniform cloud (0.14--0.16 on both sides of MNIST's
 at least one side of a real boundary ($\le 0.09$); interfaces with both shares at or above 0.10 are merged, largest
 first. On MNIST this gives 10 communities on every graph and resolution tried (ARI 0.92--0.93 against the labels;
 9--11 without the merge), on Fashion-MNIST 4 (touching classes have symmetric interfaces), on letter and covertype
-it changes almost nothing (the merge is size-free). The threshold is a round value between the largest share seen on a real class boundary (0.09) and the
-smallest on a split (0.137); 0.10--0.12 give the same partitions on MNIST. \emph{Placement}:
+it changes almost nothing (the merge is size-free). The threshold is half the no-contrast reference: across the thinnest cut of a uniform cloud the share is
+about 0.2 for this graph construction, weakly dependent on the dimension and on $k$ (simulated, Appendix~\ref{app:impl}),
+and the Fiedler bisection of each MNIST community gives 0.17--0.19; real class boundaries sit at half of it
+(0.45--0.53 of the community's own cut share) and same-class splits at 0.77--0.89, so 0.10 is the midpoint
+between no contrast and a full gap, and 0.10--0.12 give the same partitions. \emph{Placement}:
 each community containing at least 1\% of the points, largest first, is translated as a rigid body by the
 candidate (five radial scalings of its centroid offset, 0.7--1.6, and the eight steps of a square grid of
 side 0.15 RMS radius) that most raises the Spearman correlation between the input distances and the

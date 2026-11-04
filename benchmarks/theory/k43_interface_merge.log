@@ -1,0 +1,165 @@
+
+mnist r=0.3: 10 communities; interfaces by min crossing share (SAME = same majority class)
+   1-5   boundary  1579/1698  shares 0.093/0.089 min 0.089 
+   1-7   boundary   703/605   shares 0.088/0.104 min 0.088 
+   2-9   boundary  1822/1540  shares 0.088/0.105 min 0.088 
+   4-9   boundary   660/583   shares 0.083/0.096 min 0.083 
+   5-6   boundary  2557/2057  shares 0.082/0.109 min 0.082 
+   3-4   boundary   472/533   shares 0.090/0.079 min 0.079 
+   3-7   boundary   414/340   shares 0.075/0.097 min 0.075 
+   2-7   boundary   622/654   shares 0.082/0.075 min 0.075 
+
+mnist r=0.5: 11 communities; interfaces by min crossing share (SAME = same majority class)
+   9-10  boundary   519/487   shares 0.137/0.147 min 0.137 SAME
+   1-8   boundary  1848/1551  shares 0.087/0.105 min 0.087 
+   4-10  boundary    57/65    shares 0.095/0.087 min 0.087 
+   0-4   boundary  1572/1728  shares 0.092/0.086 min 0.086 
+   0-5   boundary   744/608   shares 0.085/0.107 min 0.085 
+   4-6   boundary  2515/2058  shares 0.083/0.108 min 0.083 
+   3-8   boundary   672/576   shares 0.082/0.099 min 0.082 
+   2-3   boundary   472/534   shares 0.090/0.079 min 0.079 
+
+mnist r=1.0: 13 communities; interfaces by min crossing share (SAME = same majority class)
+   9-12  boundary   842/886   shares 0.159/0.148 min 0.148 SAME
+   8-11  boundary   917/878   shares 0.146/0.150 min 0.146 SAME
+   7-10  boundary   505/489   shares 0.141/0.145 min 0.141 SAME
+   1-12  boundary  1412/1115  shares 0.090/0.111 min 0.090 
+   0-4   boundary   708/618   shares 0.090/0.104 min 0.090 
+   3-9   boundary   337/323   shares 0.085/0.089 min 0.085 
+   0-8   boundary  1260/1219  shares 0.085/0.092 min 0.085 
+   5-8   boundary  1148/1346  shares 0.105/0.084 min 0.084 
+
+fmnist r=0.3: 9 communities; interfaces by min crossing share (SAME = same majority class)
+   3-5   boundary  1333/1260  shares 0.139/0.141 min 0.139 
+   1-2   boundary  1820/1562  shares 0.131/0.153 min 0.131 
+   7-8   boundary   336/286   shares 0.123/0.135 min 0.123 SAME
+   3-7   boundary   282/265   shares 0.123/0.125 min 0.123 
+   3-6   boundary   940/994   shares 0.118/0.112 min 0.112 SAME
+   0-6   boundary  1466/990   shares 0.111/0.164 min 0.111 
+   5-8   boundary    86/82    shares 0.107/0.109 min 0.107 
+   0-3   boundary  1115/956   shares 0.106/0.125 min 0.106 
+
+fmnist r=0.5: 13 communities; interfaces by min crossing share (SAME = same majority class)
+   3-6   boundary  1435/1728  shares 0.166/0.138 min 0.138 SAME
+   0-7   boundary  1285/1210  shares 0.137/0.138 min 0.137 
+   3-9   boundary   942/962   shares 0.138/0.133 min 0.133 
+   1-2   boundary  1344/1389  shares 0.141/0.132 min 0.132 
+   5-7   boundary   967/974   shares 0.144/0.132 min 0.132 SAME
+  10-11  boundary   317/267   shares 0.125/0.149 min 0.125 SAME
+   0-12  boundary   291/228   shares 0.123/0.142 min 0.123 
+   0-5   boundary   454/597   shares 0.142/0.120 min 0.120 
+
+MNIST graph: strength mean 6.56, cv 0.33; modularity 0.3 <-> CPM gamma' = 2.81e-05
+  CPM gamma 1e-05: communities [7, 6, 6], label ARI [0.657, 0.55, 0.549]
+  CPM gamma 2e-05: communities [9, 8, 8], label ARI [0.845, 0.772, 0.771]
+  CPM gamma 3e-05: communities [10, 10, 11], label ARI [0.934, 0.935, 0.898]
+  CPM gamma 5e-05: communities [11, 11, 11], label ARI [0.901, 0.899, 0.9]
+
+mnist graph 0: r=0.3: 10  r=0.5: 11  r=1.0: 13  r=1.5: 22 communities before the merge
+   tau 0.08: r=0.5:   6 (0.539)  r=1.0:   5 (0.424)  r=1.5:   5 (0.424)
+   tau 0.10: r=0.5:  10 (0.926)  r=1.0:  10 (0.925)  r=1.5:  12 (0.912)
+   tau 0.11: r=0.5:  10 (0.926)  r=1.0:  10 (0.925)  r=1.5:  13 (0.899)
+   tau 0.12: r=0.5:  10 (0.926)  r=1.0:  10 (0.925)  r=1.5:  14 (0.872)
+   tau 0.14: r=0.5:  11 (0.892)  r=1.0:  10 (0.925)  r=1.5:  15 (0.841)
+
+mnist graph 1: r=0.3: 10  r=0.5: 11  r=1.0: 14  r=1.5: 23 communities before the merge
+   tau 0.08: r=0.5:   4 (0.305)  r=1.0:   6 (0.537)  r=1.5:   5 (0.349)
+   tau 0.10: r=0.5:  10 (0.926)  r=1.0:  10 (0.923)  r=1.5:  13 (0.892)
+   tau 0.11: r=0.5:  10 (0.926)  r=1.0:  10 (0.923)  r=1.5:  14 (0.876)
+   tau 0.12: r=0.5:  10 (0.926)  r=1.0:  10 (0.923)  r=1.5:  14 (0.876)
+   tau 0.14: r=0.5:  11 (0.891)  r=1.0:  11 (0.899)  r=1.5:  18 (0.774)
+
+mnist graph 2: r=0.3: 10  r=0.5: 11  r=1.0: 14  r=1.5: 23 communities before the merge
+   tau 0.08: r=0.5:   4 (0.328)  r=1.0:   5 (0.405)  r=1.5:   5 (0.406)
+   tau 0.10: r=0.5:  10 (0.926)  r=1.0:  10 (0.922)  r=1.5:  13 (0.901)
+   tau 0.11: r=0.5:  10 (0.926)  r=1.0:  10 (0.922)  r=1.5:  14 (0.876)
+   tau 0.12: r=0.5:  10 (0.926)  r=1.0:  10 (0.922)  r=1.5:  15 (0.847)
+   tau 0.14: r=0.5:  11 (0.892)  r=1.0:  12 (0.862)  r=1.5:  17 (0.810)
+
+fmnist graph 0: r=0.3: 9  r=0.5: 13  r=1.0: 20  r=1.5: 30 communities before the merge
+   tau 0.08: r=0.5:   2 (0.042)  r=1.0:   3 (0.043)  r=1.5:   2 (0.000)
+   tau 0.10: r=0.5:   4 (0.304)  r=1.0:   8 (0.300)  r=1.5:   9 (0.296)
+   tau 0.11: r=0.5:   6 (0.446)  r=1.0:  12 (0.401)  r=1.5:  13 (0.403)
+   tau 0.12: r=0.5:   7 (0.440)  r=1.0:  12 (0.401)  r=1.5:  21 (0.390)
+   tau 0.14: r=0.5:  13 (0.454)  r=1.0:  19 (0.396)  r=1.5:  29 (0.343)
+
+=== covertype_20000 (54 features, metric euclidean, hand-over scale 16.6)
+2026-11-04 10:43:02.531553: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1793785382.545682 1130732 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1793785382.549356 1130732 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2026-11-04 10:43:02.563413: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+
+=== letter_20000 (16 features, metric euclidean, hand-over scale 16.6)
+
+=== covertype_70000 (54 features, metric euclidean, hand-over scale 31.0)
+
+=== rcv1_70000 (300 features, metric cosine, hand-over scale 31.0)
+
+=== covertype_250000 (54 features, metric euclidean, hand-over scale 58.6)
+
+letter graph 0: r=0.3: 62  r=0.5: 69  r=1.0: 92  r=1.5: 107 communities before the merge
+   tau 0.08: r=0.5:  65 (0.161)  r=1.0:  83 (0.146)  r=1.5:  94 (0.133)
+   tau 0.10: r=0.5:  67 (0.211)  r=1.0:  91 (0.227)  r=1.5: 107 (0.237)
+   tau 0.11: r=0.5:  68 (0.229)  r=1.0:  91 (0.227)  r=1.5: 107 (0.237)
+   tau 0.12: r=0.5:  69 (0.234)  r=1.0:  92 (0.233)  r=1.5: 107 (0.237)
+   tau 0.14: r=0.5:  69 (0.234)  r=1.0:  92 (0.233)  r=1.5: 107 (0.237)
+
+covertype graph 0: r=0.3: 58  r=0.5: 62  r=1.0: 74  r=1.5: 81 communities before the merge
+   tau 0.08: r=0.5:  58 (0.052)  r=1.0:  63 (0.051)  r=1.5:  67 (0.050)
+   tau 0.10: r=0.5:  59 (0.051)  r=1.0:  67 (0.039)  r=1.5:  71 (0.038)
+   tau 0.11: r=0.5:  61 (0.038)  r=1.0:  70 (0.026)  r=1.5:  75 (0.026)
+   tau 0.12: r=0.5:  62 (0.032)  r=1.0:  73 (0.024)  r=1.5:  80 (0.022)
+   tau 0.14: r=0.5:  62 (0.032)  r=1.0:  74 (0.022)  r=1.5:  81 (0.020)
+
+mnist downstream (3 full-batch layouts; axes ['knn15', 'sp', 'ari'])
+  r0.3, no merge (previous default)    comm [10, 10, 10]  0.347/0.467/0.915  composite 0.981 +- 0.002  step 1.4 s
+  r0.5 + merge 0.11 (default)          comm [10, 10, 10]  0.347/0.469/0.914  composite 0.982 +- 0.001  step 1.5 s
+  r1.0 + merge 0.11                    comm [10, 10, 10]  0.346/0.468/0.915  composite 0.981 +- 0.002  step 1.5 s
+  r0.5 + merge 0.10                    comm [10, 10, 10]  0.347/0.469/0.914  composite 0.982 +- 0.001  step 1.6 s
+  r0.5, no merge                       comm [11, 11, 11]  0.346/0.467/0.829  composite 0.948 +- 0.021  step 1.5 s
+
+fmnist downstream (3 full-batch layouts; axes ['knn15', 'sp', 'ari'])
+  r0.3, no merge (previous default)    comm [9, 9, 9]  0.323/0.685/0.430  composite 0.883 +- 0.002  step 1.1 s
+  r0.5 + merge 0.11 (default)          comm [6, 6, 6]  0.322/0.684/0.444  composite 0.891 +- 0.001  step 1.0 s
+  r1.0 + merge 0.11                    comm [12, 12, 12]  0.321/0.687/0.445  composite 0.892 +- 0.006  step 1.8 s
+  r0.5 + merge 0.10                    comm [4, 4, 4]  0.325/0.679/0.441  composite 0.889 +- 0.002  step 0.9 s
+  r0.5, no merge                       comm [13, 13, 13]  0.321/0.714/0.399  composite 0.871 +- 0.005  step 1.3 s
+
+letter downstream (1 full-batch layouts; axes ['knn15', 'sp'])
+  r0.3, no merge (previous default)    comm [62]  0.615/0.542/0.192  composite 0.851 +- 0.000  step 2.1 s
+  r0.5 + merge 0.11 (default)          comm [68]  0.616/0.536/0.181  composite 0.847 +- 0.000  step 3.3 s
+  r1.0 + merge 0.11                    comm [91]  0.616/0.537/0.164  composite 0.848 +- 0.000  step 5.5 s
+  r0.5 + merge 0.10                    comm [67]  0.614/0.537/0.169  composite 0.847 +- 0.000  step 2.6 s
+  r0.5, no merge                       comm [69]  0.615/0.535/0.167  composite 0.846 +- 0.000  step 2.5 s
+
+covertype downstream (1 full-batch layouts; axes ['knn15', 'sp'])
+  r0.3, no merge (previous default)    comm [58]  0.624/0.530/0.097  composite 0.832 +- 0.000  step 2.0 s
+  r0.5 + merge 0.11 (default)          comm [61]  0.625/0.543/0.083  composite 0.843 +- 0.000  step 2.6 s
+  r1.0 + merge 0.11                    comm [70]  0.623/0.522/0.089  composite 0.825 +- 0.000  step 3.6 s
+  r0.5 + merge 0.10                    comm [59]  0.624/0.549/0.099  composite 0.847 +- 0.000  step 2.7 s
+  r0.5, no merge                       comm [62]  0.624/0.542/0.090  composite 0.842 +- 0.000  step 2.4 s
+
+(e) reference: crossing share of the boundary nodes across a hyperplane cut and across the Fiedler cut, uniform clouds, MAGNET's graph
+cloud                          k  strength  hyperplane cut   Fiedler cut
+uniform cube d=2              15      5.81           0.180         0.168
+uniform cube d=3              15      5.91           0.197         0.184
+uniform cube d=5              15      6.01           0.216         0.189
+uniform cube d=10             15      6.18           0.203         0.202
+uniform cube d=20             15      6.41           0.231         0.231
+uniform cube d=50             15      6.74           0.320         0.277
+gaussian d=10                 15      6.50           0.230         0.207
+uniform cube d=10             10      5.12           0.239         0.219
+uniform cube d=10             30      8.08           0.176         0.187
+  MNIST r=0.5 communities, Fiedler-cut share: 0.191, 0.185, 0.183, 0.181, 0.178, 0.169, 0.182, 0.189, 0.181, 0.181, 0.178
+
+(f) dimensionless rule: interface min share / min of the two communities' Fiedler-cut shares
+  mnist r=0.5: same-class splits [0.77], real boundaries (top 6) [0.5, 0.49, 0.48, 0.48, 0.47, 0.45]
+  mnist r=1.0: same-class splits [0.89, 0.82, 0.78], real boundaries (top 6) [0.53, 0.51, 0.49, 0.47, 0.47, 0.46]
+  fmnist r=0.5: same-class splits [0.98, 0.83, 0.73, 0.65], real boundaries (top 6) [1.02, 0.85, 0.85, 0.81, 0.76, 0.7]

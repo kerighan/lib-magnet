@@ -791,9 +791,21 @@ covertype 0.832 -> 0.843 (Spearman 0.530 -> 0.543); step time 1.2-3.3 s. The def
 tau = 0.10 (Maixent: less tuned-looking than 0.11), which gives the same partitions on MNIST (10 on the three graphs,
 ARI 0.922-0.926), merges a little more on Fashion (4 communities instead of 6: composite 0.889 instead of 0.891,
 0.883 without the merge) and is equal on letter (0.847) and slightly better on covertype (0.847 against 0.843);
-`merge_tau=None` restores the plain Louvain. The threshold sits 0.01 above the largest min share of a true class
-boundary seen (0.090, the 4/9 interface of MNIST) and 0.04 below the smallest same-class split (0.137); 0.08 merges
-true boundaries (MNIST down to 5-6 communities), 0.14 misses splits. It is a density-contrast threshold, not a size.
+`merge_tau=None` restores the plain Louvain. Where 0.10 comes from (Maixent: "une valeur théorique ou expérimentalement claire et à entropie maximale"):
+the no-contrast reference is the crossing share across the thinnest cut of a uniform cloud, which is ~0.2 for
+MAGNET's graph and depends little on the dimension or on k (simulated, 20k points, k = 15: hyperplane cut 0.18 /
+0.20 / 0.22 / 0.20 / 0.23 / 0.32 and Fiedler cut 0.17 / 0.18 / 0.19 / 0.20 / 0.23 / 0.28 for d = 2 / 3 / 5 / 10 / 20 /
+50; Gaussian d = 10: 0.21; k = 10 / 30: 0.22 / 0.19), and the Fiedler bisection of each MNIST community gives
+0.17-0.19 (Fashion 0.14-0.19). Real class boundaries sit at half of it: in the dimensionless version of the rule
+(interface min share divided by the two communities' own Fiedler-cut shares) MNIST's real boundaries are at
+0.45-0.53 and its same-class splits at 0.77-0.89, and any ratio threshold in 0.6-0.75 gives the ten classes on the
+three graphs at both resolutions (0.5 over-merges: it sits on the real boundaries). tau = 0.10 = half of 0.2 is the
+midpoint between "no density contrast" and "a full gap", the least-informed choice, and it is what the data want;
+the absolute version is kept because it costs nothing (the ratio version recomputes Fiedler vectors after each
+merge, 2-4 s on MNIST and 7-24 s on Fashion, and merges Fashion down to 3-7 communities). Sensitivity: 0.08 merges
+real boundaries (MNIST down to 5-6 communities), 0.14 misses splits; 0.10-0.12 are identical on MNIST. A random
+split of a community gives 0.5 (sanity check), a median cut along the community's layout principal axis
+0.13-0.17 (not the thinnest cut), along its input principal axis 0.19-0.23 (75 s: not usable).
 
 ## Scripts (`benchmarks/theory/`)
 
