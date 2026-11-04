@@ -33,3 +33,19 @@ for i, m in enumerate(TM):
     L.append(m.replace("MAGNET", r"\magnet{}").replace("Barnes-Hut t-SNE", "Barnes--Hut $t$-SNE") + " & " + " & ".join(cells) + r" \\")
 L += [r"\bottomrule", r"\end{tabular}"]
 open(os.path.join(TAB, "timing.tex"), "w").write("\n".join(L) + "\n"); print("raw_axes.tex and timing.tex written")
+
+# ---- held-out scRNA-seq (k47): raw axes as shipped and the geometric composite plain / + post, mean over five runs
+k47 = json.load(open(os.path.join(ROOT, "benchmarks", "theory", "k47_scrna_heldout.json")))
+SC = [("tasic2018", "Tasic 2018 (23.8k, 26 subclasses)"), ("pbmc68k", "PBMC 68k (11 cell types)")]
+mean47 = lambda ds, m, w, a: float(np.mean([k47[f"{ds}/{m}/{s}"][w][a] for s in range(5)]))
+cols47 = [(ds, w, a) for ds, _ in SC for w, a in (("plain", "knn15"), ("plain", "sp"), ("plain", "ari"), ("plain", "geo"), ("post", "geo"))]
+mk47 = {c: dict(zip(ranked, marks([mean47(c[0], m, c[1], c[2]) for m in ranked], True, 3))) for c in cols47}
+L = [r"\begin{tabular}{l" + "r" * len(cols47) + "}", r"\toprule", "configuration & " + " & ".join(f"\\multicolumn{{5}}{{c}}{{{t}}}" for _, t in SC) + r" \\",
+     " & " + " & ".join(["15-NN", "Sp.", "ARI", "geo", "+ post"] * len(SC)) + r" \\", r"\midrule"]
+for m, lab in M:
+    if m == "PCA-2 + pass": L += [r"\midrule", r"\multicolumn{%d}{l}{\emph{reference rows (linear baseline, and our pass on it), not ranked}} \\" % (len(cols47) + 1)]
+    L.append(lab + " & " + " & ".join(latex(f"{mean47(*c[:1], m, c[1], c[2]):.3f}", mk47[c].get(m)) for c in cols47) + r" \\")
+L += [r"\bottomrule", r"\end{tabular}"]
+open(os.path.join(TAB, "scrna.tex"), "w").write("\n".join(L) + "\n")
+pd_ = {ds: np.array([k47[f"{ds}/MAGNET hybrid/{s}"]["post"]["geo"] - k47[f"{ds}/sklearn t-SNE (BH)/{s}"]["post"]["geo"] for s in range(5)]) for ds, _ in SC}
+print("scrna.tex written; sequence - BH after the step:", {ds: f"{v.mean():+.3f} +- {v.std(ddof=1):.3f}" for ds, v in pd_.items()})

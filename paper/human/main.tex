@@ -43,8 +43,10 @@ the highest observed four-development-set mean composite (\knn{} overlap and Spe
 added on the image sets) against frozen references and wins three data-set means; its paired difference from the
 post-processed Barnes--Hut layout is $0.023 \pm 0.047$ across 20 runs (sd across paired runs) and reverses on
 MNIST ($-0.046 \pm 0.022$), where the three standalone $t$-SNE-type layouts converge after the step (0.971--0.976)
-above the sequence (0.930). The companion report, the implementation and the experiment artifacts are public at a
-pinned revision.
+above the sequence (0.930). On two single-cell RNA-seq data sets never used during development (Tasic 2018,
+PBMC 68k), with every default frozen, the 15-NN overlap stays level with the $t$-SNE baselines' and the pairwise
+Spearman above theirs, but with the post-process given to every method the post-processed $t$-SNE layouts come first
+on both. The companion report, the implementation and the experiment artifacts are public at a pinned revision.
 \end{abstract}
 
 \section{Introduction}
@@ -310,6 +312,33 @@ included, post-process excluded unless stated; fastest in bold, second underline
 \resizebox{\columnwidth}{!}{\input{tables/timing.tex}}
 \end{table}
 
+\begin{table*}[t]
+\centering\footnotesize
+\caption{Held-out single-cell RNA-seq (\texttt{k47}): raw axes as shipped and the geometric composite as shipped and
+with the identical post-process, mean over five runs, every \magnet{} default frozen; references fixed from the
+unprocessed runs (Tasic 0.489 / 0.941 / 0.649, PBMC 0.151 / 0.864 / 0.253). Best per column in bold, second
+underlined, among the ranked configurations.}
+\label{tab:scrna}
+\setlength{\tabcolsep}{3pt}
+\resizebox{\textwidth}{!}{\input{tables/scrna.tex}}
+\end{table*}
+
+\paragraph{Held-out single-cell RNA-seq} (Table~\ref{tab:scrna}, \texttt{k47}). Two data sets never used during
+development, run with every default frozen and the protocol of the matched control (five runs, each also given the
+identical post-process; references fixed from the unprocessed runs before any post-processed value was read):
+Tasic et al.\ 2018 (mouse cortex, 23\,822 cells, 26 subclasses derived from the cluster labels) and PBMC 68k (Zheng
+et al.\ 2017, 68\,579 cells, 11 annotated types), both log-CPM, 3000 most variable genes, PCA-50, the standard
+preprocessing of the field. The local result holds: the 15-NN overlap of \magnet{} is level with the $t$-SNE
+baselines' (Tasic: full-batch 0.489 against 0.483 for openTSNE and Barnes--Hut; PBMC: sequence 0.151 against 0.149
+and 0.150). So does the pairwise Spearman above theirs, by the full-batch mode on Tasic (0.620 against 0.58--0.59)
+and by the sequence on PBMC (0.760 against 0.69--0.70). As shipped, the sequence has the best composite on PBMC
+(0.874, Barnes--Hut 0.872) and openTSNE and Barnes--Hut on Tasic (0.804 and 0.802, full-batch 0.795, sequence 0.772).
+With the post-process given to every method, the post-processed $t$-SNE layouts come first on both (Tasic:
+Barnes--Hut 0.922, openTSNE 0.916, full-batch 0.897, sequence 0.860; PBMC: 0.905, 0.897, sequence 0.881): the
+paired difference of the sequence from the post-processed Barnes--Hut layout is $-0.062 \pm 0.020$ on Tasic and
+$-0.023 \pm 0.023$ on PBMC. $k$-means ARI is again the weak axis of the \magnet{} modes (Tasic 0.43--0.53 against
+0.65 for UMAP and PaCMAP). The fit times of this panel were taken on a loaded machine and are not quoted.
+
 \paragraph{Other sizes and data.} With every rule frozen, on covertype 70k the sequence scores 0.622 / 0.560
 (\knn{} / Spearman) against 0.623 / 0.324 for UMAP and 0.624 / 0.298 for openTSNE; at 250k, 0.629 / 0.546; on RCV1
 text 70k, 0.490 / 0.400 against 0.495 / 0.246 for UMAP and 0.491 / 0.382 for openTSNE. These are additional sizes
@@ -318,7 +347,8 @@ transfers slightly better than the shipped one, and a refined PCA start wins on 
 (companion report, Sec.~4).
 
 \section{Limitations}
-The advantage is metric-specific: \knn{} overlap at $k = 15$ and pairwise Spearman on four development sets, with
+On held-out single-cell RNA-seq the post-processed $t$-SNE layouts beat every post-processed \magnet{} mode, so the
+matched-control ranking of the development sets does not transfer. The advantage is metric-specific: \knn{} overlap at $k = 15$ and pairwise Spearman on four development sets, with
 one text set where every neighbour embedding is weak. The MNIST class-centroid geometry of the sequence is poor
 and variable before the post-process, and its $k$-means ARI varies by $\pm 0.07$ across runs with or without
 it. The post-process optimises a sampled version of one reported metric, with settings chosen on the development
@@ -340,7 +370,8 @@ $t$-SNE's in 7.3 and 6.7~s against 175 and 174 in the interleaved suite with gra
 with identical post-processing it has the highest observed four-development-set mean composite of a
 twelve-configuration panel and wins three data-set means, its paired difference from the post-processed
 Barnes--Hut layout being $0.023 \pm 0.047$ across 20 runs and $-0.046 \pm 0.022$ on MNIST, both standard
-deviations of paired differences. What the recipe buys is therefore metric- and data-set-dependent: the
+deviations of paired differences. On two held-out single-cell RNA-seq data sets the local and Spearman results hold and the post-processed ranking
+does not. What the recipe buys is therefore metric- and data-set-dependent: the
 arrangement on the sets where the global axis weighs, and on MNIST a layout whose higher Spearman comes with a
 lower $k$-means ARI than a post-processed $t$-SNE's.
 
