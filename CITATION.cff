@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use MAGNET, please cite it as below."
+title: "MAGNET: fast dimensionality reduction and graph layout"
+authors:
+  - family-names: Chenebaux
+    given-names: Maixent
+    affiliation: Reputation Squad
+version: 3.0.0
+date-released: 2026-11-04
+repository-code: "https://github.com/kerighan/lib-magnet"
+keywords: [dimensionality reduction, neighbour embedding, t-SNE, UMAP, graph layout, visualisation]
+license: TO-BE-CHOSEN

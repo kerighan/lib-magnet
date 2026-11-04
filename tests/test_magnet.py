@@ -24,6 +24,7 @@ def test_ab_params_match_umap():
 
 
 def test_knn_excludes_self_and_is_sorted():
+    pytest.importorskip("hnswlib")   # optional dependency (pip install magnet-learn[hnsw])
     X, _ = blobs(500)
     ind, dist = knn_hnsw(X, 10)
     assert ind.shape == (500, 9) and dist.shape == (500, 9)
@@ -37,6 +38,7 @@ def test_knn_excludes_self_and_is_sorted():
 
 
 def test_smooth_knn_rows_sum_to_log2k():
+    pytest.importorskip("hnswlib")   # optional dependency (pip install magnet-learn[hnsw])
     X, _ = blobs(2000)
     ind, dist = knn_hnsw(X, 15)
     vals = smooth_knn(dist, 15)
@@ -46,6 +48,7 @@ def test_smooth_knn_rows_sum_to_log2k():
 
 
 def test_fuzzy_graph_symmetric():
+    pytest.importorskip("hnswlib")   # optional dependency (pip install magnet-learn[hnsw])
     X, _ = blobs(1000)
     ind, dist = knn_hnsw(X, 10)
     P = fuzzy_graph(ind, dist, 10)
@@ -314,6 +317,7 @@ def test_repulsion_exponent():
 def test_local_exponent():
     """Per-point attraction exponent: 'local' files uncrowded points (2-D clusters in 2-D) at 1 and crowded
     ones (10-D clusters) at 1/2, the repulsion stays decoupled, and an explicit array is accepted."""
+    pytest.importorskip("dimprint")   # kernel_b="local" relies on the calibrated estimator; the MLE fallback reads 2-D clusters as crowded
     rng = np.random.default_rng(0)
     n, d, qs = 3000, 30, [2, 2, 10, 10]
     y = rng.integers(0, 4, n)

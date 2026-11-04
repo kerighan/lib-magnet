@@ -9,10 +9,14 @@ description = "Fast dimensionality reduction and graph layout (kNN graph, spectr
 readme = "README.md"
 requires-python = ">=3.8"
 authors = [{ name = "Maixent Chenebaux" }]
-dependencies = ["numpy", "scipy", "tqdm"]
+dependencies = ["numpy", "scipy", "scikit-learn", "tqdm"]
 
 [project.optional-dependencies]
 hnsw = ["hnswlib"]
+graphs = ["networkx"]
+leiden = ["python-igraph"]
+clustering = ["hdbscan"]
+test = ["pytest", "networkx"]
 bench = ["umap-learn", "openTSNE", "pacmap", "trimap", "scikit-learn", "matplotlib", "networkx"]
 
 [project.urls]

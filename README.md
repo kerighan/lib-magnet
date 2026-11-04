@@ -38,9 +38,17 @@ of four (on MNIST the post-processed t-SNE layouts converge). Two papers: the ex
 ## Install
 
 ```bash
-pip install .            # C++17 compiler needed; numpy, scipy, tqdm; hnswlib optional
+pip install git+https://github.com/kerighan/lib-magnet    # or, from a clone: pip install .
 python -m pytest tests -q
 ```
+
+A C++17 compiler is needed (gcc, clang or MSVC); the dependencies are numpy, scipy, scikit-learn and tqdm.
+Optional extras: `[hnsw]` (hnswlib, an alternative kNN backend), `[graphs]` (networkx inputs), `[leiden]`
+(python-igraph, the Leiden backend of the post-process; the default Louvain is built in), `[clustering]`
+(hdbscan, for `kernel_b="consistent"` on old scikit-learn), `[test]`. Two research options rely on the author's
+unpublished libraries and fall back or raise without them: `kernel_b="local"` (dimprint; a biased MLE fallback is
+used) and `mid_scale="rolewalk"` / `component_placement="rolewalk"` (rolewalk). `examples/quickstart.py` runs
+the three modes and the post-process on scikit-learn's digits in a few seconds.
 
 ## Quickstart
 

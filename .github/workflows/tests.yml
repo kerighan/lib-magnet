@@ -1,0 +1,23 @@
+name: tests
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.9", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Build the source distribution and install from it (catches missing headers)
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build --sdist
+          python -m pip install dist/*.tar.gz pytest networkx
+      - name: Run the tests against the installed package
+        run: |
+          cd tests && python -m pytest -q

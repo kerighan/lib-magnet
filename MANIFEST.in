@@ -1,0 +1,5 @@
+include README.md
+include LICENSE
+include CITATION.cff
+recursive-include src *.cpp *.hpp *.h
+recursive-include tests *.py
