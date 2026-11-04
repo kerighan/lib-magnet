@@ -44,9 +44,13 @@ else:
 L = [r"\begin{tabular}{llrrrrrrrr}", r"\toprule", r"data set & layout & 15-NN & Spearman & silhouette & ARI $k$-means & ARI HDBSCAN & clusters / noise & geo.\ mean & min \\", r"\midrule"]
 for label, rows in out.items():
     from rankmarks import marks, latex
-    order = sorted(rows.items(), key=lambda t: -t[1]["composite_geo"]); names = [l for l, _ in order]
+    REF = {"PCA-2 + pass", "PCA-2"}   # reference rows below a rule, not ranked
+    order = sorted([t for t in rows.items() if t[0] not in REF], key=lambda t: -t[1]["composite_geo"]); names = [l for l, _ in order]
     mk = {c: dict(zip(names, marks([r[c] if r[c] == r[c] else None for _, r in order], True, 2 if c == "composite_min" else 3))) for c in ("knn15", "sp", "silhouette", "ari_kmeans", "ari_hdbscan", "composite_geo", "composite_min")}
+    for c in mk: mk[c].update({l: None for l in REF})
+    order += [(l, rows[l]) for l in ("PCA-2 + pass", "PCA-2") if l in rows]
     for l, r in order:
+        if l == "PCA-2 + pass": L.append(r"\multicolumn{10}{l}{\quad\emph{reference rows (linear baseline, and our pass on it), not ranked}} \\")
         f = lambda c, d=3: latex(f"{r[c]:.{d}f}", mk[c][l])
         L.append(f"{label} & {l.replace('MAGNET', chr(92) + 'magnet{}')} & {f('knn15')} & {f('sp')} & {f('silhouette')} & {f('ari_kmeans')} & {f('ari_hdbscan')} & {r['hdbscan_clusters']} / {r['hdbscan_noise']:.2f} & {f('composite_geo')} & {f('composite_min', 2)} \\\\")
     L.append(r"\midrule")

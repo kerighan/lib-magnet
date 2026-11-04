@@ -61,9 +61,12 @@ for kind in ("geo", "min"):
         print(f"{LABEL.get(m, m):<22}" + "".join(f"{pp[0]:.3f}+-{pp[1]:.2f} > {qq[0]:.3f}+-{qq[1]:.2f}".rjust(26) if qq[2] else "".rjust(26) for pp, qq in cells)
               + f"{np.nanmean(means):>11.3f}" + (f"{np.mean(diffs_fb):>+10.3f}+-{np.std(diffs_fb, ddof=1) if len(diffs_fb) > 1 else 0:.3f}" if diffs_fb else "".rjust(14)) + (f"{np.mean(diffs_hy):>+10.3f}+-{np.std(diffs_hy, ddof=1) if len(diffs_hy) > 1 else 0:.3f}" if diffs_hy else ""))
     import sys; sys.path.insert(0, os.path.join(ROOT, "benchmarks")); from rankmarks import marks, latex
-    cols = [[r[1][j] for r in rows_tex] for j in range(len(DS))] + [[r[2][j] for r in rows_tex] for j in range(len(DS))] + [[r[3] for r in rows_tex]]
-    mk = [marks(c, True, 3) for c in cols]   # best in bold, second underlined, per column, at the printed precision
-    for i, (lab, pl, po, mean) in enumerate(rows_tex):
+    REF = {"PCA-2 + our pass", "PCA-2"}   # reference rows below a rule, not ranked
+    rk = [r for r in rows_tex if r[0] not in REF] + [r for r in rows_tex if r[0] in REF]; nr = sum(r[0] not in REF for r in rows_tex)
+    cols = [[r[1][j] for r in rk[:nr]] for j in range(len(DS))] + [[r[2][j] for r in rk[:nr]] for j in range(len(DS))] + [[r[3] for r in rk[:nr]]]
+    mk = [marks(c, True, 3) + [None] * (len(rk) - nr) for c in cols]   # best in bold, second underlined, per column, at the printed precision
+    for i, (lab, pl, po, mean) in enumerate(rk):
+        if i == nr: L += [r"\midrule", r"\multicolumn{%d}{l}{\emph{reference rows (linear baseline, and our pass on it), not ranked}} \\" % (2 * len(DS) + 2)]
         cells = []
         for j in range(len(DS)): cells += [latex(f"{pl[j]:.3f}", mk[j][i]), latex(f"{po[j]:.3f}", mk[len(DS) + j][i])]
         L.append(lab + " & " + " & ".join(cells) + " & " + latex(f"{mean:.3f}", mk[-1][i]) + r" \\")

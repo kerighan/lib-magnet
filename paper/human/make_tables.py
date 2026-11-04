@@ -13,11 +13,14 @@ M = [("MAGNET hybrid", r"\magnet{} sequence"), ("MAGNET full-batch", r"\magnet{}
 H = {"knn15": "15-NN", "sp": "Sp.", "ari": "ARI"}
 mean = lambda ds, m, a: float(np.mean([k[f"{ds}/{m}/{s}"]["plain"][a] for s in range(5)]))
 cols = [(ds, a) for ds, _, axes in DS for a in axes]
-mk = {c: marks([mean(c[0], m, c[1]) for m, _ in M], True, 3) for c in cols}
+REF = {"PCA-2 + pass", "PCA-2"}   # linear baseline and our pass on it: reference rows below a rule, not ranked
+ranked = [m for m, _ in M if m not in REF]
+mk = {c: dict(zip(ranked, marks([mean(c[0], m, c[1]) for m in ranked], True, 3))) for c in cols}
 L = [r"\begin{tabular}{l" + "r" * len(cols) + "}", r"\toprule", "configuration & " + " & ".join(f"\\multicolumn{{{len(axes)}}}{{c}}{{{t}}}" for _, t, axes in DS) + r" \\",
      " & " + " & ".join(H[a] for _, _, axes in DS for a in axes) + r" \\", r"\midrule"]
-for i, (m, lab) in enumerate(M):
-    L.append(lab + " & " + " & ".join(latex(f"{mean(ds, m, a):.3f}", mk[(ds, a)][i]) for ds, a in cols) + r" \\")
+for m, lab in M:
+    if m == "PCA-2 + pass": L += [r"\midrule", r"\multicolumn{%d}{l}{\emph{reference rows (linear baseline, and our pass on it), not ranked}} \\" % (len(cols) + 1)]
+    L.append(lab + " & " + " & ".join(latex(f"{mean(ds, m, a):.3f}", mk[(ds, a)].get(m)) for ds, a in cols) + r" \\")
 L += [r"\bottomrule", r"\end{tabular}"]
 open(os.path.join(TAB, "raw_axes.tex"), "w").write("\n".join(L) + "\n")
 t = json.load(open(os.path.join(ROOT, "benchmarks", "cache", "timing_quiet.json")))

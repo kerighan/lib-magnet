@@ -3,8 +3,8 @@
 configuration & \multicolumn{2}{c}{MNIST 70k} & \multicolumn{2}{c}{Fashion-MNIST 70k} & \multicolumn{2}{c}{letter 20k} & \multicolumn{2}{c}{covertype 20k} & mean \\
  & plain & + post & plain & + post & plain & + post & plain & + post & + post \\
 \midrule
-\magnet{} sequence & 0.652 & 0.796 & 0.674 & \textbf{0.808} & \underline{0.854} & \underline{0.842} & \underline{0.710} & \textbf{0.858} & \textbf{0.826} \\
-\magnet{} full-batch & \textbf{0.718} & \textbf{0.956} & \underline{0.711} & \underline{0.774} & 0.741 & 0.741 & 0.473 & 0.686 & \underline{0.789} \\
+\magnet{} sequence & 0.652 & 0.796 & 0.674 & \textbf{0.808} & \textbf{0.854} & \textbf{0.842} & \underline{0.710} & \textbf{0.858} & \textbf{0.826} \\
+\magnet{} full-batch & \textbf{0.718} & \textbf{0.956} & \underline{0.711} & \underline{0.774} & \underline{0.741} & \underline{0.741} & 0.473 & 0.686 & \underline{0.789} \\
 \magnet{} sampled & 0.543 & 0.541 & 0.617 & 0.617 & 0.732 & 0.729 & \textbf{0.738} & 0.738 & 0.656 \\
 Barnes-Hut t-SNE & \underline{0.693} & \underline{0.950} & \textbf{0.726} & 0.729 & 0.671 & 0.684 & 0.468 & \underline{0.753} & 0.779 \\
 openTSNE & 0.676 & 0.947 & 0.707 & 0.712 & 0.633 & 0.663 & 0.344 & 0.601 & 0.731 \\
@@ -13,7 +13,9 @@ PaCMAP & 0.265 & 0.269 & 0.299 & 0.300 & 0.679 & 0.679 & 0.540 & 0.583 & 0.458 \
 TriMap & 0.251 & 0.256 & 0.278 & 0.280 & 0.526 & 0.418 & 0.592 & 0.592 & 0.386 \\
 h-NNE & 0.635 & 0.611 & 0.518 & 0.532 & 0.534 & 0.672 & 0.263 & 0.631 & 0.611 \\
 densMAP & 0.195 & 0.200 & 0.216 & 0.218 & 0.427 & 0.447 & 0.452 & 0.494 & 0.340 \\
-PCA-2 + our pass & 0.377 & 0.477 & 0.621 & 0.737 & \textbf{0.875} & \textbf{0.869} & 0.386 & 0.561 & 0.661 \\
+\midrule
+\multicolumn{10}{l}{\emph{reference rows (linear baseline, and our pass on it), not ranked}} \\
+PCA-2 + our pass & 0.377 & 0.477 & 0.621 & 0.737 & 0.875 & 0.869 & 0.386 & 0.561 & 0.661 \\
 PCA-2 & 0.027 & 0.033 & 0.054 & 0.064 & 0.109 & 0.142 & 0.096 & 0.168 & 0.102 \\
 \bottomrule
 \end{tabular}
