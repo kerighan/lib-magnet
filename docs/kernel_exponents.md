@@ -864,6 +864,31 @@ phonemes 0.625 (3) / 0.217 against 0.422 (31) / 0.250; MNIST 5k 0.526 (12) / 0.3
 SGD 0.813 against UMAP 0.741, but SGD + post-process 0.509: the merge fuses touching digit classes at 7k; phonemes
 SGD 0.625, PaCMAP 0.795).
 
+### 6.19 An automatic exponent from graph-layout consistency (`kernel_b="consistent"`, k46)
+
+Maixent: "on ne peut pas inférer une règle automatiquement et qui soit dérivée d'une vision théorique ?" The principle:
+the layout must not show density gaps that the graph does not have. Operationalised label-free with the machinery of
+the post-process: the graph's communities (strength-ordered Louvain at 0.5 + density-contrast merge) against the
+density clusters of the layout (HDBSCAN on a 10k sample, min cluster size max(15, m / 200)), agreement = adjusted
+Rand index. A layout torn by a too stiff attraction fails it (ARI 0.1-0.5, 5-7x more density clusters than
+communities), a healthy one passes (0.7-0.9): usps b 0.6 / 0.7 / 0.8 / 0.9: ARI 0.32 / 0.77 / 0.81 / 0.68 (57 / 18 /
+11 / 8 clusters for 9 communities), MNIST 5k 0.13 / 0.63 / 0.75 / 0.70 (55 / 25 / 12 / 6 for 8), 10k 0.35 / 0.63 /
+0.74 / 0.74, 20k 0.48 / 0.75 / 0.71 / 0.74 (32 / 9 / 10 / 9 for 9), 35k 0.91 / 0.79 / 0.79 / 0.77 (12 / 8 / 8 / 8 for 10),
+70k 0.81 / 0.92 / 0.87 / 0.82. Rule: start at 0.6 (the best local fidelity), raise by 0.1 until ARI >= 0.7; stop
+raising when the ARI no longer improves by 0.1 and keep the previous exponent (data whose communities are not
+density clusters at any exponent: letter 0.20 -> 0.16, 20 newsgroups 0.15 -> 0.13, both stay at 0.6 instead of
+climbing to 0.9 and losing 15-NN). Selections: usps 0.7, phonemes 0.7, MNIST 5k 0.8, 10k 0.8, 20k 0.6, 70k 0.6,
+covertype 20k 0.6, blobs 0.6, letter 0.6, news20 0.6, Fashion 70k 0.7. Cost: one extra fit per step tried plus
+~1 s of diagnostics (MNIST 70k 6.4 s against 5.8; MNIST 10k 4.9 against 1.0; Fashion 12.6 against 6.1).
+The one disagreement with "size" is Fashion 70k: at b = 0.6 the SGD layout has 25 density clusters with 20 %
+noise against 4 graph communities (torn by the criterion), at 0.7 10 clusters and 5 % noise, but the labels prefer
+0.6 (15-NN 0.203 against 0.183, label ARI of the density clusters 0.307 against 0.285): Fashion's classes are
+not density clusters and the extra gaps do not hurt the metrics we report. The criterion cannot know which the
+user wants, so "size" (fidelity, zero cost) stays the default and "consistent" is the option for clustering
+pipelines (HDBSCAN downstream). The theory behind both: the tearing is a competition between the short-range
+stiffness of the attraction, ~ d^(2b-1), and the redundancy of the kNN graph that holds the clumps together;
+"consistent" measures the outcome, "size" is its empirical proxy (the redundancy grows with n at fixed k).
+
 ## Scripts (`benchmarks/theory/`)
 
 `e1_force_spectrum.py` (per-octave repulsive force on MAGNET's own embeddings), `k13_tail_crossover.py` (the same binned by the kernel crossover, with the shell-count-adjusted prediction), `e1b_powerlaw.py`

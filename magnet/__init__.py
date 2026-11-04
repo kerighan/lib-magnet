@@ -88,6 +88,13 @@ class MAGNET:
         "local" = 1 where the neighbourhood-smoothed local intrinsic dimension fits in n_components, 1/2 elsewhere
         (data mixing manifolds of different dimensions; dimprint when installed; docs/kernel_exponents.md);
         "adaptive" = the same split read off the layout itself (see `adaptive`; works on graph inputs too);
+        "consistent" = the heaviest tail (0.6, the best local fidelity) whose layout does not tear the graph's
+        communities into density clusters they do not have (HDBSCAN on a 10k sample against the Louvain +
+        density-contrast communities of the post-process, ARI >= 0.7; raised by 0.1 while that improves by
+        >= 0.1, k46): the principled version of "size" for clustering pipelines (USPS 7k -> 0.7, MNIST 5k ->
+        0.8, MNIST 70k -> 0.6, Fashion 70k -> 0.7 at a 15-NN cost of 0.02, letter / text stay at 0.6 since no
+        exponent makes their communities density clusters); costs one extra fit per step tried and ~1 s of
+        diagnostics;
         "auto" = subsample sweep; "auto_dim" = the former coupled defaults (0.6 in 2-D, 0.8 beyond).
     adaptive : (base, high, at, threshold, reference, min_degree) for kernel_b="adaptive", default
         (0.5, 1.0, 0.75, 0.0, 2.0, 2): every point runs at `base` until `at` of the epochs; the points whose
@@ -369,13 +376,77 @@ class MAGNET:
         return np.ascontiguousarray(Y, dtype=np.float32)
 
     # ------------------------------------------------------------------ fit
+    def _layout_consistent(self, Y, P, threshold=0.7, n_sample=10000):
+        """Graph-layout consistency (k46): the density clusters of the layout (HDBSCAN on a sample, min cluster size
+        max(15, m / 200)) must agree with the graph's own communities (Louvain + density-contrast merge, the ones the
+        post-process uses) at an adjusted Rand index >= threshold. A layout torn into micro-clusters by a too stiff
+        attraction fails (ARI 0.1-0.6), a healthy one passes (0.7-0.9). Returns (consistent, ari, n_clusters)."""
+        from .contraction import communities, interface_merge
+        from sklearn.metrics import adjusted_rand_score
+        n = len(Y)
+        if not hasattr(self, "_communities_"):
+            self._communities_ = interface_merge(P, communities(P, 0.5))
+        lab = self._communities_
+        idx = np.sort(np.random.default_rng(self.random_state or 0).choice(n, min(n, n_sample), replace=False)) if n > n_sample else np.arange(n)
+        m = len(idx)
+        try:
+            from sklearn.cluster import HDBSCAN
+            cl = HDBSCAN(min_cluster_size=max(15, m // 200)).fit_predict(Y[idx])
+        except ImportError:
+            import hdbscan
+            cl = hdbscan.HDBSCAN(min_cluster_size=max(15, m // 200)).fit_predict(Y[idx])
+        noise = cl < 0; la = cl.copy(); la[noise] = cl.max() + 1
+        ari = float(adjusted_rand_score(lab[idx], la))
+        return ari >= threshold, ari, int(len(set(cl[~noise])))
+
     def fit(self, X, y=None):
         from _magnet import optimize_layout
+
+        if isinstance(self.kernel_b, str) and self.kernel_b == "consistent" and self.loss in ("umap", "hybrid"):
+            # the attraction exponent chosen by graph-layout consistency (k45-k46): the heaviest tail (0.6, the best
+            # local fidelity) whose SGD layout does not tear the graph's communities into density clusters they do
+            # not have; small data sets lack the graph redundancy that holds the clumps of a stiff short-range
+            # attraction together and get 0.7-0.8. The graph is built once; the contraction is applied at the end.
+            P = self.build_graph(X)
+            self._reuse_graph_ = P
+            contraction = self.contraction
+            self.contraction = None
+            self.kernel_b_search_ = []
+            best = None
+            try:
+                for b in (0.6, 0.7, 0.8, 0.9):
+                    self.kernel_b = b
+                    self.fit(X)
+                    ok, ari, k = self._layout_consistent(self.embedding_, P)
+                    self.kernel_b_search_.append((b, ari, k))
+                    if self.verbose:
+                        print(f"kernel_b='consistent': b={b} graph-layout ARI {ari:.3f} ({k} density clusters) -> {'accepted' if ok else 'torn'}")
+                    if ok:
+                        best = (b, self.embedding_)
+                        break
+                    if best is not None and ari < best[2] + 0.1:
+                        break   # raising the exponent no longer buys consistency (communities that are not density clusters, e.g. letter, text): keep the previous one
+                    best = (b, self.embedding_, ari)
+                    if b == 0.9:
+                        break
+            finally:
+                self.kernel_b = "consistent"
+                self.contraction = contraction
+                del self._reuse_graph_
+            b, self.embedding_ = best[0], best[1]
+            self.kernel_b_ = b
+            if contraction is not None:
+                from .contraction import hierarchical_contraction
+                opts = dict(contraction) if isinstance(contraction, dict) else {"separation": float(contraction)}
+                self.embedding_, self.contraction_log_ = hierarchical_contraction(self.embedding_, P, X=X if getattr(self, "_is_data_", False) else None,
+                                                                                  metric=self.metric, random_state=self.random_state or 0, verbose=self.verbose,
+                                                                                  n_threads=(self.n_threads if self.n_threads and self.n_threads > 0 else 8), **opts)
+            return self
 
         t0 = time.time()
         rng = np.random.default_rng(self.random_state)
         seed = int(rng.integers(0, 2 ** 62))
-        P = self.build_graph(X)
+        P = self._reuse_graph_ if getattr(self, "_reuse_graph_", None) is not None else self.build_graph(X)
         n = P.shape[0]
         self.graph_ = P
 

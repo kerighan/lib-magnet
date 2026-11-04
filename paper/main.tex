@@ -1152,7 +1152,11 @@ redundancy knits together, which small data sets lack. $b = 0.8$ holds them toge
 0.79 against UMAP's 0.74 at a 15-NN of 0.337 against 0.316; MNIST 10k 7 clusters, 0.59--0.63 against 0.52--0.61;
 three seeds) at a 15-NN cost of 0.02--0.03, and $b = 1$ collapses MNIST 70k into 3 clusters. Epochs, learning rate, $k$, threads,
 the coupled kernel and the per-point exponents of Sec.~\ref{sec:theory} do not change it (\texttt{k45}). The
-default is therefore $b = 0.6$ at $n \ge 20\,000$, $0.8$ at $n \le 10\,000$ and log-linear in $\log n$ between;
+default is therefore $b = 0.6$ at $n \ge 20\,000$, $0.8$ at $n \le 10\,000$ and log-linear in $\log n$ between
+(the empirical proxy of a label-free criterion shipped as \texttt{kernel\_b="consistent"}: the heaviest tail whose
+layout does not tear the graph's own communities into density clusters they do not have, measured by HDBSCAN on a
+sample against the post-process's communities; it agrees with the rule everywhere tried except Fashion-MNIST, whose
+classes are not density clusters and where it trades 0.02 of 15-NN for fewer gaps);
 the blobs (10k) and 20 newsgroups (18.8k) rows of Tables~\ref{tab:news20}--\ref{tab:blobs} use it, the 70k and 20k
 tables are unchanged.
 

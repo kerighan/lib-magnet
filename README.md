@@ -510,7 +510,12 @@ which small data sets lack; b = 0.8 holds them together (USPS 9 clusters, HDBSCA
 0.02-0.03, and b = 1.0 collapses MNIST 70k into 3 clusters. Nothing else fixes it (n_epochs, learning rate, n_neighbors, one
 thread, the coupled kernel, `"adaptive"`, `"local"`: tested). Default since: `kernel_b="size"`, 0.6 at n >= 20k,
 0.8 at n <= 10k, log-linear between; the 70k and 20k tables are unchanged, the blobs (10k) and 20 newsgroups
-(18.8k) SGD rows were re-run. With it, HDBSCAN on the SGD layout beats UMAP at 7k (0.81 against 0.74), 10k and 70k
+(18.8k) SGD rows were re-run. The principled version is `kernel_b="consistent"` (section 6.19 of the note): the
+heaviest tail whose layout does not tear the graph's own communities into density clusters they do not have
+(HDBSCAN on a 10k sample against the post-process's communities, ARI >= 0.7, raised while that improves); it picks
+0.7 on USPS, 0.8 on MNIST 5k, 0.6 on MNIST 20k-70k, letter, covertype, blobs and text, and 0.7 on Fashion 70k, where
+the labels prefer 0.6 (classes that are not density clusters): the option for clustering pipelines, at one extra
+fit per exponent tried. With it, HDBSCAN on the SGD layout beats UMAP at 7k (0.81 against 0.74), 10k and 70k
 (MNIST 70k: SGD + post-process 0.92 against 0.66), loses on phonemes 4.5k to PaCMAP (0.63 against 0.80); the
 post-process does not help below 10k (it fuses touching classes: USPS 0.51).
 
