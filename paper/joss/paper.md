@@ -12,7 +12,7 @@ authors:
   - name: Maixent Chenebaux
     affiliation: 1
 affiliations:
-  - name: Reputation Squad, France
+  - name: Trickstr, France
     index: 1
 date: 4 November 2026
 bibliography: paper.bib
@@ -90,6 +90,6 @@ directions, checked the results and is responsible for the content.
 
 # Acknowledgements
 
-The author thanks Reputation Squad for the computing time.
+The author thanks Trickstr for the computing time.
 
 # References

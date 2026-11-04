@@ -4,7 +4,7 @@ title: "MAGNET: fast dimensionality reduction and graph layout"
 authors:
   - family-names: Chenebaux
     given-names: Maixent
-    affiliation: Reputation Squad
+    affiliation: Trickstr
 version: 3.0.0
 date-released: 2026-11-04
 repository-code: "https://github.com/kerighan/lib-magnet"
