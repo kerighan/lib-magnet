@@ -19,7 +19,7 @@ ext_modules = [
 
 setup(
     name="magnet-learn",
-    version="3.0.0",
+    version="3.0.1",
     description="MAGNET: fast graph-based dimensionality reduction (kNN graph + random walks + SGD)",
     packages=find_packages(exclude=("benchmarks", "tests")),
     ext_modules=ext_modules,

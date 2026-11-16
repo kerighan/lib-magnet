@@ -1,0 +1,84 @@
+
+=== mnist (refs {'knn15': 0.356, 'sp': 0.488, 'ari': 0.914})
+  SGD default                  knn15 0.193  sp 0.416  ari 0.757  geo 0.726  min 0.543  (n=5)
+  SGD soft                     knn15 0.198  sp 0.387  ari 0.808  geo 0.731  min 0.556  (n=5)
+  SGD default + contraction    knn15 0.192  sp 0.501  ari 0.776  geo 0.778  min 0.540  (n=5)
+  SGD soft + contraction       knn15 0.198  sp 0.482  ari 0.806  geo 0.785  min 0.555  (n=5)
+  hybrid default               knn15 0.354  sp 0.446  ari 0.592  geo 0.837  min 0.647  (n=5)
+  hybrid soft                  knn15 0.355  sp 0.410  ari 0.610  geo 0.824  min 0.667  (n=5)
+  hybrid default + contraction knn15 0.348  sp 0.501  ari 0.678  geo 0.904  min 0.741  (n=5)
+  hybrid soft + contraction    knn15 0.354  sp 0.504  ari 0.774  geo 0.954  min 0.847  (n=5)
+  SGD soft - SGD default: knn15 +0.005 +- 0.001  sp -0.029 +- 0.011  ari +0.051 +- 0.038  geo +0.004 +- 0.009
+  SGD soft + contraction - SGD default + contraction: knn15 +0.005 +- 0.001  sp -0.019 +- 0.008  ari +0.030 +- 0.047  geo +0.007 +- 0.014
+  hybrid soft - hybrid default: knn15 +0.002 +- 0.001  sp -0.036 +- 0.018  ari +0.018 +- 0.065  geo -0.013 +- 0.027
+  hybrid soft + contraction - hybrid default + contraction: knn15 +0.006 +- 0.002  sp +0.003 +- 0.026  ari +0.097 +- 0.166  geo +0.050 +- 0.084
+
+=== fmnist (refs {'knn15': 0.33, 'sp': 0.873, 'ari': 0.483})
+  SGD default                  knn15 0.204  sp 0.723  ari 0.422  geo 0.765  min 0.619  (n=5)
+  SGD soft                     knn15 0.200  sp 0.726  ari 0.430  geo 0.765  min 0.606  (n=5)
+  SGD default + contraction    knn15 0.204  sp 0.695  ari 0.438  geo 0.764  min 0.618  (n=5)
+  SGD soft + contraction       knn15 0.200  sp 0.697  ari 0.441  geo 0.762  min 0.606  (n=5)
+  hybrid default               knn15 0.330  sp 0.750  ari 0.313  geo 0.822  min 0.647  (n=5)
+  hybrid soft                  knn15 0.329  sp 0.747  ari 0.338  geo 0.842  min 0.700  (n=5)
+  hybrid default + contraction knn15 0.329  sp 0.705  ari 0.411  geo 0.881  min 0.807  (n=5)
+  hybrid soft + contraction    knn15 0.329  sp 0.701  ari 0.409  geo 0.878  min 0.800  (n=5)
+  SGD soft - SGD default: knn15 -0.004 +- 0.002  sp +0.003 +- 0.003  ari +0.008 +- 0.036  geo +0.000 +- 0.021
+  SGD soft + contraction - SGD default + contraction: knn15 -0.004 +- 0.002  sp +0.002 +- 0.003  ari +0.004 +- 0.004  geo -0.002 +- 0.002
+  hybrid soft - hybrid default: knn15 -0.000 +- 0.001  sp -0.002 +- 0.003  ari +0.026 +- 0.022  geo +0.021 +- 0.019
+  hybrid soft + contraction - hybrid default + contraction: knn15 +0.000 +- 0.001  sp -0.003 +- 0.002  ari -0.002 +- 0.016  geo -0.003 +- 0.011
+
+=== letter (refs {'knn15': 0.642, 'sp': 0.716})
+  SGD default                  knn15 0.469  sp 0.586  ari 0.188  geo 0.773  min 0.730  (n=5)
+  SGD soft                     knn15 0.475  sp 0.560  ari 0.181  geo 0.761  min 0.737  (n=5)
+  SGD default + contraction    knn15 0.467  sp 0.589  ari 0.163  geo 0.773  min 0.727  (n=5)
+  SGD soft + contraction       knn15 0.476  sp 0.583  ari 0.170  geo 0.777  min 0.741  (n=5)
+  hybrid default               knn15 0.625  sp 0.604  ari 0.148  geo 0.906  min 0.844  (n=5)
+  hybrid soft                  knn15 0.626  sp 0.588  ari 0.153  geo 0.894  min 0.821  (n=5)
+  hybrid default + contraction knn15 0.611  sp 0.602  ari 0.167  geo 0.894  min 0.841  (n=5)
+  hybrid soft + contraction    knn15 0.615  sp 0.587  ari 0.178  geo 0.886  min 0.819  (n=5)
+  SGD soft - SGD default: knn15 +0.006 +- 0.007  sp -0.025 +- 0.012  ari -0.007 +- 0.015  geo -0.012 +- 0.006
+  SGD soft + contraction - SGD default + contraction: knn15 +0.009 +- 0.005  sp -0.006 +- 0.006  ari +0.007 +- 0.006  geo +0.003 +- 0.003
+  hybrid soft - hybrid default: knn15 +0.001 +- 0.001  sp -0.016 +- 0.029  ari +0.005 +- 0.016  geo -0.012 +- 0.022
+  hybrid soft + contraction - hybrid default + contraction: knn15 +0.004 +- 0.004  sp -0.015 +- 0.007  ari +0.011 +- 0.017  geo -0.008 +- 0.007
+
+=== covertype (refs {'knn15': 0.632, 'sp': 0.755})
+  SGD default                  knn15 0.467  sp 0.586  ari 0.026  geo 0.757  min 0.739  (n=5)
+  SGD soft                     knn15 0.466  sp 0.591  ari 0.030  geo 0.759  min 0.737  (n=5)
+  SGD default + contraction    knn15 0.466  sp 0.765  ari 0.071  geo 0.864  min 0.737  (n=5)
+  SGD soft + contraction       knn15 0.464  sp 0.764  ari 0.077  geo 0.862  min 0.734  (n=5)
+  hybrid default               knn15 0.623  sp 0.540  ari 0.014  geo 0.840  min 0.715  (n=5)
+  hybrid soft                  knn15 0.624  sp 0.541  ari 0.013  geo 0.840  min 0.716  (n=5)
+  hybrid default + contraction knn15 0.619  sp 0.650  ari 0.049  geo 0.918  min 0.861  (n=5)
+  hybrid soft + contraction    knn15 0.617  sp 0.644  ari 0.044  geo 0.913  min 0.854  (n=5)
+  SGD soft - SGD default: knn15 -0.001 +- 0.006  sp +0.004 +- 0.006  ari +0.004 +- 0.008  geo +0.002 +- 0.004
+  SGD soft + contraction - SGD default + contraction: knn15 -0.002 +- 0.005  sp -0.001 +- 0.029  ari +0.006 +- 0.016  geo -0.003 +- 0.018
+  hybrid soft - hybrid default: knn15 +0.000 +- 0.001  sp +0.001 +- 0.010  ari -0.001 +- 0.004  geo +0.001 +- 0.007
+  hybrid soft + contraction - hybrid default + contraction: knn15 -0.002 +- 0.003  sp -0.005 +- 0.027  ari -0.006 +- 0.008  geo -0.005 +- 0.019
+
+=== pbmc68k (refs {'knn15': 0.1505546666666667, 'sp': 0.8640473583751136, 'ari': 0.25299031427605734})
+  SGD default                  knn15 0.056  sp 0.766  ari 0.215  geo 0.655  min 0.373  (n=5)
+  SGD soft                     knn15 0.056  sp 0.747  ari 0.214  geo 0.649  min 0.374  (n=5)
+  SGD default + contraction    knn15 0.056  sp 0.816  ari 0.224  geo 0.676  min 0.371  (n=5)
+  SGD soft + contraction       knn15 0.057  sp 0.836  ari 0.219  geo 0.680  min 0.375  (n=5)
+  hybrid default               knn15 0.150  sp 0.760  ari 0.192  geo 0.873  min 0.759  (n=5)
+  hybrid soft                  knn15 0.151  sp 0.762  ari 0.195  geo 0.880  min 0.772  (n=5)
+  hybrid default + contraction knn15 0.150  sp 0.800  ari 0.193  geo 0.890  min 0.763  (n=5)
+  hybrid soft + contraction    knn15 0.151  sp 0.808  ari 0.190  geo 0.890  min 0.751  (n=5)
+  SGD soft - SGD default: knn15 +0.000 +- 0.001  sp -0.019 +- 0.021  ari -0.000 +- 0.007  geo -0.005 +- 0.012
+  SGD soft + contraction - SGD default + contraction: knn15 +0.001 +- 0.001  sp +0.020 +- 0.028  ari -0.004 +- 0.008  geo +0.004 +- 0.014
+  hybrid soft - hybrid default: knn15 +0.000 +- 0.001  sp +0.003 +- 0.003  ari +0.003 +- 0.004  geo +0.007 +- 0.006
+  hybrid soft + contraction - hybrid default + contraction: knn15 +0.001 +- 0.001  sp +0.008 +- 0.011  ari -0.003 +- 0.008  geo -0.001 +- 0.015
+
+=== tasic2018 (refs {'knn15': 0.4886026666666667, 'sp': 0.9410821338722222, 'ari': 0.6485068974870581})
+  SGD default                  knn15 0.349  sp 0.706  ari 0.512  geo 0.751  min 0.714  (n=5)
+  SGD soft                     knn15 0.344  sp 0.704  ari 0.538  geo 0.758  min 0.703  (n=5)
+  SGD default + contraction    knn15 0.348  sp 0.848  ari 0.511  geo 0.796  min 0.712  (n=5)
+  SGD soft + contraction       knn15 0.345  sp 0.837  ari 0.563  geo 0.817  min 0.706  (n=5)
+  hybrid default               knn15 0.485  sp 0.664  ari 0.452  geo 0.788  min 0.693  (n=5)
+  hybrid soft                  knn15 0.486  sp 0.666  ari 0.442  geo 0.782  min 0.680  (n=5)
+  hybrid default + contraction knn15 0.480  sp 0.817  ari 0.495  geo 0.866  min 0.764  (n=5)
+  hybrid soft + contraction    knn15 0.480  sp 0.812  ari 0.511  geo 0.874  min 0.787  (n=5)
+  SGD soft - SGD default: knn15 -0.005 +- 0.004  sp -0.003 +- 0.007  ari +0.026 +- 0.027  geo +0.007 +- 0.014
+  SGD soft + contraction - SGD default + contraction: knn15 -0.003 +- 0.002  sp -0.010 +- 0.017  ari +0.052 +- 0.037  geo +0.021 +- 0.019
+  hybrid soft - hybrid default: knn15 +0.001 +- 0.001  sp +0.002 +- 0.004  ari -0.010 +- 0.032  geo -0.005 +- 0.020
+  hybrid soft + contraction - hybrid default + contraction: knn15 +0.001 +- 0.002  sp -0.005 +- 0.007  ari +0.015 +- 0.024  geo +0.008 +- 0.017

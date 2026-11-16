@@ -1,0 +1,46 @@
+mnist | SGD mid_in_comm | 0 {'knn15': 0.206, 'sp': 0.288, 'ari': 0.931, 'geo': 0.703, 'min': 0.58, 'fit_s': 5.7, 'n_comm': 10}
+mnist | SGD mid_in_comm + placement | 0 {'knn15': 0.205, 'sp': 0.448, 'ari': 0.814, 'geo': 0.777, 'min': 0.575, 'fit_s': 9.2, 'n_comm': 10}
+mnist | SGD mid_in_comm + contraction | 0 {'knn15': 0.206, 'sp': 0.443, 'ari': 0.865, 'geo': 0.792, 'min': 0.579, 'fit_s': 9.1, 'n_comm': 10}
+mnist | hybrid mid_in_comm | 0 {'knn15': 0.355, 'sp': 0.298, 'ari': 0.692, 'geo': 0.773, 'min': 0.611, 'fit_s': 9.6, 'n_comm': 10}
+mnist | hybrid mid_in_comm + placement | 0 {'knn15': 0.353, 'sp': 0.425, 'ari': 0.752, 'geo': 0.892, 'min': 0.823, 'fit_s': 13.3, 'n_comm': 10}
+mnist | hybrid mid_in_comm + contraction | 0 {'knn15': 0.353, 'sp': 0.419, 'ari': 0.924, 'geo': 0.951, 'min': 0.858, 'fit_s': 13.3, 'n_comm': 10}
+mnist | SGD mid_in_comm | 1 {'knn15': 0.206, 'sp': 0.285, 'ari': 0.933, 'geo': 0.701, 'min': 0.578, 'fit_s': 4.7, 'n_comm': 10}
+mnist | SGD mid_in_comm + placement | 1 {'knn15': 0.204, 'sp': 0.453, 'ari': 0.765, 'geo': 0.764, 'min': 0.574, 'fit_s': 8.0, 'n_comm': 10}
+mnist | SGD mid_in_comm + contraction | 1 {'knn15': 0.205, 'sp': 0.45, 'ari': 0.874, 'geo': 0.798, 'min': 0.576, 'fit_s': 8.0, 'n_comm': 10}
+mnist | hybrid mid_in_comm | 1 {'knn15': 0.356, 'sp': 0.295, 'ari': 0.782, 'geo': 0.803, 'min': 0.604, 'fit_s': 9.6, 'n_comm': 10}
+mnist | hybrid mid_in_comm + placement | 1 {'knn15': 0.355, 'sp': 0.433, 'ari': 0.802, 'geo': 0.919, 'min': 0.877, 'fit_s': 13.1, 'n_comm': 10}
+mnist | hybrid mid_in_comm + contraction | 1 {'knn15': 0.354, 'sp': 0.428, 'ari': 0.924, 'geo': 0.959, 'min': 0.876, 'fit_s': 13.1, 'n_comm': 10}
+mnist | SGD mid_in_comm | 2 {'knn15': 0.206, 'sp': 0.292, 'ari': 0.931, 'geo': 0.706, 'min': 0.579, 'fit_s': 4.6, 'n_comm': 10}
+mnist | SGD mid_in_comm + placement | 2 {'knn15': 0.204, 'sp': 0.449, 'ari': 0.77, 'geo': 0.763, 'min': 0.573, 'fit_s': 8.0, 'n_comm': 10}
+mnist | SGD mid_in_comm + contraction | 2 {'knn15': 0.205, 'sp': 0.446, 'ari': 0.866, 'geo': 0.794, 'min': 0.577, 'fit_s': 8.0, 'n_comm': 10}
+mnist | hybrid mid_in_comm | 2 {'knn15': 0.355, 'sp': 0.317, 'ari': 0.686, 'geo': 0.786, 'min': 0.649, 'fit_s': 10.1, 'n_comm': 10}
+mnist | hybrid mid_in_comm + placement | 2 {'knn15': 0.353, 'sp': 0.437, 'ari': 0.83, 'geo': 0.931, 'min': 0.896, 'fit_s': 14.7, 'n_comm': 10}
+mnist | hybrid mid_in_comm + contraction | 2 {'knn15': 0.353, 'sp': 0.427, 'ari': 0.925, 'geo': 0.957, 'min': 0.875, 'fit_s': 14.1, 'n_comm': 10}
+mnist | SGD mid_in_comm | 3 {'knn15': 0.206, 'sp': 0.287, 'ari': 0.931, 'geo': 0.702, 'min': 0.579, 'fit_s': 5.7, 'n_comm': 10}
+mnist | SGD mid_in_comm + placement | 3 {'knn15': 0.205, 'sp': 0.452, 'ari': 0.799, 'geo': 0.776, 'min': 0.577, 'fit_s': 10.1, 'n_comm': 10}
+mnist | SGD mid_in_comm + contraction | 3 {'knn15': 0.206, 'sp': 0.449, 'ari': 0.911, 'geo': 0.809, 'min': 0.579, 'fit_s': 9.6, 'n_comm': 10}
+mnist | hybrid mid_in_comm | 3 {'knn15': 0.356, 'sp': 0.293, 'ari': 0.807, 'geo': 0.809, 'min': 0.6, 'fit_s': 11.5, 'n_comm': 10}
+mnist | hybrid mid_in_comm + placement | 3 {'knn15': 0.353, 'sp': 0.439, 'ari': 0.828, 'geo': 0.931, 'min': 0.899, 'fit_s': 15.4, 'n_comm': 10}
+mnist | hybrid mid_in_comm + contraction | 3 {'knn15': 0.354, 'sp': 0.433, 'ari': 0.924, 'geo': 0.962, 'min': 0.886, 'fit_s': 15.3, 'n_comm': 10}
+mnist | SGD mid_in_comm | 4 {'knn15': 0.204, 'sp': 0.283, 'ari': 0.932, 'geo': 0.698, 'min': 0.574, 'fit_s': 6.2, 'n_comm': 10}
+mnist | SGD mid_in_comm + placement | 4 {'knn15': 0.204, 'sp': 0.454, 'ari': 0.847, 'geo': 0.79, 'min': 0.572, 'fit_s': 9.9, 'n_comm': 10}
+mnist | SGD mid_in_comm + contraction | 4 {'knn15': 0.204, 'sp': 0.451, 'ari': 0.925, 'geo': 0.812, 'min': 0.572, 'fit_s': 9.8, 'n_comm': 10}
+mnist | hybrid mid_in_comm | 4 {'knn15': 0.354, 'sp': 0.312, 'ari': 0.799, 'geo': 0.822, 'min': 0.639, 'fit_s': 12.0, 'n_comm': 10}
+mnist | hybrid mid_in_comm + placement | 4 {'knn15': 0.351, 'sp': 0.441, 'ari': 0.865, 'geo': 0.945, 'min': 0.904, 'fit_s': 16.0, 'n_comm': 10}
+mnist | hybrid mid_in_comm + contraction | 4 {'knn15': 0.352, 'sp': 0.433, 'ari': 0.926, 'geo': 0.961, 'min': 0.887, 'fit_s': 16.2, 'n_comm': 10}
+
+=== mnist (refs {'knn15': 0.356, 'sp': 0.488, 'ari': 0.914})
+  SGD default                        knn15 0.193  sp 0.416  ari 0.757  geo 0.726  min 0.543  (n=5)
+  SGD default + contraction          knn15 0.192  sp 0.501  ari 0.776  geo 0.778  min 0.540  (n=5)
+  SGD mid_in_comm                    knn15 0.206  sp 0.287  ari 0.932  geo 0.702  min 0.578  (n=5)
+  SGD mid_in_comm + placement        knn15 0.204  sp 0.451  ari 0.799  geo 0.774  min 0.574  (n=5)
+  SGD mid_in_comm + contraction      knn15 0.205  sp 0.448  ari 0.888  geo 0.801  min 0.577  (n=5)
+  SGD mid_in_comm - default: knn15 +0.013 +- 0.001  sp -0.129 +- 0.006  ari +0.174 +- 0.008  geo -0.024 +- 0.005
+  SGD mid_in_comm + contraction - default + contraction: knn15 +0.013 +- 0.001  sp -0.053 +- 0.002  ari +0.112 +- 0.032  geo +0.023 +- 0.010
+  hybrid default                     knn15 0.354  sp 0.446  ari 0.592  geo 0.837  min 0.647  (n=5)
+  hybrid default + contraction       knn15 0.348  sp 0.501  ari 0.678  geo 0.904  min 0.741  (n=5)
+  hybrid mid_in_comm                 knn15 0.355  sp 0.303  ari 0.753  geo 0.798  min 0.621  (n=5)
+  hybrid mid_in_comm + placement     knn15 0.353  sp 0.435  ari 0.815  geo 0.924  min 0.880  (n=5)
+  hybrid mid_in_comm + contraction   knn15 0.353  sp 0.428  ari 0.925  geo 0.958  min 0.876  (n=5)
+  hybrid mid_in_comm - default: knn15 +0.002 +- 0.001  sp -0.143 +- 0.013  ari +0.161 +- 0.088  geo -0.038 +- 0.028
+  hybrid mid_in_comm + contraction - default + contraction: knn15 +0.006 +- 0.001  sp -0.073 +- 0.015  ari +0.247 +- 0.099  geo +0.054 +- 0.051

@@ -1,0 +1,96 @@
+
+=== mnist (refs {'knn15': 0.356, 'sp': 0.488, 'ari': 0.914})
+  SGD default                        knn15 0.193  sp 0.416  ari 0.757  geo 0.726  min 0.543  (n=5)
+  SGD default + contraction          knn15 0.192  sp 0.501  ari 0.776  geo 0.778  min 0.540  (n=5)
+  SGD mid_in_comm                    knn15 0.206  sp 0.287  ari 0.932  geo 0.702  min 0.578  (n=5)
+  SGD mid_in_comm + placement        knn15 0.204  sp 0.451  ari 0.799  geo 0.774  min 0.574  (n=5)
+  SGD mid_in_comm + contraction      knn15 0.205  sp 0.448  ari 0.888  geo 0.801  min 0.577  (n=5)
+  SGD mid_in_comm - default: knn15 +0.013 +- 0.001  sp -0.129 +- 0.006  ari +0.174 +- 0.008  geo -0.024 +- 0.005
+  SGD mid_in_comm + contraction - default + contraction: knn15 +0.013 +- 0.001  sp -0.053 +- 0.002  ari +0.112 +- 0.032  geo +0.023 +- 0.010
+  hybrid default                     knn15 0.354  sp 0.446  ari 0.592  geo 0.837  min 0.647  (n=5)
+  hybrid default + contraction       knn15 0.348  sp 0.501  ari 0.678  geo 0.904  min 0.741  (n=5)
+  hybrid mid_in_comm                 knn15 0.355  sp 0.303  ari 0.753  geo 0.798  min 0.621  (n=5)
+  hybrid mid_in_comm + placement     knn15 0.353  sp 0.435  ari 0.815  geo 0.924  min 0.880  (n=5)
+  hybrid mid_in_comm + contraction   knn15 0.353  sp 0.428  ari 0.925  geo 0.958  min 0.876  (n=5)
+  hybrid mid_in_comm - default: knn15 +0.002 +- 0.001  sp -0.143 +- 0.013  ari +0.161 +- 0.088  geo -0.038 +- 0.028
+  hybrid mid_in_comm + contraction - default + contraction: knn15 +0.006 +- 0.001  sp -0.073 +- 0.015  ari +0.247 +- 0.099  geo +0.054 +- 0.051
+
+=== fmnist (refs {'knn15': 0.33, 'sp': 0.873, 'ari': 0.483})
+  SGD default                        knn15 0.204  sp 0.723  ari 0.422  geo 0.765  min 0.619  (n=5)
+  SGD default + contraction          knn15 0.204  sp 0.695  ari 0.438  geo 0.764  min 0.618  (n=5)
+  SGD mid_in_comm                    knn15 0.207  sp 0.618  ari 0.430  geo 0.734  min 0.629  (n=5)
+  SGD mid_in_comm + placement        knn15 0.207  sp 0.650  ari 0.406  geo 0.732  min 0.626  (n=5)
+  SGD mid_in_comm + contraction      knn15 0.207  sp 0.624  ari 0.425  geo 0.734  min 0.628  (n=5)
+  SGD mid_in_comm - default: knn15 +0.003 +- 0.002  sp -0.105 +- 0.014  ari +0.008 +- 0.034  geo -0.031 +- 0.026
+  SGD mid_in_comm + contraction - default + contraction: knn15 +0.003 +- 0.001  sp -0.071 +- 0.011  ari -0.012 +- 0.015  geo -0.030 +- 0.012
+  hybrid default                     knn15 0.330  sp 0.750  ari 0.313  geo 0.822  min 0.647  (n=5)
+  hybrid default + contraction       knn15 0.329  sp 0.705  ari 0.411  geo 0.881  min 0.807  (n=5)
+  hybrid mid_in_comm                 knn15 0.328  sp 0.672  ari 0.415  geo 0.868  min 0.770  (n=5)
+  hybrid mid_in_comm + placement     knn15 0.327  sp 0.681  ari 0.442  geo 0.890  min 0.778  (n=5)
+  hybrid mid_in_comm + contraction   knn15 0.327  sp 0.650  ari 0.470  geo 0.895  min 0.745  (n=5)
+  hybrid mid_in_comm - default: knn15 -0.002 +- 0.001  sp -0.078 +- 0.016  ari +0.102 +- 0.041  geo +0.047 +- 0.033
+  hybrid mid_in_comm + contraction - default + contraction: knn15 -0.001 +- 0.001  sp -0.054 +- 0.009  ari +0.059 +- 0.050  geo +0.014 +- 0.037
+
+=== letter (refs {'knn15': 0.642, 'sp': 0.716})
+  SGD default                        knn15 0.469  sp 0.586  ari 0.188  geo 0.773  min 0.730  (n=5)
+  SGD default + contraction          knn15 0.467  sp 0.589  ari 0.163  geo 0.773  min 0.727  (n=5)
+  SGD mid_in_comm                    knn15 0.474  sp 0.319  ari 0.209  geo 0.572  min 0.445  (n=5)
+  SGD mid_in_comm + placement        knn15 0.472  sp 0.414  ari 0.174  geo 0.652  min 0.579  (n=5)
+  SGD mid_in_comm + contraction      knn15 0.473  sp 0.421  ari 0.171  geo 0.658  min 0.588  (n=5)
+  SGD mid_in_comm - default: knn15 +0.006 +- 0.003  sp -0.267 +- 0.037  ari +0.021 +- 0.011  geo -0.201 +- 0.035
+  SGD mid_in_comm + contraction - default + contraction: knn15 +0.006 +- 0.004  sp -0.168 +- 0.022  ari +0.008 +- 0.015  geo -0.115 +- 0.017
+  hybrid default                     knn15 0.625  sp 0.604  ari 0.148  geo 0.906  min 0.844  (n=5)
+  hybrid default + contraction       knn15 0.611  sp 0.602  ari 0.167  geo 0.894  min 0.841  (n=5)
+  hybrid mid_in_comm                 knn15 0.626  sp 0.280  ari 0.193  geo 0.616  min 0.392  (n=5)
+  hybrid mid_in_comm + placement     knn15 0.622  sp 0.329  ari 0.191  geo 0.666  min 0.459  (n=5)
+  hybrid mid_in_comm + contraction   knn15 0.623  sp 0.334  ari 0.210  geo 0.672  min 0.466  (n=5)
+  hybrid mid_in_comm - default: knn15 +0.001 +- 0.001  sp -0.324 +- 0.045  ari +0.045 +- 0.023  geo -0.290 +- 0.052
+  hybrid mid_in_comm + contraction - default + contraction: knn15 +0.013 +- 0.001  sp -0.268 +- 0.035  ari +0.043 +- 0.009  geo -0.222 +- 0.034
+
+=== covertype (refs {'knn15': 0.632, 'sp': 0.755})
+  SGD default                        knn15 0.467  sp 0.586  ari 0.026  geo 0.757  min 0.739  (n=5)
+  SGD default + contraction          knn15 0.466  sp 0.765  ari 0.071  geo 0.864  min 0.737  (n=5)
+  SGD mid_in_comm                    knn15 0.473  sp 0.410  ari 0.035  geo 0.637  min 0.543  (n=5)
+  SGD mid_in_comm + placement        knn15 0.472  sp 0.722  ari 0.084  geo 0.845  min 0.748  (n=5)
+  SGD mid_in_comm + contraction      knn15 0.472  sp 0.735  ari 0.092  geo 0.853  min 0.748  (n=5)
+  SGD mid_in_comm - default: knn15 +0.006 +- 0.005  sp -0.176 +- 0.020  ari +0.009 +- 0.006  geo -0.120 +- 0.020
+  SGD mid_in_comm + contraction - default + contraction: knn15 +0.007 +- 0.004  sp -0.030 +- 0.017  ari +0.020 +- 0.025  geo -0.011 +- 0.013
+  hybrid default                     knn15 0.623  sp 0.540  ari 0.014  geo 0.840  min 0.715  (n=5)
+  hybrid default + contraction       knn15 0.619  sp 0.650  ari 0.049  geo 0.918  min 0.861  (n=5)
+  hybrid mid_in_comm                 knn15 0.625  sp 0.358  ari 0.024  geo 0.684  min 0.475  (n=5)
+  hybrid mid_in_comm + placement     knn15 0.622  sp 0.528  ari 0.046  geo 0.829  min 0.699  (n=5)
+  hybrid mid_in_comm + contraction   knn15 0.624  sp 0.543  ari 0.052  geo 0.842  min 0.719  (n=5)
+  hybrid mid_in_comm - default: knn15 +0.002 +- 0.000  sp -0.182 +- 0.034  ari +0.010 +- 0.010  geo -0.156 +- 0.034
+  hybrid mid_in_comm + contraction - default + contraction: knn15 +0.005 +- 0.001  sp -0.107 +- 0.054  ari +0.002 +- 0.009  geo -0.076 +- 0.042
+
+=== pbmc68k (refs {'knn15': 0.1505546666666667, 'sp': 0.8640473583751136, 'ari': 0.25299031427605734})
+  SGD default                        knn15 0.056  sp 0.766  ari 0.215  geo 0.655  min 0.373  (n=5)
+  SGD default + contraction          knn15 0.056  sp 0.816  ari 0.224  geo 0.676  min 0.371  (n=5)
+  SGD mid_in_comm                    knn15 0.057  sp 0.782  ari 0.218  geo 0.666  min 0.378  (n=5)
+  SGD mid_in_comm + placement        knn15 0.057  sp 0.814  ari 0.224  geo 0.680  min 0.378  (n=5)
+  SGD mid_in_comm + contraction      knn15 0.057  sp 0.809  ari 0.230  geo 0.685  min 0.378  (n=5)
+  SGD mid_in_comm - default: knn15 +0.001 +- 0.001  sp +0.016 +- 0.027  ari +0.004 +- 0.009  geo +0.011 +- 0.016
+  SGD mid_in_comm + contraction - default + contraction: knn15 +0.001 +- 0.001  sp -0.007 +- 0.009  ari +0.006 +- 0.009  geo +0.009 +- 0.010
+  hybrid default                     knn15 0.150  sp 0.760  ari 0.192  geo 0.873  min 0.759  (n=5)
+  hybrid default + contraction       knn15 0.150  sp 0.800  ari 0.193  geo 0.890  min 0.763  (n=5)
+  hybrid mid_in_comm                 knn15 0.152  sp 0.787  ari 0.200  geo 0.898  min 0.789  (n=5)
+  hybrid mid_in_comm + placement     knn15 0.152  sp 0.802  ari 0.199  geo 0.902  min 0.786  (n=5)
+  hybrid mid_in_comm + contraction   knn15 0.152  sp 0.796  ari 0.212  geo 0.920  min 0.837  (n=5)
+  hybrid mid_in_comm - default: knn15 +0.002 +- 0.001  sp +0.027 +- 0.034  ari +0.007 +- 0.004  geo +0.024 +- 0.010
+  hybrid mid_in_comm + contraction - default + contraction: knn15 +0.001 +- 0.001  sp -0.004 +- 0.014  ari +0.019 +- 0.007  geo +0.029 +- 0.014
+
+=== tasic2018 (refs {'knn15': 0.4886026666666667, 'sp': 0.9410821338722222, 'ari': 0.6485068974870581})
+  SGD default                        knn15 0.349  sp 0.706  ari 0.512  geo 0.751  min 0.714  (n=5)
+  SGD default + contraction          knn15 0.348  sp 0.848  ari 0.511  geo 0.796  min 0.712  (n=5)
+  SGD mid_in_comm                    knn15 0.355  sp 0.450  ari 0.623  geo 0.692  min 0.478  (n=5)
+  SGD mid_in_comm + placement        knn15 0.354  sp 0.721  ari 0.575  geo 0.789  min 0.721  (n=5)
+  SGD mid_in_comm + contraction      knn15 0.355  sp 0.733  ari 0.621  geo 0.815  min 0.725  (n=5)
+  SGD mid_in_comm - default: knn15 +0.006 +- 0.002  sp -0.256 +- 0.047  ari +0.111 +- 0.013  geo -0.058 +- 0.019
+  SGD mid_in_comm + contraction - default + contraction: knn15 +0.007 +- 0.002  sp -0.115 +- 0.037  ari +0.110 +- 0.044  geo +0.018 +- 0.031
+  hybrid default                     knn15 0.485  sp 0.664  ari 0.452  geo 0.788  min 0.693  (n=5)
+  hybrid default + contraction       knn15 0.480  sp 0.817  ari 0.495  geo 0.866  min 0.764  (n=5)
+  hybrid mid_in_comm                 knn15 0.485  sp 0.385  ari 0.458  geo 0.658  min 0.409  (n=5)
+  hybrid mid_in_comm + placement     knn15 0.484  sp 0.576  ari 0.470  geo 0.759  min 0.612  (n=5)
+  hybrid mid_in_comm + contraction   knn15 0.485  sp 0.601  ari 0.532  geo 0.803  min 0.638  (n=5)
+  hybrid mid_in_comm - default: knn15 -0.000 +- 0.001  sp -0.278 +- 0.053  ari +0.005 +- 0.021  geo -0.130 +- 0.030
+  hybrid mid_in_comm + contraction - default + contraction: knn15 +0.005 +- 0.003  sp -0.216 +- 0.066  ari +0.037 +- 0.035  geo -0.063 +- 0.018

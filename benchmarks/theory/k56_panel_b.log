@@ -1,0 +1,181 @@
+
+=== covertype_20000 (54 features, metric euclidean, hand-over scale 16.6)
+2026-11-16 11:01:58.127622: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1794823318.148863 2699327 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1794823318.155108 2699327 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2026-11-16 11:01:58.170461: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+
+=== letter_20000 (16 features, metric euclidean, hand-over scale 16.6)
+
+=== covertype_70000 (54 features, metric euclidean, hand-over scale 31.0)
+
+=== rcv1_70000 (300 features, metric cosine, hand-over scale 31.0)
+
+=== covertype_250000 (54 features, metric euclidean, hand-over scale 58.6)
+letter | SGD deep 0.3 | 0 {'knn15': 0.465, 'sp': 0.479, 'ari': 0.21, 'geo': 0.696, 'min': 0.669}
+letter | SGD deep 0.3 + post | 0 {'knn15': 0.464, 'sp': 0.548, 'ari': 0.176, 'geo': 0.744, 'min': 0.723}
+letter | SGD deep 0.3 x2 | 0 {'knn15': 0.469, 'sp': 0.551, 'ari': 0.194, 'geo': 0.75, 'min': 0.731}
+letter | SGD deep 0.3 x2 + post | 0 {'knn15': 0.469, 'sp': 0.578, 'ari': 0.179, 'geo': 0.767, 'min': 0.73}
+letter | hybrid deep 0.3 | 0 {'knn15': 0.626, 'sp': 0.528, 'ari': 0.171, 'geo': 0.848, 'min': 0.737}
+letter | hybrid deep 0.3 + post | 0 {'knn15': 0.615, 'sp': 0.525, 'ari': 0.193, 'geo': 0.838, 'min': 0.733}
+letter | hybrid deep 0.3 x2 | 0 {'knn15': 0.625, 'sp': 0.542, 'ari': 0.158, 'geo': 0.859, 'min': 0.757}
+letter | hybrid deep 0.3 x2 + post | 0 {'knn15': 0.614, 'sp': 0.545, 'ari': 0.198, 'geo': 0.853, 'min': 0.761}
+letter | SGD deep 0.3 | 1 {'knn15': 0.473, 'sp': 0.472, 'ari': 0.206, 'geo': 0.697, 'min': 0.66}
+letter | SGD deep 0.3 + post | 1 {'knn15': 0.471, 'sp': 0.529, 'ari': 0.166, 'geo': 0.736, 'min': 0.734}
+letter | SGD deep 0.3 x2 | 1 {'knn15': 0.471, 'sp': 0.537, 'ari': 0.177, 'geo': 0.742, 'min': 0.733}
+letter | SGD deep 0.3 x2 + post | 1 {'knn15': 0.467, 'sp': 0.585, 'ari': 0.144, 'geo': 0.77, 'min': 0.727}
+letter | hybrid deep 0.3 | 1 {'knn15': 0.626, 'sp': 0.545, 'ari': 0.172, 'geo': 0.861, 'min': 0.761}
+letter | hybrid deep 0.3 + post | 1 {'knn15': 0.612, 'sp': 0.55, 'ari': 0.159, 'geo': 0.856, 'min': 0.768}
+letter | hybrid deep 0.3 x2 | 1 {'knn15': 0.625, 'sp': 0.557, 'ari': 0.175, 'geo': 0.871, 'min': 0.778}
+letter | hybrid deep 0.3 x2 + post | 1 {'knn15': 0.61, 'sp': 0.558, 'ari': 0.203, 'geo': 0.861, 'min': 0.78}
+letter | SGD deep 0.3 | 2 {'knn15': 0.467, 'sp': 0.483, 'ari': 0.174, 'geo': 0.701, 'min': 0.674}
+letter | SGD deep 0.3 + post | 2 {'knn15': 0.466, 'sp': 0.527, 'ari': 0.154, 'geo': 0.731, 'min': 0.726}
+letter | SGD deep 0.3 x2 | 2 {'knn15': 0.466, 'sp': 0.558, 'ari': 0.152, 'geo': 0.752, 'min': 0.725}
+letter | SGD deep 0.3 x2 + post | 2 {'knn15': 0.464, 'sp': 0.585, 'ari': 0.147, 'geo': 0.769, 'min': 0.723}
+letter | hybrid deep 0.3 | 2 {'knn15': 0.625, 'sp': 0.53, 'ari': 0.166, 'geo': 0.849, 'min': 0.74}
+letter | hybrid deep 0.3 + post | 2 {'knn15': 0.611, 'sp': 0.539, 'ari': 0.182, 'geo': 0.847, 'min': 0.753}
+letter | hybrid deep 0.3 x2 | 2 {'knn15': 0.626, 'sp': 0.56, 'ari': 0.168, 'geo': 0.874, 'min': 0.782}
+letter | hybrid deep 0.3 x2 + post | 2 {'knn15': 0.61, 'sp': 0.561, 'ari': 0.185, 'geo': 0.863, 'min': 0.783}
+letter | SGD deep 0.3 | 3 {'knn15': 0.482, 'sp': 0.526, 'ari': 0.187, 'geo': 0.742, 'min': 0.734}
+letter | SGD deep 0.3 + post | 3 {'knn15': 0.479, 'sp': 0.554, 'ari': 0.166, 'geo': 0.759, 'min': 0.746}
+letter | SGD deep 0.3 x2 | 3 {'knn15': 0.483, 'sp': 0.54, 'ari': 0.177, 'geo': 0.753, 'min': 0.752}
+letter | SGD deep 0.3 x2 + post | 3 {'knn15': 0.48, 'sp': 0.563, 'ari': 0.171, 'geo': 0.767, 'min': 0.748}
+letter | hybrid deep 0.3 | 3 {'knn15': 0.626, 'sp': 0.552, 'ari': 0.159, 'geo': 0.867, 'min': 0.771}
+letter | hybrid deep 0.3 + post | 3 {'knn15': 0.615, 'sp': 0.557, 'ari': 0.207, 'geo': 0.863, 'min': 0.777}
+letter | hybrid deep 0.3 x2 | 3 {'knn15': 0.625, 'sp': 0.551, 'ari': 0.153, 'geo': 0.866, 'min': 0.769}
+letter | hybrid deep 0.3 x2 + post | 3 {'knn15': 0.616, 'sp': 0.549, 'ari': 0.193, 'geo': 0.858, 'min': 0.767}
+letter | SGD deep 0.3 | 4 {'knn15': 0.466, 'sp': 0.514, 'ari': 0.164, 'geo': 0.721, 'min': 0.717}
+letter | SGD deep 0.3 + post | 4 {'knn15': 0.463, 'sp': 0.544, 'ari': 0.155, 'geo': 0.741, 'min': 0.722}
+letter | SGD deep 0.3 x2 | 4 {'knn15': 0.467, 'sp': 0.555, 'ari': 0.182, 'geo': 0.751, 'min': 0.728}
+letter | SGD deep 0.3 x2 + post | 4 {'knn15': 0.465, 'sp': 0.57, 'ari': 0.157, 'geo': 0.759, 'min': 0.725}
+letter | hybrid deep 0.3 | 4 {'knn15': 0.624, 'sp': 0.541, 'ari': 0.193, 'geo': 0.857, 'min': 0.756}
+letter | hybrid deep 0.3 + post | 4 {'knn15': 0.611, 'sp': 0.54, 'ari': 0.186, 'geo': 0.847, 'min': 0.754}
+letter | hybrid deep 0.3 x2 | 4 {'knn15': 0.624, 'sp': 0.558, 'ari': 0.161, 'geo': 0.87, 'min': 0.779}
+letter | hybrid deep 0.3 x2 + post | 4 {'knn15': 0.611, 'sp': 0.571, 'ari': 0.174, 'geo': 0.871, 'min': 0.797}
+tasic2018 | SGD deep 0.3 | 0 {'knn15': 0.353, 'sp': 0.698, 'ari': 0.585, 'geo': 0.785, 'min': 0.723}
+tasic2018 | SGD deep 0.3 + post | 0 {'knn15': 0.353, 'sp': 0.847, 'ari': 0.534, 'geo': 0.812, 'min': 0.723}
+tasic2018 | SGD deep 0.3 x2 | 0 {'knn15': 0.351, 'sp': 0.69, 'ari': 0.526, 'geo': 0.753, 'min': 0.719}
+tasic2018 | SGD deep 0.3 x2 + post | 0 {'knn15': 0.351, 'sp': 0.834, 'ari': 0.58, 'geo': 0.829, 'min': 0.719}
+tasic2018 | hybrid deep 0.3 | 0 {'knn15': 0.485, 'sp': 0.612, 'ari': 0.509, 'geo': 0.797, 'min': 0.65}
+tasic2018 | hybrid deep 0.3 + post | 0 {'knn15': 0.484, 'sp': 0.768, 'ari': 0.568, 'geo': 0.891, 'min': 0.816}
+tasic2018 | hybrid deep 0.3 x2 | 0 {'knn15': 0.486, 'sp': 0.643, 'ari': 0.492, 'geo': 0.802, 'min': 0.683}
+tasic2018 | hybrid deep 0.3 x2 + post | 0 {'knn15': 0.484, 'sp': 0.817, 'ari': 0.562, 'geo': 0.906, 'min': 0.866}
+tasic2018 | SGD deep 0.3 | 1 {'knn15': 0.352, 'sp': 0.702, 'ari': 0.549, 'geo': 0.769, 'min': 0.721}
+tasic2018 | SGD deep 0.3 + post | 1 {'knn15': 0.351, 'sp': 0.853, 'ari': 0.538, 'geo': 0.814, 'min': 0.719}
+tasic2018 | SGD deep 0.3 x2 | 1 {'knn15': 0.35, 'sp': 0.709, 'ari': 0.566, 'geo': 0.778, 'min': 0.716}
+tasic2018 | SGD deep 0.3 x2 + post | 1 {'knn15': 0.35, 'sp': 0.863, 'ari': 0.526, 'geo': 0.81, 'min': 0.716}
+tasic2018 | hybrid deep 0.3 | 1 {'knn15': 0.485, 'sp': 0.637, 'ari': 0.485, 'geo': 0.795, 'min': 0.677}
+tasic2018 | hybrid deep 0.3 + post | 1 {'knn15': 0.485, 'sp': 0.785, 'ari': 0.589, 'geo': 0.909, 'min': 0.835}
+tasic2018 | hybrid deep 0.3 x2 | 1 {'knn15': 0.485, 'sp': 0.65, 'ari': 0.457, 'geo': 0.785, 'min': 0.691}
+tasic2018 | hybrid deep 0.3 x2 + post | 1 {'knn15': 0.482, 'sp': 0.821, 'ari': 0.508, 'geo': 0.876, 'min': 0.783}
+tasic2018 | SGD deep 0.3 | 2 {'knn15': 0.349, 'sp': 0.682, 'ari': 0.562, 'geo': 0.765, 'min': 0.714}
+tasic2018 | SGD deep 0.3 + post | 2 {'knn15': 0.348, 'sp': 0.834, 'ari': 0.518, 'geo': 0.796, 'min': 0.712}
+tasic2018 | SGD deep 0.3 x2 | 2 {'knn15': 0.347, 'sp': 0.687, 'ari': 0.54, 'geo': 0.756, 'min': 0.71}
+tasic2018 | SGD deep 0.3 x2 + post | 2 {'knn15': 0.347, 'sp': 0.838, 'ari': 0.5, 'geo': 0.787, 'min': 0.71}
+tasic2018 | hybrid deep 0.3 | 2 {'knn15': 0.484, 'sp': 0.623, 'ari': 0.469, 'geo': 0.78, 'min': 0.662}
+tasic2018 | hybrid deep 0.3 + post | 2 {'knn15': 0.482, 'sp': 0.802, 'ari': 0.548, 'geo': 0.892, 'min': 0.846}
+tasic2018 | hybrid deep 0.3 x2 | 2 {'knn15': 0.485, 'sp': 0.631, 'ari': 0.436, 'geo': 0.765, 'min': 0.67}
+tasic2018 | hybrid deep 0.3 x2 + post | 2 {'knn15': 0.482, 'sp': 0.818, 'ari': 0.541, 'geo': 0.894, 'min': 0.834}
+tasic2018 | SGD deep 0.3 | 3 {'knn15': 0.355, 'sp': 0.695, 'ari': 0.574, 'geo': 0.78, 'min': 0.726}
+tasic2018 | SGD deep 0.3 + post | 3 {'knn15': 0.354, 'sp': 0.839, 'ari': 0.522, 'geo': 0.804, 'min': 0.725}
+tasic2018 | SGD deep 0.3 x2 | 3 {'knn15': 0.351, 'sp': 0.717, 'ari': 0.515, 'geo': 0.757, 'min': 0.718}
+tasic2018 | SGD deep 0.3 x2 + post | 3 {'knn15': 0.351, 'sp': 0.853, 'ari': 0.539, 'geo': 0.815, 'min': 0.717}
+tasic2018 | hybrid deep 0.3 | 3 {'knn15': 0.487, 'sp': 0.643, 'ari': 0.462, 'geo': 0.785, 'min': 0.683}
+tasic2018 | hybrid deep 0.3 + post | 3 {'knn15': 0.485, 'sp': 0.804, 'ari': 0.565, 'geo': 0.904, 'min': 0.854}
+tasic2018 | hybrid deep 0.3 x2 | 3 {'knn15': 0.486, 'sp': 0.651, 'ari': 0.445, 'geo': 0.779, 'min': 0.686}
+tasic2018 | hybrid deep 0.3 x2 + post | 3 {'knn15': 0.483, 'sp': 0.796, 'ari': 0.508, 'geo': 0.868, 'min': 0.783}
+tasic2018 | SGD deep 0.3 | 4 {'knn15': 0.353, 'sp': 0.63, 'ari': 0.591, 'geo': 0.761, 'min': 0.669}
+tasic2018 | SGD deep 0.3 + post | 4 {'knn15': 0.353, 'sp': 0.831, 'ari': 0.635, 'geo': 0.855, 'min': 0.722}
+tasic2018 | SGD deep 0.3 x2 | 4 {'knn15': 0.349, 'sp': 0.679, 'ari': 0.538, 'geo': 0.753, 'min': 0.714}
+tasic2018 | SGD deep 0.3 x2 + post | 4 {'knn15': 0.348, 'sp': 0.829, 'ari': 0.539, 'geo': 0.805, 'min': 0.711}
+tasic2018 | hybrid deep 0.3 | 4 {'knn15': 0.486, 'sp': 0.573, 'ari': 0.532, 'geo': 0.792, 'min': 0.609}
+tasic2018 | hybrid deep 0.3 + post | 4 {'knn15': 0.484, 'sp': 0.762, 'ari': 0.564, 'geo': 0.887, 'min': 0.81}
+tasic2018 | hybrid deep 0.3 x2 | 4 {'knn15': 0.486, 'sp': 0.612, 'ari': 0.431, 'geo': 0.755, 'min': 0.65}
+tasic2018 | hybrid deep 0.3 x2 + post | 4 {'knn15': 0.485, 'sp': 0.792, 'ari': 0.505, 'geo': 0.867, 'min': 0.779}
+covertype | SGD deep 0.3 | 0 {'knn15': 0.474, 'sp': 0.549, 'ari': 0.021, 'geo': 0.738, 'min': 0.727}
+covertype | SGD deep 0.3 + post | 0 {'knn15': 0.474, 'sp': 0.755, 'ari': 0.062, 'geo': 0.866, 'min': 0.749}
+covertype | SGD deep 0.3 x2 | 0 {'knn15': 0.473, 'sp': 0.552, 'ari': 0.031, 'geo': 0.74, 'min': 0.732}
+covertype | SGD deep 0.3 x2 + post | 0 {'knn15': 0.473, 'sp': 0.749, 'ari': 0.085, 'geo': 0.862, 'min': 0.748}
+covertype | hybrid deep 0.3 | 0 {'knn15': 0.625, 'sp': 0.519, 'ari': 0.015, 'geo': 0.824, 'min': 0.687}
+covertype | hybrid deep 0.3 + post | 0 {'knn15': 0.621, 'sp': 0.65, 'ari': 0.098, 'geo': 0.92, 'min': 0.861}
+covertype | hybrid deep 0.3 x2 | 0 {'knn15': 0.623, 'sp': 0.514, 'ari': 0.019, 'geo': 0.819, 'min': 0.681}
+covertype | hybrid deep 0.3 x2 + post | 0 {'knn15': 0.621, 'sp': 0.664, 'ari': 0.076, 'geo': 0.929, 'min': 0.879}
+covertype | SGD deep 0.3 | 1 {'knn15': 0.466, 'sp': 0.56, 'ari': 0.037, 'geo': 0.739, 'min': 0.738}
+covertype | SGD deep 0.3 + post | 1 {'knn15': 0.466, 'sp': 0.756, 'ari': 0.08, 'geo': 0.86, 'min': 0.737}
+covertype | SGD deep 0.3 x2 | 1 {'knn15': 0.47, 'sp': 0.563, 'ari': 0.055, 'geo': 0.744, 'min': 0.743}
+covertype | SGD deep 0.3 x2 + post | 1 {'knn15': 0.47, 'sp': 0.762, 'ari': 0.071, 'geo': 0.866, 'min': 0.743}
+covertype | hybrid deep 0.3 | 1 {'knn15': 0.622, 'sp': 0.515, 'ari': 0.028, 'geo': 0.82, 'min': 0.683}
+covertype | hybrid deep 0.3 + post | 1 {'knn15': 0.62, 'sp': 0.658, 'ari': 0.079, 'geo': 0.925, 'min': 0.871}
+covertype | hybrid deep 0.3 x2 | 1 {'knn15': 0.622, 'sp': 0.505, 'ari': 0.032, 'geo': 0.811, 'min': 0.669}
+covertype | hybrid deep 0.3 x2 + post | 1 {'knn15': 0.618, 'sp': 0.669, 'ari': 0.05, 'geo': 0.931, 'min': 0.886}
+covertype | SGD deep 0.3 | 2 {'knn15': 0.474, 'sp': 0.549, 'ari': 0.04, 'geo': 0.738, 'min': 0.727}
+covertype | SGD deep 0.3 + post | 2 {'knn15': 0.473, 'sp': 0.743, 'ari': 0.108, 'geo': 0.859, 'min': 0.749}
+covertype | SGD deep 0.3 x2 | 2 {'knn15': 0.467, 'sp': 0.551, 'ari': 0.045, 'geo': 0.734, 'min': 0.73}
+covertype | SGD deep 0.3 x2 + post | 2 {'knn15': 0.467, 'sp': 0.762, 'ari': 0.107, 'geo': 0.864, 'min': 0.739}
+covertype | hybrid deep 0.3 | 2 {'knn15': 0.624, 'sp': 0.503, 'ari': 0.035, 'geo': 0.812, 'min': 0.667}
+covertype | hybrid deep 0.3 + post | 2 {'knn15': 0.622, 'sp': 0.664, 'ari': 0.054, 'geo': 0.93, 'min': 0.88}
+covertype | hybrid deep 0.3 x2 | 2 {'knn15': 0.624, 'sp': 0.511, 'ari': 0.03, 'geo': 0.817, 'min': 0.676}
+covertype | hybrid deep 0.3 x2 + post | 2 {'knn15': 0.622, 'sp': 0.663, 'ari': 0.101, 'geo': 0.93, 'min': 0.879}
+covertype | SGD deep 0.3 | 3 {'knn15': 0.47, 'sp': 0.548, 'ari': 0.026, 'geo': 0.734, 'min': 0.726}
+covertype | SGD deep 0.3 + post | 3 {'knn15': 0.468, 'sp': 0.751, 'ari': 0.074, 'geo': 0.859, 'min': 0.741}
+covertype | SGD deep 0.3 x2 | 3 {'knn15': 0.471, 'sp': 0.533, 'ari': 0.025, 'geo': 0.725, 'min': 0.706}
+covertype | SGD deep 0.3 x2 + post | 3 {'knn15': 0.47, 'sp': 0.73, 'ari': 0.077, 'geo': 0.848, 'min': 0.744}
+covertype | hybrid deep 0.3 | 3 {'knn15': 0.625, 'sp': 0.497, 'ari': 0.016, 'geo': 0.807, 'min': 0.658}
+covertype | hybrid deep 0.3 + post | 3 {'knn15': 0.622, 'sp': 0.653, 'ari': 0.056, 'geo': 0.922, 'min': 0.864}
+covertype | hybrid deep 0.3 x2 | 3 {'knn15': 0.623, 'sp': 0.489, 'ari': 0.019, 'geo': 0.799, 'min': 0.647}
+covertype | hybrid deep 0.3 x2 + post | 3 {'knn15': 0.62, 'sp': 0.643, 'ari': 0.039, 'geo': 0.914, 'min': 0.851}
+covertype | SGD deep 0.3 | 4 {'knn15': 0.472, 'sp': 0.547, 'ari': 0.042, 'geo': 0.736, 'min': 0.725}
+covertype | SGD deep 0.3 + post | 4 {'knn15': 0.472, 'sp': 0.759, 'ari': 0.072, 'geo': 0.867, 'min': 0.747}
+covertype | SGD deep 0.3 x2 | 4 {'knn15': 0.471, 'sp': 0.55, 'ari': 0.031, 'geo': 0.736, 'min': 0.728}
+covertype | SGD deep 0.3 x2 + post | 4 {'knn15': 0.47, 'sp': 0.741, 'ari': 0.068, 'geo': 0.855, 'min': 0.744}
+covertype | hybrid deep 0.3 | 4 {'knn15': 0.624, 'sp': 0.499, 'ari': 0.028, 'geo': 0.808, 'min': 0.661}
+covertype | hybrid deep 0.3 + post | 4 {'knn15': 0.623, 'sp': 0.653, 'ari': 0.079, 'geo': 0.923, 'min': 0.865}
+covertype | hybrid deep 0.3 x2 | 4 {'knn15': 0.624, 'sp': 0.497, 'ari': 0.033, 'geo': 0.806, 'min': 0.658}
+covertype | hybrid deep 0.3 x2 + post | 4 {'knn15': 0.62, 'sp': 0.648, 'ari': 0.071, 'geo': 0.918, 'min': 0.858}
+fmnist | SGD deep 0.3 | 0 {'knn15': 0.207, 'sp': 0.695, 'ari': 0.43, 'geo': 0.763, 'min': 0.628}
+fmnist | SGD deep 0.3 + post | 0 {'knn15': 0.207, 'sp': 0.677, 'ari': 0.445, 'geo': 0.765, 'min': 0.628}
+fmnist | SGD deep 0.3 x2 | 0 {'knn15': 0.205, 'sp': 0.726, 'ari': 0.38, 'geo': 0.741, 'min': 0.621}
+fmnist | SGD deep 0.3 x2 + post | 0 {'knn15': 0.205, 'sp': 0.71, 'ari': 0.457, 'geo': 0.782, 'min': 0.621}
+fmnist | hybrid deep 0.3 | 0 {'knn15': 0.329, 'sp': 0.713, 'ari': 0.357, 'geo': 0.844, 'min': 0.739}
+fmnist | hybrid deep 0.3 + post | 0 {'knn15': 0.328, 'sp': 0.69, 'ari': 0.433, 'geo': 0.89, 'min': 0.79}
+fmnist | hybrid deep 0.3 x2 | 0 {'knn15': 0.328, 'sp': 0.729, 'ari': 0.36, 'geo': 0.852, 'min': 0.745}
+fmnist | hybrid deep 0.3 x2 + post | 0 {'knn15': 0.328, 'sp': 0.701, 'ari': 0.42, 'geo': 0.884, 'min': 0.803}
+fmnist | SGD deep 0.3 | 1 {'knn15': 0.209, 'sp': 0.693, 'ari': 0.414, 'geo': 0.755, 'min': 0.633}
+fmnist | SGD deep 0.3 + post | 1 {'knn15': 0.209, 'sp': 0.658, 'ari': 0.433, 'geo': 0.754, 'min': 0.634}
+fmnist | SGD deep 0.3 x2 | 1 {'knn15': 0.204, 'sp': 0.72, 'ari': 0.379, 'geo': 0.738, 'min': 0.619}
+fmnist | SGD deep 0.3 x2 + post | 1 {'knn15': 0.204, 'sp': 0.686, 'ari': 0.404, 'geo': 0.741, 'min': 0.619}
+fmnist | hybrid deep 0.3 | 1 {'knn15': 0.328, 'sp': 0.703, 'ari': 0.369, 'geo': 0.849, 'min': 0.764}
+fmnist | hybrid deep 0.3 + post | 1 {'knn15': 0.328, 'sp': 0.662, 'ari': 0.417, 'geo': 0.866, 'min': 0.758}
+fmnist | hybrid deep 0.3 x2 | 1 {'knn15': 0.327, 'sp': 0.724, 'ari': 0.347, 'geo': 0.838, 'min': 0.718}
+fmnist | hybrid deep 0.3 x2 + post | 1 {'knn15': 0.326, 'sp': 0.685, 'ari': 0.396, 'geo': 0.86, 'min': 0.785}
+fmnist | SGD deep 0.3 | 2 {'knn15': 0.209, 'sp': 0.699, 'ari': 0.436, 'geo': 0.771, 'min': 0.634}
+fmnist | SGD deep 0.3 + post | 2 {'knn15': 0.209, 'sp': 0.676, 'ari': 0.455, 'geo': 0.774, 'min': 0.634}
+fmnist | SGD deep 0.3 x2 | 2 {'knn15': 0.208, 'sp': 0.718, 'ari': 0.382, 'geo': 0.743, 'min': 0.63}
+fmnist | SGD deep 0.3 x2 + post | 2 {'knn15': 0.208, 'sp': 0.692, 'ari': 0.402, 'geo': 0.746, 'min': 0.63}
+fmnist | hybrid deep 0.3 | 2 {'knn15': 0.328, 'sp': 0.701, 'ari': 0.368, 'geo': 0.846, 'min': 0.761}
+fmnist | hybrid deep 0.3 + post | 2 {'knn15': 0.327, 'sp': 0.673, 'ari': 0.438, 'geo': 0.885, 'min': 0.771}
+fmnist | hybrid deep 0.3 x2 | 2 {'knn15': 0.328, 'sp': 0.718, 'ari': 0.365, 'geo': 0.852, 'min': 0.756}
+fmnist | hybrid deep 0.3 x2 + post | 2 {'knn15': 0.327, 'sp': 0.687, 'ari': 0.48, 'geo': 0.918, 'min': 0.787}
+fmnist | SGD deep 0.3 | 3 {'knn15': 0.207, 'sp': 0.692, 'ari': 0.401, 'geo': 0.745, 'min': 0.628}
+fmnist | SGD deep 0.3 + post | 3 {'knn15': 0.207, 'sp': 0.675, 'ari': 0.455, 'geo': 0.77, 'min': 0.629}
+fmnist | SGD deep 0.3 x2 | 3 {'knn15': 0.205, 'sp': 0.718, 'ari': 0.376, 'geo': 0.735, 'min': 0.62}
+fmnist | SGD deep 0.3 x2 + post | 3 {'knn15': 0.204, 'sp': 0.69, 'ari': 0.445, 'geo': 0.767, 'min': 0.62}
+fmnist | hybrid deep 0.3 | 3 {'knn15': 0.329, 'sp': 0.704, 'ari': 0.361, 'geo': 0.844, 'min': 0.748}
+fmnist | hybrid deep 0.3 + post | 3 {'knn15': 0.328, 'sp': 0.68, 'ari': 0.436, 'geo': 0.888, 'min': 0.779}
+fmnist | hybrid deep 0.3 x2 | 3 {'knn15': 0.328, 'sp': 0.722, 'ari': 0.356, 'geo': 0.847, 'min': 0.737}
+fmnist | hybrid deep 0.3 x2 + post | 3 {'knn15': 0.328, 'sp': 0.694, 'ari': 0.484, 'geo': 0.925, 'min': 0.795}
+fmnist | SGD deep 0.3 | 4 {'knn15': 0.208, 'sp': 0.695, 'ari': 0.418, 'geo': 0.757, 'min': 0.629}
+fmnist | SGD deep 0.3 + post | 4 {'knn15': 0.207, 'sp': 0.68, 'ari': 0.421, 'geo': 0.753, 'min': 0.628}
+fmnist | SGD deep 0.3 x2 | 4 {'knn15': 0.206, 'sp': 0.719, 'ari': 0.374, 'geo': 0.736, 'min': 0.625}
+fmnist | SGD deep 0.3 x2 + post | 4 {'knn15': 0.206, 'sp': 0.704, 'ari': 0.399, 'geo': 0.747, 'min': 0.625}
+fmnist | hybrid deep 0.3 | 4 {'knn15': 0.328, 'sp': 0.706, 'ari': 0.352, 'geo': 0.836, 'min': 0.729}
+fmnist | hybrid deep 0.3 + post | 4 {'knn15': 0.328, 'sp': 0.68, 'ari': 0.432, 'geo': 0.884, 'min': 0.779}
+fmnist | hybrid deep 0.3 x2 | 4 {'knn15': 0.328, 'sp': 0.721, 'ari': 0.343, 'geo': 0.836, 'min': 0.71}
+fmnist | hybrid deep 0.3 x2 + post | 4 {'knn15': 0.328, 'sp': 0.692, 'ari': 0.428, 'geo': 0.887, 'min': 0.793}

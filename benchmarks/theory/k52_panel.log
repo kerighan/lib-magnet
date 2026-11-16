@@ -1,0 +1,171 @@
+fmnist | SGD mid_in_comm | 0 {'knn15': 0.207, 'sp': 0.617, 'ari': 0.411, 'geo': 0.723, 'min': 0.629, 'fit_s': 6.0, 'n_comm': 4}
+fmnist | SGD mid_in_comm + placement | 0 {'knn15': 0.206, 'sp': 0.647, 'ari': 0.415, 'geo': 0.736, 'min': 0.626, 'fit_s': 9.6, 'n_comm': 4}
+fmnist | SGD mid_in_comm + contraction | 0 {'knn15': 0.207, 'sp': 0.626, 'ari': 0.439, 'geo': 0.743, 'min': 0.628, 'fit_s': 9.7, 'n_comm': 4}
+fmnist | hybrid mid_in_comm | 0 {'knn15': 0.329, 'sp': 0.653, 'ari': 0.407, 'geo': 0.856, 'min': 0.748, 'fit_s': 11.1, 'n_comm': 4}
+fmnist | hybrid mid_in_comm + placement | 0 {'knn15': 0.328, 'sp': 0.666, 'ari': 0.409, 'geo': 0.863, 'min': 0.763, 'fit_s': 14.7, 'n_comm': 4}
+fmnist | hybrid mid_in_comm + contraction | 0 {'knn15': 0.328, 'sp': 0.644, 'ari': 0.447, 'geo': 0.879, 'min': 0.738, 'fit_s': 14.8, 'n_comm': 4}
+fmnist | SGD mid_in_comm | 1 {'knn15': 0.206, 'sp': 0.591, 'ari': 0.41, 'geo': 0.711, 'min': 0.625, 'fit_s': 5.5, 'n_comm': 3}
+fmnist | SGD mid_in_comm + placement | 1 {'knn15': 0.206, 'sp': 0.626, 'ari': 0.411, 'geo': 0.725, 'min': 0.624, 'fit_s': 9.1, 'n_comm': 3}
+fmnist | SGD mid_in_comm + contraction | 1 {'knn15': 0.206, 'sp': 0.592, 'ari': 0.408, 'geo': 0.71, 'min': 0.625, 'fit_s': 9.4, 'n_comm': 3}
+fmnist | hybrid mid_in_comm | 1 {'knn15': 0.327, 'sp': 0.652, 'ari': 0.368, 'geo': 0.826, 'min': 0.747, 'fit_s': 10.7, 'n_comm': 3}
+fmnist | hybrid mid_in_comm + placement | 1 {'knn15': 0.326, 'sp': 0.66, 'ari': 0.361, 'geo': 0.823, 'min': 0.747, 'fit_s': 14.5, 'n_comm': 3}
+fmnist | hybrid mid_in_comm + contraction | 1 {'knn15': 0.326, 'sp': 0.62, 'ari': 0.381, 'geo': 0.821, 'min': 0.71, 'fit_s': 13.9, 'n_comm': 3}
+fmnist | SGD mid_in_comm | 2 {'knn15': 0.21, 'sp': 0.631, 'ari': 0.444, 'geo': 0.751, 'min': 0.637, 'fit_s': 6.0, 'n_comm': 4}
+fmnist | SGD mid_in_comm + placement | 2 {'knn15': 0.209, 'sp': 0.664, 'ari': 0.416, 'geo': 0.746, 'min': 0.634, 'fit_s': 10.0, 'n_comm': 4}
+fmnist | SGD mid_in_comm + contraction | 2 {'knn15': 0.21, 'sp': 0.637, 'ari': 0.439, 'geo': 0.75, 'min': 0.637, 'fit_s': 9.5, 'n_comm': 4}
+fmnist | hybrid mid_in_comm | 2 {'knn15': 0.329, 'sp': 0.686, 'ari': 0.472, 'geo': 0.914, 'min': 0.786, 'fit_s': 10.9, 'n_comm': 4}
+fmnist | hybrid mid_in_comm + placement | 2 {'knn15': 0.329, 'sp': 0.694, 'ari': 0.493, 'geo': 0.932, 'min': 0.795, 'fit_s': 14.3, 'n_comm': 4}
+fmnist | hybrid mid_in_comm + contraction | 2 {'knn15': 0.329, 'sp': 0.662, 'ari': 0.52, 'geo': 0.934, 'min': 0.759, 'fit_s': 14.2, 'n_comm': 4}
+fmnist | SGD mid_in_comm | 3 {'knn15': 0.208, 'sp': 0.623, 'ari': 0.442, 'geo': 0.744, 'min': 0.631, 'fit_s': 6.5, 'n_comm': 4}
+fmnist | SGD mid_in_comm + placement | 3 {'knn15': 0.207, 'sp': 0.651, 'ari': 0.416, 'geo': 0.739, 'min': 0.628, 'fit_s': 10.0, 'n_comm': 4}
+fmnist | SGD mid_in_comm + contraction | 3 {'knn15': 0.208, 'sp': 0.626, 'ari': 0.434, 'geo': 0.741, 'min': 0.631, 'fit_s': 9.8, 'n_comm': 4}
+fmnist | hybrid mid_in_comm | 3 {'knn15': 0.327, 'sp': 0.691, 'ari': 0.382, 'geo': 0.853, 'min': 0.791, 'fit_s': 12.0, 'n_comm': 4}
+fmnist | hybrid mid_in_comm + placement | 3 {'knn15': 0.327, 'sp': 0.7, 'ari': 0.474, 'geo': 0.92, 'min': 0.801, 'fit_s': 15.3, 'n_comm': 4}
+fmnist | hybrid mid_in_comm + contraction | 3 {'knn15': 0.327, 'sp': 0.668, 'ari': 0.514, 'geo': 0.931, 'min': 0.766, 'fit_s': 15.5, 'n_comm': 4}
+fmnist | SGD mid_in_comm | 4 {'knn15': 0.205, 'sp': 0.628, 'ari': 0.442, 'geo': 0.743, 'min': 0.622, 'fit_s': 6.8, 'n_comm': 4}
+fmnist | SGD mid_in_comm + placement | 4 {'knn15': 0.204, 'sp': 0.664, 'ari': 0.375, 'geo': 0.715, 'min': 0.619, 'fit_s': 9.9, 'n_comm': 4}
+fmnist | SGD mid_in_comm + contraction | 4 {'knn15': 0.205, 'sp': 0.64, 'ari': 0.407, 'geo': 0.727, 'min': 0.622, 'fit_s': 10.3, 'n_comm': 4}
+fmnist | hybrid mid_in_comm | 4 {'knn15': 0.327, 'sp': 0.678, 'ari': 0.445, 'geo': 0.892, 'min': 0.776, 'fit_s': 11.6, 'n_comm': 4}
+fmnist | hybrid mid_in_comm + placement | 4 {'knn15': 0.327, 'sp': 0.685, 'ari': 0.471, 'geo': 0.912, 'min': 0.785, 'fit_s': 15.2, 'n_comm': 4}
+fmnist | hybrid mid_in_comm + contraction | 4 {'knn15': 0.327, 'sp': 0.656, 'ari': 0.488, 'geo': 0.909, 'min': 0.751, 'fit_s': 15.3, 'n_comm': 4}
+
+=== covertype_20000 (54 features, metric euclidean, hand-over scale 16.6)
+2026-11-16 09:23:12.115603: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1794817392.183917 1744917 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1794817392.204542 1744917 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2026-11-16 09:23:12.348407: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+
+=== letter_20000 (16 features, metric euclidean, hand-over scale 16.6)
+
+=== covertype_70000 (54 features, metric euclidean, hand-over scale 31.0)
+
+=== rcv1_70000 (300 features, metric cosine, hand-over scale 31.0)
+
+=== covertype_250000 (54 features, metric euclidean, hand-over scale 58.6)
+letter | SGD mid_in_comm | 0 {'knn15': 0.474, 'sp': 0.322, 'ari': 0.206, 'geo': 0.576, 'min': 0.45, 'fit_s': 1.2, 'n_comm': 67}
+letter | SGD mid_in_comm + placement | 0 {'knn15': 0.471, 'sp': 0.426, 'ari': 0.164, 'geo': 0.661, 'min': 0.594, 'fit_s': 5.1, 'n_comm': 67}
+letter | SGD mid_in_comm + contraction | 0 {'knn15': 0.472, 'sp': 0.433, 'ari': 0.163, 'geo': 0.667, 'min': 0.604, 'fit_s': 5.4, 'n_comm': 67}
+letter | hybrid mid_in_comm | 0 {'knn15': 0.627, 'sp': 0.272, 'ari': 0.184, 'geo': 0.609, 'min': 0.38, 'fit_s': 4.7, 'n_comm': 67}
+letter | hybrid mid_in_comm + placement | 0 {'knn15': 0.622, 'sp': 0.327, 'ari': 0.181, 'geo': 0.665, 'min': 0.457, 'fit_s': 9.4, 'n_comm': 67}
+letter | hybrid mid_in_comm + contraction | 0 {'knn15': 0.625, 'sp': 0.332, 'ari': 0.204, 'geo': 0.672, 'min': 0.463, 'fit_s': 9.5, 'n_comm': 67}
+letter | SGD mid_in_comm | 1 {'knn15': 0.477, 'sp': 0.313, 'ari': 0.214, 'geo': 0.57, 'min': 0.437, 'fit_s': 1.4, 'n_comm': 68}
+letter | SGD mid_in_comm + placement | 1 {'knn15': 0.474, 'sp': 0.412, 'ari': 0.163, 'geo': 0.652, 'min': 0.575, 'fit_s': 5.2, 'n_comm': 68}
+letter | SGD mid_in_comm + contraction | 1 {'knn15': 0.475, 'sp': 0.419, 'ari': 0.165, 'geo': 0.658, 'min': 0.585, 'fit_s': 5.4, 'n_comm': 68}
+letter | hybrid mid_in_comm | 1 {'knn15': 0.626, 'sp': 0.282, 'ari': 0.206, 'geo': 0.62, 'min': 0.394, 'fit_s': 4.7, 'n_comm': 68}
+letter | hybrid mid_in_comm + placement | 1 {'knn15': 0.622, 'sp': 0.329, 'ari': 0.21, 'geo': 0.667, 'min': 0.46, 'fit_s': 9.1, 'n_comm': 68}
+letter | hybrid mid_in_comm + contraction | 1 {'knn15': 0.624, 'sp': 0.334, 'ari': 0.208, 'geo': 0.673, 'min': 0.467, 'fit_s': 9.4, 'n_comm': 68}
+letter | SGD mid_in_comm | 2 {'knn15': 0.466, 'sp': 0.356, 'ari': 0.223, 'geo': 0.601, 'min': 0.498, 'fit_s': 1.5, 'n_comm': 69}
+letter | SGD mid_in_comm + placement | 2 {'knn15': 0.464, 'sp': 0.433, 'ari': 0.176, 'geo': 0.661, 'min': 0.604, 'fit_s': 5.7, 'n_comm': 69}
+letter | SGD mid_in_comm + contraction | 2 {'knn15': 0.465, 'sp': 0.437, 'ari': 0.194, 'geo': 0.665, 'min': 0.611, 'fit_s': 5.4, 'n_comm': 69}
+letter | hybrid mid_in_comm | 2 {'knn15': 0.626, 'sp': 0.316, 'ari': 0.183, 'geo': 0.656, 'min': 0.442, 'fit_s': 4.6, 'n_comm': 69}
+letter | hybrid mid_in_comm + placement | 2 {'knn15': 0.623, 'sp': 0.35, 'ari': 0.167, 'geo': 0.689, 'min': 0.489, 'fit_s': 9.4, 'n_comm': 69}
+letter | hybrid mid_in_comm + contraction | 2 {'knn15': 0.623, 'sp': 0.355, 'ari': 0.214, 'geo': 0.694, 'min': 0.496, 'fit_s': 8.9, 'n_comm': 69}
+letter | SGD mid_in_comm | 3 {'knn15': 0.486, 'sp': 0.362, 'ari': 0.196, 'geo': 0.619, 'min': 0.506, 'fit_s': 1.5, 'n_comm': 70}
+letter | SGD mid_in_comm + placement | 3 {'knn15': 0.483, 'sp': 0.445, 'ari': 0.173, 'geo': 0.684, 'min': 0.621, 'fit_s': 5.9, 'n_comm': 70}
+letter | SGD mid_in_comm + contraction | 3 {'knn15': 0.485, 'sp': 0.451, 'ari': 0.17, 'geo': 0.69, 'min': 0.63, 'fit_s': 5.5, 'n_comm': 70}
+letter | hybrid mid_in_comm | 3 {'knn15': 0.625, 'sp': 0.33, 'ari': 0.222, 'geo': 0.67, 'min': 0.46, 'fit_s': 4.1, 'n_comm': 70}
+letter | hybrid mid_in_comm + placement | 3 {'knn15': 0.622, 'sp': 0.364, 'ari': 0.208, 'geo': 0.702, 'min': 0.509, 'fit_s': 9.0, 'n_comm': 70}
+letter | hybrid mid_in_comm + contraction | 3 {'knn15': 0.623, 'sp': 0.37, 'ari': 0.218, 'geo': 0.708, 'min': 0.517, 'fit_s': 8.6, 'n_comm': 70}
+letter | SGD mid_in_comm | 4 {'knn15': 0.469, 'sp': 0.239, 'ari': 0.206, 'geo': 0.494, 'min': 0.334, 'fit_s': 1.3, 'n_comm': 71}
+letter | SGD mid_in_comm + placement | 4 {'knn15': 0.468, 'sp': 0.356, 'ari': 0.193, 'geo': 0.602, 'min': 0.498, 'fit_s': 4.9, 'n_comm': 71}
+letter | SGD mid_in_comm + contraction | 4 {'knn15': 0.468, 'sp': 0.366, 'ari': 0.163, 'geo': 0.61, 'min': 0.511, 'fit_s': 4.9, 'n_comm': 71}
+letter | hybrid mid_in_comm | 4 {'knn15': 0.625, 'sp': 0.202, 'ari': 0.172, 'geo': 0.524, 'min': 0.282, 'fit_s': 3.8, 'n_comm': 71}
+letter | hybrid mid_in_comm + placement | 4 {'knn15': 0.622, 'sp': 0.273, 'ari': 0.188, 'geo': 0.608, 'min': 0.382, 'fit_s': 8.1, 'n_comm': 71}
+letter | hybrid mid_in_comm + contraction | 4 {'knn15': 0.622, 'sp': 0.277, 'ari': 0.206, 'geo': 0.612, 'min': 0.387, 'fit_s': 8.0, 'n_comm': 71}
+covertype | SGD mid_in_comm | 0 {'knn15': 0.476, 'sp': 0.407, 'ari': 0.025, 'geo': 0.638, 'min': 0.54, 'fit_s': 1.1, 'n_comm': 59}
+covertype | SGD mid_in_comm + placement | 0 {'knn15': 0.475, 'sp': 0.729, 'ari': 0.059, 'geo': 0.852, 'min': 0.752, 'fit_s': 4.8, 'n_comm': 59}
+covertype | SGD mid_in_comm + contraction | 0 {'knn15': 0.475, 'sp': 0.743, 'ari': 0.086, 'geo': 0.86, 'min': 0.752, 'fit_s': 4.9, 'n_comm': 59}
+covertype | hybrid mid_in_comm | 0 {'knn15': 0.625, 'sp': 0.387, 'ari': 0.023, 'geo': 0.712, 'min': 0.512, 'fit_s': 3.8, 'n_comm': 59}
+covertype | hybrid mid_in_comm + placement | 0 {'knn15': 0.623, 'sp': 0.534, 'ari': 0.038, 'geo': 0.835, 'min': 0.707, 'fit_s': 8.3, 'n_comm': 59}
+covertype | hybrid mid_in_comm + contraction | 0 {'knn15': 0.624, 'sp': 0.55, 'ari': 0.056, 'geo': 0.848, 'min': 0.728, 'fit_s': 8.4, 'n_comm': 59}
+covertype | SGD mid_in_comm | 1 {'knn15': 0.473, 'sp': 0.429, 'ari': 0.04, 'geo': 0.652, 'min': 0.569, 'fit_s': 1.2, 'n_comm': 61}
+covertype | SGD mid_in_comm + placement | 1 {'knn15': 0.473, 'sp': 0.733, 'ari': 0.121, 'geo': 0.852, 'min': 0.748, 'fit_s': 5.1, 'n_comm': 61}
+covertype | SGD mid_in_comm + contraction | 1 {'knn15': 0.471, 'sp': 0.749, 'ari': 0.12, 'geo': 0.86, 'min': 0.746, 'fit_s': 5.1, 'n_comm': 61}
+covertype | hybrid mid_in_comm | 1 {'knn15': 0.624, 'sp': 0.379, 'ari': 0.039, 'geo': 0.704, 'min': 0.502, 'fit_s': 4.4, 'n_comm': 61}
+covertype | hybrid mid_in_comm + placement | 1 {'knn15': 0.622, 'sp': 0.564, 'ari': 0.068, 'geo': 0.857, 'min': 0.747, 'fit_s': 8.8, 'n_comm': 61}
+covertype | hybrid mid_in_comm + contraction | 1 {'knn15': 0.623, 'sp': 0.583, 'ari': 0.052, 'geo': 0.872, 'min': 0.772, 'fit_s': 8.9, 'n_comm': 61}
+covertype | SGD mid_in_comm | 2 {'knn15': 0.474, 'sp': 0.443, 'ari': 0.047, 'geo': 0.664, 'min': 0.587, 'fit_s': 1.1, 'n_comm': 62}
+covertype | SGD mid_in_comm + placement | 2 {'knn15': 0.473, 'sp': 0.729, 'ari': 0.09, 'geo': 0.85, 'min': 0.749, 'fit_s': 5.7, 'n_comm': 62}
+covertype | SGD mid_in_comm + contraction | 2 {'knn15': 0.474, 'sp': 0.742, 'ari': 0.091, 'geo': 0.858, 'min': 0.75, 'fit_s': 5.2, 'n_comm': 62}
+covertype | hybrid mid_in_comm | 2 {'knn15': 0.626, 'sp': 0.395, 'ari': 0.022, 'geo': 0.72, 'min': 0.524, 'fit_s': 4.0, 'n_comm': 62}
+covertype | hybrid mid_in_comm + placement | 2 {'knn15': 0.623, 'sp': 0.566, 'ari': 0.044, 'geo': 0.86, 'min': 0.75, 'fit_s': 8.6, 'n_comm': 62}
+covertype | hybrid mid_in_comm + contraction | 2 {'knn15': 0.626, 'sp': 0.584, 'ari': 0.053, 'geo': 0.875, 'min': 0.774, 'fit_s': 8.7, 'n_comm': 62}
+covertype | SGD mid_in_comm | 3 {'knn15': 0.472, 'sp': 0.383, 'ari': 0.047, 'geo': 0.615, 'min': 0.507, 'fit_s': 1.4, 'n_comm': 61}
+covertype | SGD mid_in_comm + placement | 3 {'knn15': 0.47, 'sp': 0.711, 'ari': 0.084, 'geo': 0.837, 'min': 0.744, 'fit_s': 5.5, 'n_comm': 61}
+covertype | SGD mid_in_comm + contraction | 3 {'knn15': 0.47, 'sp': 0.722, 'ari': 0.104, 'geo': 0.843, 'min': 0.744, 'fit_s': 6.0, 'n_comm': 61}
+covertype | hybrid mid_in_comm | 3 {'knn15': 0.626, 'sp': 0.341, 'ari': 0.028, 'geo': 0.669, 'min': 0.451, 'fit_s': 4.1, 'n_comm': 61}
+covertype | hybrid mid_in_comm + placement | 3 {'knn15': 0.622, 'sp': 0.534, 'ari': 0.048, 'geo': 0.834, 'min': 0.707, 'fit_s': 9.1, 'n_comm': 61}
+covertype | hybrid mid_in_comm + contraction | 3 {'knn15': 0.624, 'sp': 0.546, 'ari': 0.058, 'geo': 0.845, 'min': 0.723, 'fit_s': 8.6, 'n_comm': 61}
+covertype | SGD mid_in_comm | 4 {'knn15': 0.471, 'sp': 0.386, 'ari': 0.018, 'geo': 0.617, 'min': 0.511, 'fit_s': 1.3, 'n_comm': 62}
+covertype | SGD mid_in_comm + placement | 4 {'knn15': 0.471, 'sp': 0.706, 'ari': 0.067, 'geo': 0.835, 'min': 0.745, 'fit_s': 5.7, 'n_comm': 62}
+covertype | SGD mid_in_comm + contraction | 4 {'knn15': 0.471, 'sp': 0.718, 'ari': 0.057, 'geo': 0.842, 'min': 0.746, 'fit_s': 5.5, 'n_comm': 62}
+covertype | hybrid mid_in_comm | 4 {'knn15': 0.625, 'sp': 0.29, 'ari': 0.008, 'geo': 0.617, 'min': 0.384, 'fit_s': 4.6, 'n_comm': 62}
+covertype | hybrid mid_in_comm + placement | 4 {'knn15': 0.621, 'sp': 0.441, 'ari': 0.032, 'geo': 0.758, 'min': 0.585, 'fit_s': 9.3, 'n_comm': 62}
+covertype | hybrid mid_in_comm + contraction | 4 {'knn15': 0.624, 'sp': 0.453, 'ari': 0.04, 'geo': 0.769, 'min': 0.6, 'fit_s': 9.8, 'n_comm': 62}
+pbmc68k | SGD mid_in_comm | 0 {'knn15': 0.056, 'sp': 0.783, 'ari': 0.221, 'geo': 0.667, 'min': 0.375, 'fit_s': 4.2, 'n_comm': 6}
+pbmc68k | SGD mid_in_comm + placement | 0 {'knn15': 0.056, 'sp': 0.834, 'ari': 0.222, 'geo': 0.682, 'min': 0.375, 'fit_s': 7.5, 'n_comm': 6}
+pbmc68k | SGD mid_in_comm + contraction | 0 {'knn15': 0.056, 'sp': 0.83, 'ari': 0.241, 'geo': 0.7, 'min': 0.375, 'fit_s': 7.3, 'n_comm': 6}
+pbmc68k | hybrid mid_in_comm | 0 {'knn15': 0.151, 'sp': 0.801, 'ari': 0.201, 'geo': 0.904, 'min': 0.794, 'fit_s': 13.9, 'n_comm': 6}
+pbmc68k | hybrid mid_in_comm + placement | 0 {'knn15': 0.151, 'sp': 0.817, 'ari': 0.201, 'geo': 0.91, 'min': 0.796, 'fit_s': 17.2, 'n_comm': 6}
+pbmc68k | hybrid mid_in_comm + contraction | 0 {'knn15': 0.151, 'sp': 0.813, 'ari': 0.219, 'geo': 0.935, 'min': 0.867, 'fit_s': 17.0, 'n_comm': 6}
+pbmc68k | SGD mid_in_comm | 1 {'knn15': 0.058, 'sp': 0.782, 'ari': 0.215, 'geo': 0.666, 'min': 0.384, 'fit_s': 4.9, 'n_comm': 5}
+pbmc68k | SGD mid_in_comm + placement | 1 {'knn15': 0.058, 'sp': 0.831, 'ari': 0.232, 'geo': 0.696, 'min': 0.383, 'fit_s': 8.0, 'n_comm': 5}
+pbmc68k | SGD mid_in_comm + contraction | 1 {'knn15': 0.058, 'sp': 0.826, 'ari': 0.232, 'geo': 0.695, 'min': 0.384, 'fit_s': 8.4, 'n_comm': 5}
+pbmc68k | hybrid mid_in_comm | 1 {'knn15': 0.151, 'sp': 0.813, 'ari': 0.196, 'geo': 0.901, 'min': 0.775, 'fit_s': 16.7, 'n_comm': 5}
+pbmc68k | hybrid mid_in_comm + placement | 1 {'knn15': 0.151, 'sp': 0.825, 'ari': 0.195, 'geo': 0.904, 'min': 0.771, 'fit_s': 19.8, 'n_comm': 5}
+pbmc68k | hybrid mid_in_comm + contraction | 1 {'knn15': 0.151, 'sp': 0.817, 'ari': 0.199, 'geo': 0.907, 'min': 0.787, 'fit_s': 20.4, 'n_comm': 5}
+pbmc68k | SGD mid_in_comm | 2 {'knn15': 0.057, 'sp': 0.809, 'ari': 0.219, 'geo': 0.676, 'min': 0.38, 'fit_s': 4.4, 'n_comm': 6}
+pbmc68k | SGD mid_in_comm + placement | 2 {'knn15': 0.057, 'sp': 0.836, 'ari': 0.229, 'geo': 0.693, 'min': 0.38, 'fit_s': 7.4, 'n_comm': 6}
+pbmc68k | SGD mid_in_comm + contraction | 2 {'knn15': 0.057, 'sp': 0.834, 'ari': 0.235, 'geo': 0.698, 'min': 0.38, 'fit_s': 7.6, 'n_comm': 6}
+pbmc68k | hybrid mid_in_comm | 2 {'knn15': 0.152, 'sp': 0.801, 'ari': 0.199, 'geo': 0.902, 'min': 0.785, 'fit_s': 14.8, 'n_comm': 6}
+pbmc68k | hybrid mid_in_comm + placement | 2 {'knn15': 0.152, 'sp': 0.824, 'ari': 0.196, 'geo': 0.906, 'min': 0.775, 'fit_s': 17.8, 'n_comm': 6}
+pbmc68k | hybrid mid_in_comm + contraction | 2 {'knn15': 0.152, 'sp': 0.82, 'ari': 0.217, 'geo': 0.936, 'min': 0.856, 'fit_s': 18.1, 'n_comm': 6}
+pbmc68k | SGD mid_in_comm | 3 {'knn15': 0.057, 'sp': 0.801, 'ari': 0.224, 'geo': 0.678, 'min': 0.379, 'fit_s': 4.9, 'n_comm': 6}
+pbmc68k | SGD mid_in_comm + placement | 3 {'knn15': 0.057, 'sp': 0.832, 'ari': 0.227, 'geo': 0.689, 'min': 0.379, 'fit_s': 8.0, 'n_comm': 6}
+pbmc68k | SGD mid_in_comm + contraction | 3 {'knn15': 0.057, 'sp': 0.828, 'ari': 0.227, 'geo': 0.688, 'min': 0.379, 'fit_s': 8.4, 'n_comm': 6}
+pbmc68k | hybrid mid_in_comm | 3 {'knn15': 0.152, 'sp': 0.801, 'ari': 0.197, 'geo': 0.9, 'min': 0.778, 'fit_s': 16.4, 'n_comm': 6}
+pbmc68k | hybrid mid_in_comm + placement | 3 {'knn15': 0.152, 'sp': 0.821, 'ari': 0.195, 'geo': 0.905, 'min': 0.773, 'fit_s': 19.9, 'n_comm': 6}
+pbmc68k | hybrid mid_in_comm + contraction | 3 {'knn15': 0.152, 'sp': 0.816, 'ari': 0.214, 'geo': 0.932, 'min': 0.848, 'fit_s': 19.6, 'n_comm': 6}
+pbmc68k | SGD mid_in_comm | 4 {'knn15': 0.056, 'sp': 0.732, 'ari': 0.211, 'geo': 0.641, 'min': 0.373, 'fit_s': 4.3, 'n_comm': 5}
+pbmc68k | SGD mid_in_comm + placement | 4 {'knn15': 0.056, 'sp': 0.738, 'ari': 0.21, 'geo': 0.642, 'min': 0.373, 'fit_s': 7.6, 'n_comm': 5}
+pbmc68k | SGD mid_in_comm + contraction | 4 {'knn15': 0.056, 'sp': 0.728, 'ari': 0.213, 'geo': 0.642, 'min': 0.373, 'fit_s': 7.3, 'n_comm': 5}
+pbmc68k | hybrid mid_in_comm | 4 {'knn15': 0.153, 'sp': 0.717, 'ari': 0.205, 'geo': 0.882, 'min': 0.812, 'fit_s': 15.9, 'n_comm': 5}
+pbmc68k | hybrid mid_in_comm + placement | 4 {'knn15': 0.153, 'sp': 0.724, 'ari': 0.207, 'geo': 0.886, 'min': 0.817, 'fit_s': 19.0, 'n_comm': 5}
+pbmc68k | hybrid mid_in_comm + contraction | 4 {'knn15': 0.153, 'sp': 0.713, 'ari': 0.211, 'geo': 0.888, 'min': 0.825, 'fit_s': 18.9, 'n_comm': 5}
+tasic2018 | SGD mid_in_comm | 0 {'knn15': 0.356, 'sp': 0.491, 'ari': 0.65, 'geo': 0.725, 'min': 0.522, 'fit_s': 1.2, 'n_comm': 18}
+tasic2018 | SGD mid_in_comm + placement | 0 {'knn15': 0.355, 'sp': 0.78, 'ari': 0.577, 'geo': 0.812, 'min': 0.727, 'fit_s': 4.7, 'n_comm': 18}
+tasic2018 | SGD mid_in_comm + contraction | 0 {'knn15': 0.355, 'sp': 0.793, 'ari': 0.644, 'geo': 0.847, 'min': 0.727, 'fit_s': 4.6, 'n_comm': 18}
+tasic2018 | hybrid mid_in_comm | 0 {'knn15': 0.486, 'sp': 0.459, 'ari': 0.445, 'geo': 0.693, 'min': 0.488, 'fit_s': 4.2, 'n_comm': 18}
+tasic2018 | hybrid mid_in_comm + placement | 0 {'knn15': 0.484, 'sp': 0.683, 'ari': 0.469, 'geo': 0.804, 'min': 0.723, 'fit_s': 7.9, 'n_comm': 18}
+tasic2018 | hybrid mid_in_comm + contraction | 0 {'knn15': 0.486, 'sp': 0.704, 'ari': 0.516, 'geo': 0.84, 'min': 0.748, 'fit_s': 8.0, 'n_comm': 18}
+tasic2018 | SGD mid_in_comm | 1 {'knn15': 0.354, 'sp': 0.402, 'ari': 0.609, 'geo': 0.662, 'min': 0.427, 'fit_s': 1.5, 'n_comm': 18}
+tasic2018 | SGD mid_in_comm + placement | 1 {'knn15': 0.353, 'sp': 0.702, 'ari': 0.53, 'geo': 0.761, 'min': 0.723, 'fit_s': 4.8, 'n_comm': 18}
+tasic2018 | SGD mid_in_comm + contraction | 1 {'knn15': 0.354, 'sp': 0.716, 'ari': 0.573, 'geo': 0.787, 'min': 0.724, 'fit_s': 5.2, 'n_comm': 18}
+tasic2018 | hybrid mid_in_comm | 1 {'knn15': 0.485, 'sp': 0.334, 'ari': 0.47, 'geo': 0.634, 'min': 0.355, 'fit_s': 4.3, 'n_comm': 18}
+tasic2018 | hybrid mid_in_comm + placement | 1 {'knn15': 0.484, 'sp': 0.506, 'ari': 0.489, 'geo': 0.737, 'min': 0.538, 'fit_s': 8.0, 'n_comm': 18}
+tasic2018 | hybrid mid_in_comm + contraction | 1 {'knn15': 0.485, 'sp': 0.537, 'ari': 0.537, 'geo': 0.777, 'min': 0.57, 'fit_s': 8.3, 'n_comm': 18}
+tasic2018 | SGD mid_in_comm | 2 {'knn15': 0.358, 'sp': 0.457, 'ari': 0.651, 'geo': 0.709, 'min': 0.485, 'fit_s': 1.3, 'n_comm': 18}
+tasic2018 | SGD mid_in_comm + placement | 2 {'knn15': 0.357, 'sp': 0.709, 'ari': 0.589, 'geo': 0.793, 'min': 0.73, 'fit_s': 4.8, 'n_comm': 18}
+tasic2018 | SGD mid_in_comm + contraction | 2 {'knn15': 0.358, 'sp': 0.721, 'ari': 0.612, 'geo': 0.809, 'min': 0.732, 'fit_s': 5.0, 'n_comm': 18}
+tasic2018 | hybrid mid_in_comm | 2 {'knn15': 0.486, 'sp': 0.376, 'ari': 0.462, 'geo': 0.656, 'min': 0.399, 'fit_s': 4.1, 'n_comm': 18}
+tasic2018 | hybrid mid_in_comm + placement | 2 {'knn15': 0.484, 'sp': 0.571, 'ari': 0.484, 'geo': 0.766, 'min': 0.607, 'fit_s': 7.9, 'n_comm': 18}
+tasic2018 | hybrid mid_in_comm + contraction | 2 {'knn15': 0.485, 'sp': 0.595, 'ari': 0.553, 'geo': 0.812, 'min': 0.633, 'fit_s': 8.4, 'n_comm': 18}
+tasic2018 | SGD mid_in_comm | 3 {'knn15': 0.353, 'sp': 0.515, 'ari': 0.579, 'geo': 0.707, 'min': 0.547, 'fit_s': 1.3, 'n_comm': 18}
+tasic2018 | SGD mid_in_comm + placement | 3 {'knn15': 0.352, 'sp': 0.751, 'ari': 0.574, 'geo': 0.799, 'min': 0.721, 'fit_s': 4.7, 'n_comm': 18}
+tasic2018 | SGD mid_in_comm + contraction | 3 {'knn15': 0.353, 'sp': 0.757, 'ari': 0.66, 'geo': 0.839, 'min': 0.723, 'fit_s': 5.0, 'n_comm': 18}
+tasic2018 | hybrid mid_in_comm | 3 {'knn15': 0.484, 'sp': 0.444, 'ari': 0.459, 'geo': 0.692, 'min': 0.472, 'fit_s': 4.5, 'n_comm': 18}
+tasic2018 | hybrid mid_in_comm + placement | 3 {'knn15': 0.482, 'sp': 0.617, 'ari': 0.464, 'geo': 0.774, 'min': 0.656, 'fit_s': 8.2, 'n_comm': 18}
+tasic2018 | hybrid mid_in_comm + contraction | 3 {'knn15': 0.483, 'sp': 0.64, 'ari': 0.505, 'geo': 0.806, 'min': 0.68, 'fit_s': 8.5, 'n_comm': 18}
+tasic2018 | SGD mid_in_comm | 4 {'knn15': 0.353, 'sp': 0.385, 'ari': 0.626, 'geo': 0.658, 'min': 0.409, 'fit_s': 1.6, 'n_comm': 18}
+tasic2018 | SGD mid_in_comm + placement | 4 {'knn15': 0.353, 'sp': 0.663, 'ari': 0.603, 'geo': 0.779, 'min': 0.705, 'fit_s': 4.8, 'n_comm': 18}
+tasic2018 | SGD mid_in_comm + contraction | 4 {'knn15': 0.353, 'sp': 0.676, 'ari': 0.617, 'geo': 0.791, 'min': 0.718, 'fit_s': 5.1, 'n_comm': 18}
+tasic2018 | hybrid mid_in_comm | 4 {'knn15': 0.486, 'sp': 0.314, 'ari': 0.452, 'geo': 0.614, 'min': 0.334, 'fit_s': 4.3, 'n_comm': 18}
+tasic2018 | hybrid mid_in_comm + placement | 4 {'knn15': 0.484, 'sp': 0.504, 'ari': 0.445, 'geo': 0.714, 'min': 0.535, 'fit_s': 8.0, 'n_comm': 18}
+tasic2018 | hybrid mid_in_comm + contraction | 4 {'knn15': 0.485, 'sp': 0.528, 'ari': 0.548, 'geo': 0.778, 'min': 0.561, 'fit_s': 8.0, 'n_comm': 18}

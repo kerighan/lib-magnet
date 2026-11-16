@@ -1,0 +1,82 @@
+{
+ "UMAP": {
+  "knn_acc": 0.9523,
+  "nn15": 0.10721999999999998,
+  "self": 3.701499531986321,
+  "fit_s": 102.8,
+  "transform_s": 10.93
+ },
+ "openTSNE": {
+  "knn_acc": 0.9474,
+  "nn15": 0.26370666666666664,
+  "self": 0.15137336946421576,
+  "fit_s": 184.5,
+  "transform_s": 11.45
+ },
+ "ref (all 70k) MAGNET SGD": {
+  "knn_acc": 0.9664,
+  "nn15": 0.19685333333333335,
+  "self": null
+ },
+ "ref (all 70k) MAGNET hybrid": {
+  "knn_acc": 0.9663,
+  "nn15": 0.34754666666666667,
+  "self": null
+ },
+ "MAGNET SGD (v3.0.0: step 1, 50 epochs)": {
+  "knn_acc": 0.921,
+  "nn15": 0.12038,
+  "self": 6.2176673375093525,
+  "fit_s": 12.0,
+  "transform_s": 1.1
+ },
+ "MAGNET full-batch (v3.0.0: step 1, 50 epochs)": {
+  "knn_acc": 0.9507,
+  "nn15": 0.28568000000000005,
+  "self": 0.5653887552542546,
+  "fit_s": 22.6,
+  "transform_s": 1.19
+ },
+ "MAGNET hybrid (v3.0.0: step 1, 50 epochs)": {
+  "knn_acc": 0.9386,
+  "nn15": 0.28373333333333334,
+  "self": 0.532013825866546,
+  "fit_s": 28.3,
+  "transform_s": 1.19
+ },
+ "MAGNET hybrid + contraction (v3.0.0: step 1, 50 epochs)": {
+  "knn_acc": 0.9382,
+  "nn15": 0.2864,
+  "self": 0.6513959469405365,
+  "fit_s": 30.6,
+  "transform_s": 1.17
+ },
+ "MAGNET SGD": {
+  "knn_acc": 0.9594,
+  "nn15": 0.18511333333333332,
+  "self": 1.3153178563645644,
+  "fit_s": 11.8,
+  "transform_s": 1.87
+ },
+ "MAGNET full-batch": {
+  "knn_acc": 0.9567,
+  "nn15": 0.29372000000000004,
+  "self": 0.3213328528049597,
+  "fit_s": 24.4,
+  "transform_s": 1.91
+ },
+ "MAGNET hybrid": {
+  "knn_acc": 0.9439,
+  "nn15": 0.2916733333333333,
+  "self": 0.3324873537052795,
+  "fit_s": 28.3,
+  "transform_s": 1.72
+ },
+ "MAGNET hybrid + contraction": {
+  "knn_acc": 0.9287,
+  "nn15": 0.28862000000000004,
+  "self": 0.37740804183323157,
+  "fit_s": 29.9,
+  "transform_s": 1.7
+ }
+}

@@ -16,7 +16,7 @@ from .knn import knn_hnsw, knn_nndescent, knn_search, fuzzy_graph, prepare_data,
 from .spectral import spectral_init
 from .contraction import hierarchical_contraction
 
-__version__ = "3.0.0"
+__version__ = "3.0.1"
 __all__ = ["MAGNET", "hierarchical_contraction", "find_ab_params", "__version__"]
 
 _LOSSES = ("umap", "tsne", "hybrid", "infonce", "umap_exact")
@@ -179,8 +179,9 @@ class MAGNET(BaseEstimator, TransformerMixin):
         positive sample (u, v) is followed by a random walk of walk_len steps from v, ending at w,
         and u is pulled towards w with a spring of stiffness mid_weight (annealed to zero over the
         first mid_phase fraction of the epochs). Set mid_weight=0 to disable.  None (default) means 0.1,
-        or 0.5 under loss="hybrid": there the SGD pass only has to place the clusters, and the stiffer
-        spring buys +0.02 to +0.04 distance Spearman at unchanged 15-NN preservation. The value used
+        or 0.2 under loss="hybrid": there the full-batch pass rewrites the local structure, so the SGD
+        pass can afford a stiffer spring (0.5, the default of the 3.0.0 tag, buys +0.01 to +0.02 distance
+        Spearman more and blurs the clusters: k-means ARI 0.59 against 0.68 on MNIST). The value used
         is stored in mid_weight_.
     mid_source : where the mid-range partners come from: "data" (PaCMAP-style mid-near pairs: the
         second closest of 6 random rows in the data space, n_mid_pairs per point; +30% distance
@@ -209,7 +210,9 @@ class MAGNET(BaseEstimator, TransformerMixin):
         with frequency min(1, s * w_i) per epoch, s being chosen so that the total number of samples
         is samples_per_node * n. The cost of an epoch is therefore the same whatever the input graph.
     input : "auto" (a sparse square matrix is an adjacency, anything else is data), "data" or "graph".
-    transform_epochs : epochs used by transform() (default 50).
+    target_weight : weight of the labels when fit receives y (UMAP's convention): edges between differently labelled
+        points are multiplied by exp(-2.5 / (1 - target_weight)); -1 marks an unlabelled point. Default 0.5.
+    transform_epochs : epochs used by transform() (default 200).
     parallel : how the SGD threads share the layout. "hogwild" (default): every thread writes any node, lock-free,
         as UMAP does. "owner": the nodes are split into chunks that the threads claim one at a time; a chunk's
         nodes are written by its thread only, and every other node is read from a snapshot of the layout frozen
@@ -239,8 +242,9 @@ class MAGNET(BaseEstimator, TransformerMixin):
                  set_op_mix_ratio=1.0, neighbor_power=1.0, neighbor_rank_exponent=0.0,
                  samples_per_node=5.0, graph_norm="sym", input="auto",
                  adaptive=(0.5, 1.0, 0.75, 0.0, 2.0, 2), tsne_init_scale=None, tsne_learning_rate=None, tsne_far=(0.0, 0.1), tsne_mid=("mean", 0.3), hybrid_iter=300, hybrid_tail=(0, 1.0), tsne_early_exaggeration=12.0,
-                 contraction=None, transform_epochs=None, parallel="hogwild", n_threads=-1, random_state=None, verbose=False):
+                 contraction=None, target_weight=0.5, transform_epochs=None, parallel="hogwild", n_threads=-1, random_state=None, verbose=False):
         self.n_components = n_components
+        self.target_weight = target_weight
         self.parallel = parallel
         self.adaptive = adaptive
         self.tsne_init_scale = tsne_init_scale
@@ -357,6 +361,55 @@ class MAGNET(BaseEstimator, TransformerMixin):
         P.sort_indices()
         return P
 
+
+    def _supervise(self, P, y):
+        """Semi-supervised graph (UMAP's categorical intersection): edges between two labelled points of different
+        classes are multiplied by exp(-2.5 / (1 - target_weight)), edges touching an unlabelled point (label -1) by
+        exp(-1); then each row is rescaled to a maximum of 1 and the graph re-symmetrised by the fuzzy union, so
+        that no point loses its connectivity. target_weight = 0 keeps the data graph's geometry almost intact
+        (factor exp(-2.5)), values near 1 separate the classes completely."""
+        y = np.asarray(y).ravel()
+        if y.shape[0] != P.shape[0]:
+            raise ValueError(f"y has {y.shape[0]} labels for {P.shape[0]} points")
+        if not np.issubdtype(y.dtype, np.integer):
+            _, y = np.unique(y.astype(str), return_inverse=True) if y.dtype.kind in "OUS" else (None, y.astype(np.int64))
+        if not 0.0 <= float(self.target_weight) <= 1.0:
+            raise ValueError("target_weight must be in [0, 1]")
+        self._y_fit_ = y
+        far = 2.5 / (1.0 - self.target_weight) if self.target_weight < 1.0 else 1e12
+        C = P.tocoo()
+        yr, yc = y[C.row], y[C.col]
+        known = (yr >= 0) & (yc >= 0)
+        f = np.where(known, np.where(yr == yc, 1.0, np.exp(-far)), np.exp(-1.0)).astype(np.float32)
+        Q = sp.csr_matrix((C.data * f, (C.row, C.col)), shape=P.shape)
+        if getattr(self, "_is_data_", False):
+            mx = np.asarray(Q.max(1).todense()).ravel()
+            Q = (sp.diags(np.where(mx > 0, 1.0 / np.maximum(mx, 1e-12), 0.0).astype(np.float32)) @ Q).tocsr()
+            QT = Q.T.tocsr()
+            Q = (Q + QT - Q.multiply(QT)).tocsr()
+        Q.eliminate_zeros()
+        Q.sort_indices()
+        return Q.astype(np.float32)
+
+
+    def _label_mid_pairs(self, pairs, P):
+        """With labels (fit(X, y)), a mid-range pair joining two labelled points of different classes would pull
+        back together the classes the supervised graph separates: its partner is replaced by the point's strongest
+        graph neighbour."""
+        y = getattr(self, "_y_fit_", None)
+        if y is None or pairs is None:
+            return pairs
+        pairs = np.array(pairs, copy=True)
+        rows = np.repeat(np.arange(pairs.shape[0]), pairs.shape[1]).reshape(pairs.shape)
+        bad = (y[rows] >= 0) & (y[pairs] >= 0) & (y[rows] != y[pairs])
+        if bad.any():
+            P = P.tocsr()
+            best = np.array([P.indices[P.indptr[i] + np.argmax(P.data[P.indptr[i]:P.indptr[i + 1]])] if P.indptr[i + 1] > P.indptr[i] else pairs[i, 0]
+                             for i in np.unique(rows[bad])])
+            lut = np.zeros(pairs.shape[0], dtype=pairs.dtype); lut[np.unique(rows[bad])] = best
+            pairs[bad] = lut[rows[bad]]
+        return pairs
+
     # ------------------------------------------------------------------ initialisation
     def _initial_embedding(self, P, X, rng):
         n = P.shape[0]
@@ -434,16 +487,21 @@ class MAGNET(BaseEstimator, TransformerMixin):
             raise ValueError(f"loss={self.loss!r} (FFT repulsion) is implemented for n_components=2 only")
 
     def fit(self, X, y=None):
-        """Fit the layout of X (array (n, d), sparse CSR, networkx graph or sparse adjacency); y is ignored."""
+        """Fit the layout of X (array (n, d), sparse CSR, networkx graph or sparse adjacency). y (optional, length n):
+        class labels for a supervised or semi-supervised layout, -1 marking unlabelled points (see target_weight)."""
         from _magnet import optimize_layout
 
         self._validate()
+        for stale in ("landmarks_", "_transform_step_", "_y_fit_"):   # transform caches of a previous fit
+            self.__dict__.pop(stale, None)
         if isinstance(self.kernel_b, str) and self.kernel_b == "consistent" and self.loss in ("umap", "hybrid"):
             # the attraction exponent chosen by graph-layout consistency (k45-k46): the heaviest tail (0.6, the best
             # local fidelity) whose SGD layout does not tear the graph's communities into density clusters they do
             # not have; small data sets lack the graph redundancy that holds the clumps of a stiff short-range
             # attraction together and get 0.7-0.8. The graph is built once; the contraction is applied at the end.
             P = self.build_graph(X)
+            if y is not None:
+                P = self._supervise(P, y)
             self._reuse_graph_ = P
             contraction = self.contraction
             self.contraction = None
@@ -482,7 +540,12 @@ class MAGNET(BaseEstimator, TransformerMixin):
         t0 = time.time()
         rng = np.random.default_rng(self.random_state)
         seed = int(rng.integers(0, 2 ** 62))
-        P = self._reuse_graph_ if getattr(self, "_reuse_graph_", None) is not None else self.build_graph(X)
+        if getattr(self, "_reuse_graph_", None) is not None:
+            P = self._reuse_graph_
+        else:
+            P = self.build_graph(X)
+            if y is not None:
+                P = self._supervise(P, y)
         n = P.shape[0]
         self.graph_ = P
 
@@ -532,10 +595,16 @@ class MAGNET(BaseEstimator, TransformerMixin):
         Y = self._initial_embedding(P, data_matrix, rng)
 
         t = time.time()
-        # mid-range spring: 0.1 by default; 0.5 under loss="hybrid", whose SGD pass only has to place the
-        # clusters (the exact pass rewrites the local structure): +0.04 distance Spearman on MNIST, +0.03 on
-        # Fashion-MNIST, +0.02 on news20 and blobs at unchanged 15-NN preservation (benchmarks/theory/k8_mid_sweep.py)
-        mid_w = float(self.mid_weight) if self.mid_weight is not None else (0.5 if self.loss == "hybrid" else 0.1)
+        # mid-range spring: 0.1 by default; stiffer under loss="hybrid", whose SGD pass only has to place the
+        # clusters (the exact pass rewrites the local structure). 0.5 was chosen on two axes (k8_mid_sweep.py: +0.04
+        # distance Spearman on MNIST at unchanged 15-NN preservation); on three axes (k53_hybrid_kappa.py, six data
+        # sets, five seeds) it has the highest Spearman and the lowest k-means ARI, and 0.2 is level with it without
+        # the post-process (composite +0.005) and above it with the post-process (+0.017, worst data set -0.011)
+        mid_w = float(self.mid_weight) if self.mid_weight is not None else (0.2 if self.loss == "hybrid" else 0.1)
+        if self.mid_weight is None and getattr(self, "_y_fit_", None) is not None:
+            # with labels the data-only mid-range attraction competes with the supervised graph and pulls the
+            # classes back together (k49, MNIST 10% labels, SGD: k-means ARI 0.750 with it, 0.926 without)
+            mid_w = 0.0
         self.mid_weight_ = mid_w
         if self.loss == "umap_exact":
             if self.n_components != 2:
@@ -546,6 +615,7 @@ class MAGNET(BaseEstimator, TransformerMixin):
             if self.mid_source in ("data", "auto") and hasattr(self, "_prepared_") and mid_w > 0 and pairs is None:
                 from .roles import mid_near_pairs
                 pairs = mid_near_pairs(self._prepared_, self.n_mid_pairs, random_state=self.random_state or 0, n_threads=self.n_threads)
+                pairs = self._label_mid_pairs(pairs, P)
             Y = optimize_umap_exact(P, Y, self.a_, self.b_, n_iter=int(n_iter), rep_weight=float(self.repulsion_strength),
                                     mid_pairs=pairs, mid_weight=float(mid_w), mid_phase=float(self.mid_phase),
                                     n_threads=self.n_threads, verbose=self.verbose)
@@ -566,6 +636,7 @@ class MAGNET(BaseEstimator, TransformerMixin):
                 from .roles import mid_near_pairs
                 pairs = mid_near_pairs(self._prepared_, self.n_mid_pairs, random_state=self.random_state or 0,
                                        n_threads=self.n_threads)
+                pairs = self._label_mid_pairs(pairs, P)
             Y = optimize_tsne(P, Y, n_iter=int(n_iter), early_iter=int(early), early_exaggeration=float(self.tsne_early_exaggeration),
                               exaggeration=float(self.exaggeration), learning_rate=self.tsne_learning_rate,
                               n_interp=int(self.fft_interp), box_width=float(self.fft_box),
@@ -595,6 +666,7 @@ class MAGNET(BaseEstimator, TransformerMixin):
                 from .roles import mid_near_pairs
                 self._mid_pairs_ = mid_near_pairs(self._prepared_, self.n_mid_pairs, random_state=self.random_state or 0,
                                                   n_threads=self.n_threads)
+                self._mid_pairs_ = self._label_mid_pairs(self._mid_pairs_, P)
                 if self.mid_source == "hybrid":
                     rows = np.repeat(np.arange(n), self.n_mid_pairs)
                     J = sp.csr_matrix((np.ones(len(rows), np.float32), (rows, self._mid_pairs_.ravel())), shape=(n, n))
@@ -675,7 +747,7 @@ class MAGNET(BaseEstimator, TransformerMixin):
 
         n = Y.shape[0]
         lr = float(self.learning_rate)
-        loss = {"umap": 0, "infonce": 1, "hybrid": 0}[self.loss]
+        loss = {"umap": 0, "infonce": 1, "hybrid": 0, "tsne": 0}[self.loss]   # tsne: only reached by transform()
         if self.parallel not in ("hogwild", "owner"):
             raise ValueError("parallel must be 'hogwild' or 'owner'")
         if self.parallel == "owner" and loss == 1:
@@ -789,15 +861,15 @@ class MAGNET(BaseEstimator, TransformerMixin):
         self.n_epochs_ = e + anneal
 
     def fit_transform(self, X, y=None):
-        """Fit and return the layout (n, n_components)."""
-        return self.fit(X).embedding_
+        """Fit and return the layout (n, n_components); y as in fit (labels, -1 = unlabelled)."""
+        return self.fit(X, y).embedding_
 
     # ------------------------------------------------------------------ out-of-sample
     def transform(self, X):
         """Embed new rows into the fitted layout (data inputs only). Each new point is attached to its
         nearest training points (beam search over the training neighbour graph), initialised at the
-        weighted mean of their positions and optimised for transform_epochs while the training points
-        stay fixed."""
+        weighted mean of their positions and optimised for transform_epochs (default 200) while the training
+        points stay fixed, with a step scaled to the layout's neighbour spacing."""
         if not hasattr(self, "_prepared_"):
             raise ValueError("transform() needs a model fitted on a data matrix")
         t0 = time.time()
@@ -818,7 +890,15 @@ class MAGNET(BaseEstimator, TransformerMixin):
         Y_new = np.einsum("mk,mkd->md", W, self.embedding_[ind]).astype(np.float32)
         m = Q.shape[0]
         Y_all = np.ascontiguousarray(np.vstack([self.embedding_, Y_new]), dtype=np.float32)
-        n_epochs = self.transform_epochs or 50
+        n_epochs = self.transform_epochs or 200
+        if not hasattr(self, "_transform_step_"):
+            # the step in units of the layout's own spacing (k48): the training step of 1 suits the full-batch
+            # layout, whose median 1-NN spacing is about 0.14 at any n; the sampled layout is ~12 times denser on
+            # MNIST and a unit step kicks the new points dozens of spacings away from their (already good) start
+            from sklearn.neighbors import NearestNeighbors
+            sub = self.embedding_[np.random.default_rng(0).choice(n_train, min(n_train, 5000), replace=False)]
+            d1 = float(np.median(NearestNeighbors(n_neighbors=2).fit(self.embedding_).kneighbors(sub)[0][:, 1]))
+            self._transform_step_ = float(min(1.0, d1 / 0.14))
         w = vals.ravel().astype(np.float64)
         freq = _sampling_frequencies(w, self.samples_per_node * m)
         keep = freq >= 1.0 / n_epochs
@@ -828,8 +908,13 @@ class MAGNET(BaseEstimator, TransformerMixin):
         rng = np.random.default_rng(self.random_state)
         saved_pairs, self._mid_pairs_ = getattr(self, "_mid_pairs_", None), None
         saved_jumps, self._jump_graph_ = getattr(self, "_jump_graph_", None), None
-        self._optimize(Y_all, head, tail, eps, None, int(n_epochs), n_fixed=n_train,
-                       seed=int(rng.integers(0, 2 ** 62)), mid_weight=0.0)
+        lr0 = self.learning_rate
+        self.learning_rate = lr0 * self._transform_step_
+        try:
+            self._optimize(Y_all, head, tail, eps, None, int(n_epochs), n_fixed=n_train,
+                           seed=int(rng.integers(0, 2 ** 62)), mid_weight=0.0)
+        finally:
+            self.learning_rate = lr0
         self._mid_pairs_ = saved_pairs
         self._jump_graph_ = saved_jumps
         if self.verbose:

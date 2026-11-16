@@ -357,7 +357,7 @@ def test_hybrid_loss():
     M = MAGNET(loss="hybrid", hybrid_iter=60, random_state=0, n_threads=1).fit(X)
     Y = M.embedding_
     assert Y.shape == (3000, 2) and np.isfinite(Y).all()
-    assert M.mid_weight_ == 0.5                       # the SGD pass of the hybrid is tuned for the global structure
+    assert M.mid_weight_ == 0.2                       # the SGD pass of the hybrid runs a stiffer mid-range spring
     M_sgd = MAGNET(random_state=0, n_threads=1).fit(X)
     Y_sgd = M_sgd.embedding_
     assert M_sgd.mid_weight_ == 0.1 and MAGNET(mid_weight=0.3).mid_weight == 0.3
@@ -419,3 +419,28 @@ def test_post_process_is_exported():
     m = MAGNET(random_state=0, n_threads=1).fit(X)
     Z, log = magnet.hierarchical_contraction(m.embedding_, m.graph_, X=X, random_state=0, n_threads=1)
     assert Z.shape == m.embedding_.shape and np.isfinite(Z).all() and "communities" in log
+
+
+@pytest.mark.parametrize("loss", ["tsne", "hybrid"])
+def test_transform_after_full_batch_modes(loss):
+    X, y = blobs(2000, d=10, centers=5, seed=5)
+    m = MAGNET(loss=loss, random_state=0).fit(X[:1700])
+    Yq = m.transform(X[1700:])
+    from sklearn.neighbors import KNeighborsClassifier
+    assert Yq.shape == (300, 2) and np.isfinite(Yq).all()
+    assert (KNeighborsClassifier(10).fit(m.embedding_, y[:1700]).predict(Yq) == y[1700:]).mean() > 0.95
+
+
+def test_semi_supervised_labels():
+    # two overlapping blobs: the labels pull them apart; -1 points are placed by the data alone
+    rng = np.random.default_rng(0)
+    X = np.vstack([rng.normal(0, 1, (800, 10)), rng.normal(0.6, 1, (800, 10))]).astype(np.float32)
+    y = np.repeat([0, 1], 800)
+    from sklearn.metrics import silhouette_score
+    s0 = silhouette_score(MAGNET(random_state=0).fit_transform(X), y)
+    y_semi = y.copy(); y_semi[rng.random(1600) < 0.5] = -1
+    s1 = silhouette_score(MAGNET(random_state=0).fit_transform(X, y_semi), y)
+    s2 = silhouette_score(MAGNET(random_state=0).fit_transform(X, y), y)
+    assert s2 > s1 > s0 and s2 > 0.5
+    with pytest.raises(ValueError):
+        MAGNET().fit(X, y[:10])

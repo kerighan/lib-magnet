@@ -1,0 +1,4 @@
+MAGNET SGD {'knn_acc': 0.9594, 'nn15': 0.18511333333333332, 'self': 1.3153178563645644, 'fit_s': 11.8, 'transform_s': 1.87}
+MAGNET full-batch {'knn_acc': 0.9567, 'nn15': 0.29372000000000004, 'self': 0.3213328528049597, 'fit_s': 24.4, 'transform_s': 1.91}
+MAGNET hybrid {'knn_acc': 0.9439, 'nn15': 0.2916733333333333, 'self': 0.3324873537052795, 'fit_s': 28.3, 'transform_s': 1.72}
+MAGNET hybrid + contraction {'knn_acc': 0.9287, 'nn15': 0.28862000000000004, 'self': 0.37740804183323157, 'fit_s': 29.9, 'transform_s': 1.7}

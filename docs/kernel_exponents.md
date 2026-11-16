@@ -302,6 +302,13 @@ of the hybrid stays SGD plus exact. On the other data sets (`k9`, hybrid at `mid
 default is `mid_weight=0.5` (the SGD mode keeps 0.1; the constructor default is None, resolved per
 mode, the value used is in `mid_weight_`).
 
+Revised after 3.0.0 on three axes (`k53_hybrid_kappa.py`, six data sets, five seeds, the protocol of `k41`):
+with the k-means ARI counted, 0.5 has the highest Spearman and the lowest ARI (MNIST 0.446 / 0.592 against
+0.426 / 0.684 at 0.2 and 0.413 / 0.743 at 0.1). Paired composite differences with 0.5, without the
+post-process: 0.1 / 0.2 / 0.3 give +0.002 / +0.005 / +0.003 on average; with it +0.022 / +0.017 / +0.013, the
+worst data set being letter (-0.024 / -0.011 / -0.005). The default is now 0.2; every hybrid number above and in
+the papers is at 0.5.
+
 The knobs of the exact pass buy at most 0.005 of 15-NN and 0.015 of Spearman for 5-6 s more, or hurt (`mid_weight=1.0`
 SGD pass; 15-NN / Spearman / time): scale 22: 0.344 / 0.443 / 8.9 s; scale 40: 0.356 / 0.459 /
 16.2 s; lr n/24: 0.346 / 0.458; lr n/6: 0.356 / 0.446; 450 iterations: 0.357 / 0.443 / 17.0 s;

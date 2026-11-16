@@ -1,0 +1,80 @@
+mnist | SGD deep 0.3 | 0 {'knn15': 0.195, 'sp': 0.409, 'ari': 0.808, 'geo': 0.74, 'min': 0.548}
+mnist | SGD deep 0.3 + post | 0 {'knn15': 0.194, 'sp': 0.491, 'ari': 0.811, 'geo': 0.787, 'min': 0.546}
+mnist | SGD deep 0.3 x2 | 0 {'knn15': 0.192, 'sp': 0.423, 'ari': 0.781, 'geo': 0.736, 'min': 0.539}
+mnist | SGD deep 0.3 x2 + post | 0 {'knn15': 0.191, 'sp': 0.49, 'ari': 0.78, 'geo': 0.772, 'min': 0.537}
+mnist | hybrid deep 0.3 | 0 {'knn15': 0.356, 'sp': 0.414, 'ari': 0.632, 'geo': 0.837, 'min': 0.692}
+mnist | hybrid deep 0.3 + post | 0 {'knn15': 0.353, 'sp': 0.493, 'ari': 0.741, 'geo': 0.932, 'min': 0.81}
+mnist | hybrid deep 0.3 x2 | 0 {'knn15': 0.354, 'sp': 0.43, 'ari': 0.59, 'geo': 0.827, 'min': 0.646}
+mnist | hybrid deep 0.3 x2 + post | 0 {'knn15': 0.351, 'sp': 0.501, 'ari': 0.739, 'geo': 0.935, 'min': 0.809}
+mnist | SGD deep 0.3 | 1 {'knn15': 0.196, 'sp': 0.408, 'ari': 0.777, 'geo': 0.731, 'min': 0.55}
+mnist | SGD deep 0.3 + post | 1 {'knn15': 0.195, 'sp': 0.497, 'ari': 0.824, 'geo': 0.796, 'min': 0.549}
+mnist | SGD deep 0.3 x2 | 1 {'knn15': 0.194, 'sp': 0.421, 'ari': 0.695, 'geo': 0.71, 'min': 0.545}
+mnist | SGD deep 0.3 x2 + post | 1 {'knn15': 0.193, 'sp': 0.504, 'ari': 0.725, 'geo': 0.763, 'min': 0.541}
+mnist | hybrid deep 0.3 | 1 {'knn15': 0.354, 'sp': 0.423, 'ari': 0.673, 'geo': 0.86, 'min': 0.736}
+mnist | hybrid deep 0.3 + post | 1 {'knn15': 0.35, 'sp': 0.491, 'ari': 0.849, 'geo': 0.973, 'min': 0.929}
+mnist | hybrid deep 0.3 x2 | 1 {'knn15': 0.354, 'sp': 0.431, 'ari': 0.625, 'geo': 0.843, 'min': 0.683}
+mnist | hybrid deep 0.3 x2 + post | 1 {'knn15': 0.351, 'sp': 0.487, 'ari': 0.828, 'geo': 0.962, 'min': 0.906}
+mnist | SGD deep 0.3 | 2 {'knn15': 0.197, 'sp': 0.413, 'ari': 0.811, 'geo': 0.746, 'min': 0.552}
+mnist | SGD deep 0.3 + post | 2 {'knn15': 0.196, 'sp': 0.497, 'ari': 0.8, 'geo': 0.789, 'min': 0.551}
+mnist | SGD deep 0.3 x2 | 2 {'knn15': 0.19, 'sp': 0.428, 'ari': 0.781, 'geo': 0.736, 'min': 0.532}
+mnist | SGD deep 0.3 x2 + post | 2 {'knn15': 0.189, 'sp': 0.504, 'ari': 0.742, 'geo': 0.763, 'min': 0.531}
+mnist | hybrid deep 0.3 | 2 {'knn15': 0.355, 'sp': 0.424, 'ari': 0.706, 'geo': 0.875, 'min': 0.772}
+mnist | hybrid deep 0.3 + post | 2 {'knn15': 0.352, 'sp': 0.494, 'ari': 0.824, 'geo': 0.967, 'min': 0.901}
+mnist | hybrid deep 0.3 x2 | 2 {'knn15': 0.353, 'sp': 0.428, 'ari': 0.716, 'geo': 0.88, 'min': 0.783}
+mnist | hybrid deep 0.3 x2 + post | 2 {'knn15': 0.35, 'sp': 0.493, 'ari': 0.87, 'geo': 0.982, 'min': 0.952}
+mnist | SGD deep 0.3 | 3 {'knn15': 0.196, 'sp': 0.405, 'ari': 0.8, 'geo': 0.736, 'min': 0.55}
+mnist | SGD deep 0.3 + post | 3 {'knn15': 0.195, 'sp': 0.494, 'ari': 0.795, 'geo': 0.785, 'min': 0.549}
+mnist | SGD deep 0.3 x2 | 3 {'knn15': 0.193, 'sp': 0.42, 'ari': 0.679, 'geo': 0.703, 'min': 0.544}
+mnist | SGD deep 0.3 x2 + post | 3 {'knn15': 0.193, 'sp': 0.51, 'ari': 0.694, 'geo': 0.755, 'min': 0.542}
+mnist | hybrid deep 0.3 | 3 {'knn15': 0.356, 'sp': 0.419, 'ari': 0.712, 'geo': 0.875, 'min': 0.779}
+mnist | hybrid deep 0.3 + post | 3 {'knn15': 0.353, 'sp': 0.493, 'ari': 0.858, 'geo': 0.98, 'min': 0.939}
+mnist | hybrid deep 0.3 x2 | 3 {'knn15': 0.356, 'sp': 0.428, 'ari': 0.664, 'geo': 0.86, 'min': 0.726}
+mnist | hybrid deep 0.3 x2 + post | 3 {'knn15': 0.352, 'sp': 0.499, 'ari': 0.846, 'geo': 0.978, 'min': 0.925}
+mnist | SGD deep 0.3 | 4 {'knn15': 0.198, 'sp': 0.387, 'ari': 0.701, 'geo': 0.697, 'min': 0.557}
+mnist | SGD deep 0.3 + post | 4 {'knn15': 0.197, 'sp': 0.48, 'ari': 0.761, 'geo': 0.768, 'min': 0.554}
+mnist | SGD deep 0.3 x2 | 4 {'knn15': 0.191, 'sp': 0.425, 'ari': 0.628, 'geo': 0.685, 'min': 0.537}
+mnist | SGD deep 0.3 x2 + post | 4 {'knn15': 0.19, 'sp': 0.501, 'ari': 0.763, 'geo': 0.77, 'min': 0.534}
+mnist | hybrid deep 0.3 | 4 {'knn15': 0.355, 'sp': 0.427, 'ari': 0.692, 'geo': 0.871, 'min': 0.757}
+mnist | hybrid deep 0.3 + post | 4 {'knn15': 0.351, 'sp': 0.497, 'ari': 0.836, 'geo': 0.972, 'min': 0.915}
+mnist | hybrid deep 0.3 x2 | 4 {'knn15': 0.356, 'sp': 0.432, 'ari': 0.6, 'geo': 0.835, 'min': 0.657}
+mnist | hybrid deep 0.3 x2 + post | 4 {'knn15': 0.352, 'sp': 0.503, 'ari': 0.824, 'geo': 0.972, 'min': 0.902}
+pbmc68k | SGD deep 0.3 | 0 {'knn15': 0.057, 'sp': 0.737, 'ari': 0.214, 'geo': 0.649, 'min': 0.378}
+pbmc68k | SGD deep 0.3 + post | 0 {'knn15': 0.057, 'sp': 0.818, 'ari': 0.229, 'geo': 0.687, 'min': 0.378}
+pbmc68k | SGD deep 0.3 x2 | 0 {'knn15': 0.057, 'sp': 0.734, 'ari': 0.197, 'geo': 0.629, 'min': 0.377}
+pbmc68k | SGD deep 0.3 x2 + post | 0 {'knn15': 0.057, 'sp': 0.828, 'ari': 0.223, 'geo': 0.683, 'min': 0.377}
+pbmc68k | hybrid deep 0.3 | 0 {'knn15': 0.15, 'sp': 0.74, 'ari': 0.197, 'geo': 0.873, 'min': 0.78}
+pbmc68k | hybrid deep 0.3 + post | 0 {'knn15': 0.15, 'sp': 0.819, 'ari': 0.22, 'geo': 0.935, 'min': 0.868}
+pbmc68k | hybrid deep 0.3 x2 | 0 {'knn15': 0.151, 'sp': 0.758, 'ari': 0.199, 'geo': 0.884, 'min': 0.787}
+pbmc68k | hybrid deep 0.3 x2 + post | 0 {'knn15': 0.151, 'sp': 0.814, 'ari': 0.191, 'geo': 0.893, 'min': 0.756}
+pbmc68k | SGD deep 0.3 | 1 {'knn15': 0.057, 'sp': 0.741, 'ari': 0.226, 'geo': 0.664, 'min': 0.382}
+pbmc68k | SGD deep 0.3 + post | 1 {'knn15': 0.057, 'sp': 0.815, 'ari': 0.22, 'geo': 0.679, 'min': 0.381}
+pbmc68k | SGD deep 0.3 x2 | 1 {'knn15': 0.056, 'sp': 0.763, 'ari': 0.209, 'geo': 0.647, 'min': 0.372}
+pbmc68k | SGD deep 0.3 x2 + post | 1 {'knn15': 0.056, 'sp': 0.831, 'ari': 0.22, 'geo': 0.678, 'min': 0.372}
+pbmc68k | hybrid deep 0.3 | 1 {'knn15': 0.15, 'sp': 0.742, 'ari': 0.2, 'geo': 0.878, 'min': 0.79}
+pbmc68k | hybrid deep 0.3 + post | 1 {'knn15': 0.15, 'sp': 0.816, 'ari': 0.198, 'geo': 0.903, 'min': 0.782}
+pbmc68k | hybrid deep 0.3 x2 | 1 {'knn15': 0.151, 'sp': 0.758, 'ari': 0.196, 'geo': 0.88, 'min': 0.776}
+pbmc68k | hybrid deep 0.3 x2 + post | 1 {'knn15': 0.151, 'sp': 0.808, 'ari': 0.196, 'geo': 0.898, 'min': 0.774}
+pbmc68k | SGD deep 0.3 | 2 {'knn15': 0.058, 'sp': 0.741, 'ari': 0.226, 'geo': 0.666, 'min': 0.385}
+pbmc68k | SGD deep 0.3 + post | 2 {'knn15': 0.058, 'sp': 0.827, 'ari': 0.208, 'geo': 0.672, 'min': 0.384}
+pbmc68k | SGD deep 0.3 x2 | 2 {'knn15': 0.055, 'sp': 0.756, 'ari': 0.218, 'geo': 0.65, 'min': 0.366}
+pbmc68k | SGD deep 0.3 x2 + post | 2 {'knn15': 0.055, 'sp': 0.833, 'ari': 0.221, 'geo': 0.674, 'min': 0.365}
+pbmc68k | hybrid deep 0.3 | 2 {'knn15': 0.152, 'sp': 0.738, 'ari': 0.198, 'geo': 0.877, 'min': 0.783}
+pbmc68k | hybrid deep 0.3 + post | 2 {'knn15': 0.151, 'sp': 0.819, 'ari': 0.204, 'geo': 0.916, 'min': 0.806}
+pbmc68k | hybrid deep 0.3 x2 | 2 {'knn15': 0.15, 'sp': 0.748, 'ari': 0.197, 'geo': 0.877, 'min': 0.78}
+pbmc68k | hybrid deep 0.3 x2 + post | 2 {'knn15': 0.149, 'sp': 0.813, 'ari': 0.191, 'geo': 0.889, 'min': 0.753}
+pbmc68k | SGD deep 0.3 | 3 {'knn15': 0.056, 'sp': 0.759, 'ari': 0.221, 'geo': 0.66, 'min': 0.375}
+pbmc68k | SGD deep 0.3 + post | 3 {'knn15': 0.056, 'sp': 0.83, 'ari': 0.237, 'geo': 0.696, 'min': 0.375}
+pbmc68k | SGD deep 0.3 x2 | 3 {'knn15': 0.056, 'sp': 0.748, 'ari': 0.2, 'geo': 0.636, 'min': 0.375}
+pbmc68k | SGD deep 0.3 x2 + post | 3 {'knn15': 0.056, 'sp': 0.831, 'ari': 0.218, 'geo': 0.677, 'min': 0.374}
+pbmc68k | hybrid deep 0.3 | 3 {'knn15': 0.154, 'sp': 0.73, 'ari': 0.185, 'geo': 0.859, 'min': 0.732}
+pbmc68k | hybrid deep 0.3 + post | 3 {'knn15': 0.154, 'sp': 0.82, 'ari': 0.212, 'geo': 0.934, 'min': 0.839}
+pbmc68k | hybrid deep 0.3 x2 | 3 {'knn15': 0.15, 'sp': 0.755, 'ari': 0.185, 'geo': 0.86, 'min': 0.73}
+pbmc68k | hybrid deep 0.3 x2 + post | 3 {'knn15': 0.149, 'sp': 0.827, 'ari': 0.205, 'geo': 0.916, 'min': 0.809}
+pbmc68k | SGD deep 0.3 | 4 {'knn15': 0.057, 'sp': 0.754, 'ari': 0.22, 'geo': 0.659, 'min': 0.378}
+pbmc68k | SGD deep 0.3 + post | 4 {'knn15': 0.057, 'sp': 0.751, 'ari': 0.222, 'geo': 0.659, 'min': 0.377}
+pbmc68k | SGD deep 0.3 x2 | 4 {'knn15': 0.056, 'sp': 0.764, 'ari': 0.214, 'geo': 0.652, 'min': 0.37}
+pbmc68k | SGD deep 0.3 x2 + post | 4 {'knn15': 0.056, 'sp': 0.751, 'ari': 0.214, 'geo': 0.647, 'min': 0.369}
+pbmc68k | hybrid deep 0.3 | 4 {'knn15': 0.153, 'sp': 0.73, 'ari': 0.208, 'geo': 0.89, 'min': 0.822}
+pbmc68k | hybrid deep 0.3 + post | 4 {'knn15': 0.153, 'sp': 0.729, 'ari': 0.207, 'geo': 0.888, 'min': 0.818}
+pbmc68k | hybrid deep 0.3 x2 | 4 {'knn15': 0.153, 'sp': 0.727, 'ari': 0.195, 'geo': 0.869, 'min': 0.769}
+pbmc68k | hybrid deep 0.3 x2 + post | 4 {'knn15': 0.152, 'sp': 0.734, 'ari': 0.2, 'geo': 0.879, 'min': 0.79}

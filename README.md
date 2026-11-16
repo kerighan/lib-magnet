@@ -64,6 +64,7 @@ Y = MAGNET().fit_transform(A)                        # scipy sparse adjacency (w
 
 m = MAGNET().fit(X)
 Y_new = m.transform(X_new)                           # out-of-sample points, training layout fixed
+Y = MAGNET().fit_transform(X, y)                     # supervised / semi-supervised: y = labels, -1 = unlabelled
 m.embedding_, m.graph_, m.knn_indices_, m.knn_dists_
 
 # scikit-learn estimator: clone / get_params / set_params, pipelines, grid searches
@@ -96,8 +97,12 @@ Hamprecht 2021). MAGNET exposes this directly:
 `repulsion_strength` (default 2) and `exaggeration` move along the spectrum within each mode, and
 `mid_weight` trades local for global structure within the SGD mode (MNIST 70k, 0 / 0.1 / 0.3 / 1.0:
 15-NN kept 0.206 / 0.193 / 0.187 / 0.168, distance Spearman 0.285 / 0.413 / 0.427 / 0.478). Under
-`loss="hybrid"` the SGD pass only has to place the clusters, so it runs at `mid_weight=0.5`: its
-local cost is erased by the exact pass, its global gain is kept (+0.03 to +0.04 Spearman). The two
+`loss="hybrid"` the SGD pass only has to place the clusters, so it runs a stiffer spring: its
+local cost is erased by the exact pass, its global gain is kept. The default there is `mid_weight=0.2`.
+The hybrid rows of the tables below were measured at 0.5, the default of the 3.0.0 tag, which
+buys +0.01 to +0.02 Spearman more and blurs the clusters (six data sets, five seeds, `k53_hybrid_kappa.py`:
+MNIST k-means ARI 0.59 at 0.5, 0.68 at 0.2; composite of the three axes level without the post-process,
++0.017 on average with it); `mid_weight=0.5` reproduces them. The two
 modes' strengths do not blend inside one loss (a constant far-field repulsion, a bounded mid-range
 term or a longer schedule in the exact mode each cost local structure before buying any global, and
 the exaggeration knob trades local for compactness, not for global; `docs/kernel_exponents.md`,
@@ -306,8 +311,20 @@ attraction pass over the 40M edges and the position update dominate, the FFT rep
 0.1 s). The whole repulsion step (scatter, FFTs, kernel products, gather) runs in C++ with persistent
 buffers (`src/fftconv.cpp`, pocketfft header-only, rows and columns split over MAGNET's thread pool).
 
-`transform()` on MNIST (fit 60k, transform 10k): 0.6 s and 10-NN accuracy 0.962 against 14.8 s and
-0.956 for UMAP.
+`transform()` on MNIST (fit on a random 60k, transform the other 10k, `benchmarks/theory/k48_transform.py`):
+
+| | 10-NN accuracy | 15-NN overlap | re-transformed fitted point (spacings) | transform time |
+|---|---|---|---|---|
+| MAGNET (SGD) | 0.959 | 0.185 | 1.3 | 1.9 s |
+| MAGNET full-batch | 0.957 | 0.294 | 0.32 | 1.9 s |
+| MAGNET hybrid | 0.944 | 0.292 | 0.33 | 1.7 s |
+| UMAP | 0.952 | 0.107 | 3.7 | 10.9 s |
+| openTSNE | 0.947 | 0.264 | 0.15 | 11.5 s |
+
+The 15-NN overlap is measured among the fitted points; fitting all 70k at once gives 0.197 (SGD) and 0.348
+(hybrid) on the same rows. The step of `transform()` is scaled to the layout's neighbour spacing: the
+unit training step suits the full-batch layout (median 1-NN spacing about 0.14) but kicks new points
+dozens of spacings away in the twelve times denser SGD layout (3.0.0: 0.921 / 0.120 / 6.2 spacings).
 
 **Sparse inputs.** The sparse NN-descent computes a cosine or euclidean distance between two CSR rows;
 a merge join of their sorted indices costs one unpredictable branch per non-zero of either row. The
@@ -625,7 +642,7 @@ Any networkx graph or sparse adjacency matrix is laid out directly, in linear ti
 | `negative_sample_rate` | 5 | negatives per positive sample |
 | `mid_source`, `n_mid_pairs`, `mid_jump` | `"auto"`, 5, 0.5 | mid-range partners from the data (PaCMAP-style pairs), from random walks on the graph, or `"hybrid"` walks on both layers |
 | `parallel` | `"hogwild"` | `"owner"`: threads own node chunks and read the others from a per-epoch snapshot; the SGD runs 2x faster, the layout is deterministic for any `n_threads`, global structure up (MNIST Spearman 0.451 against 0.415), local slightly down (15-NN 0.189 against 0.193, trustworthiness 0.948 against 0.957) |
-| `walk_len`, `mid_weight`, `mid_rate`, `mid_phase` | 4, None (0.1; 0.5 under `loss="hybrid"`), 0.25, 0.5 | strength and schedule of the mid-range attraction (`mid_weight=0` disables) |
+| `walk_len`, `mid_weight`, `mid_rate`, `mid_phase` | 4, None (0.1; 0.2 under `loss="hybrid"`), 0.25, 0.5 | strength and schedule of the mid-range attraction (`mid_weight=0` disables) |
 | `init` | `"auto"` | PCA for `loss="tsne"` on data, spectral otherwise; or `"spectral"`, `"pca"`, `"random"`, an array |
 | `knn` | `"nndescent"` | or `"hnsw"` (needs hnswlib) |
 | `pca` | None | project wide data to this many components before the neighbour search |
@@ -641,7 +658,8 @@ Any networkx graph or sparse adjacency matrix is laid out directly, in linear ti
 | `optimizer`, `clip` | `"sgd"`, `"coord"` | or `"adam"`; `"norm"` clips the step norm |
 | `input` | `"auto"` | a sparse square matrix is an adjacency; `"data"` or `"graph"` to force |
 | `graph_norm` | `"sym"` | degree normalisation of graph inputs |
-| `transform_epochs` | 50 | epochs of `transform()` |
+| `transform_epochs` | 200 | epochs of `transform()` |
+| `target_weight` | 0.5 | weight of the labels in `fit(X, y)` (UMAP's convention; -1 = unlabelled): edges between differently labelled points are multiplied by exp(-2.5 / (1 - target_weight)); with labels the mid-range attraction defaults to 0 |
 | `n_threads`, `random_state`, `verbose` | -1, None, False | |
 
 Runs are reproducible only with `n_threads=1`: the SGD is lock-free.

@@ -1,0 +1,84 @@
+
+=== mnist
+  SGD default                  knn15 0.193  sp 0.416  ari 0.757  geo 0.726  (n=5)
+  SGD deep 0.3                 knn15 0.196  sp 0.404  ari 0.780  geo 0.730  (n=5)  diff: knn15 +0.003 +- 0.002  sp -0.012 +- 0.011  ari +0.022 +- 0.040  geo +0.004 +- 0.017
+  SGD deep 0.3 x2              knn15 0.192  sp 0.423  ari 0.713  geo 0.714  (n=5)  diff: knn15 -0.001 +- 0.002  sp +0.007 +- 0.004  ari -0.045 +- 0.062  geo -0.012 +- 0.021
+  SGD default + post           knn15 0.192  sp 0.501  ari 0.776  geo 0.778  (n=5)
+  SGD deep 0.3 + post          knn15 0.196  sp 0.492  ari 0.798  geo 0.785  (n=5)  diff: knn15 +0.003 +- 0.002  sp -0.009 +- 0.007  ari +0.022 +- 0.022  geo +0.007 +- 0.008
+  SGD deep 0.3 x2 + post       knn15 0.191  sp 0.502  ari 0.741  geo 0.765  (n=5)  diff: knn15 -0.001 +- 0.002  sp +0.001 +- 0.007  ari -0.035 +- 0.040  geo -0.013 +- 0.010
+  hybrid default               knn15 0.355  sp 0.426  ari 0.684  geo 0.867  (n=5)
+  hybrid deep 0.3              knn15 0.355  sp 0.421  ari 0.683  geo 0.864  (n=5)  diff: knn15 +0.000 +- 0.001  sp -0.005 +- 0.008  ari -0.001 +- 0.041  geo -0.003 +- 0.021
+  hybrid deep 0.3 x2           knn15 0.355  sp 0.430  ari 0.639  geo 0.849  (n=5)  diff: knn15 -0.001 +- 0.001  sp +0.003 +- 0.005  ari -0.045 +- 0.031  geo -0.018 +- 0.016
+  hybrid default + post        knn15 0.350  sp 0.493  ari 0.830  geo 0.966  (n=5)
+  hybrid deep 0.3 + post       knn15 0.352  sp 0.494  ari 0.822  geo 0.965  (n=5)  diff: knn15 +0.002 +- 0.002  sp +0.000 +- 0.004  ari -0.009 +- 0.053  geo -0.001 +- 0.021
+  hybrid deep 0.3 x2 + post    knn15 0.351  sp 0.497  ari 0.822  geo 0.966  (n=5)  diff: knn15 +0.001 +- 0.001  sp +0.003 +- 0.008  ari -0.009 +- 0.050  geo -0.000 +- 0.021
+
+=== fmnist
+  SGD default                  knn15 0.204  sp 0.723  ari 0.422  geo 0.765  (n=5)
+  SGD deep 0.3                 knn15 0.208  sp 0.695  ari 0.420  geo 0.758  (n=5)  diff: knn15 +0.004 +- 0.001  sp -0.029 +- 0.003  ari -0.002 +- 0.034  geo -0.007 +- 0.022
+  SGD deep 0.3 x2              knn15 0.206  sp 0.720  ari 0.378  geo 0.739  (n=5)  diff: knn15 +0.001 +- 0.001  sp -0.003 +- 0.002  ari -0.044 +- 0.026  geo -0.026 +- 0.018
+  SGD default + post           knn15 0.204  sp 0.695  ari 0.438  geo 0.764  (n=5)
+  SGD deep 0.3 + post          knn15 0.208  sp 0.673  ari 0.442  geo 0.763  (n=5)  diff: knn15 +0.004 +- 0.001  sp -0.021 +- 0.002  ari +0.004 +- 0.014  geo -0.001 +- 0.007
+  SGD deep 0.3 x2 + post       knn15 0.206  sp 0.697  ari 0.421  geo 0.757  (n=5)  diff: knn15 +0.002 +- 0.002  sp +0.002 +- 0.006  ari -0.016 +- 0.026  geo -0.007 +- 0.015
+  hybrid default               knn15 0.329  sp 0.725  ari 0.327  geo 0.824  (n=5)
+  hybrid deep 0.3              knn15 0.328  sp 0.705  ari 0.361  geo 0.844  (n=5)  diff: knn15 -0.001 +- 0.001  sp -0.020 +- 0.005  ari +0.034 +- 0.019  geo +0.019 +- 0.017
+  hybrid deep 0.3 x2           knn15 0.328  sp 0.723  ari 0.354  geo 0.845  (n=5)  diff: knn15 -0.001 +- 0.001  sp -0.002 +- 0.005  ari +0.027 +- 0.021  geo +0.020 +- 0.018
+  hybrid default + post        knn15 0.329  sp 0.688  ari 0.422  geo 0.882  (n=5)
+  hybrid deep 0.3 + post       knn15 0.328  sp 0.677  ari 0.431  geo 0.882  (n=5)  diff: knn15 -0.001 +- 0.001  sp -0.011 +- 0.005  ari +0.009 +- 0.013  geo +0.001 +- 0.010
+  hybrid deep 0.3 x2 + post    knn15 0.327  sp 0.692  ari 0.441  geo 0.895  (n=5)  diff: knn15 -0.001 +- 0.001  sp +0.004 +- 0.007  ari +0.020 +- 0.022  geo +0.013 +- 0.014
+
+=== letter
+  SGD default                  knn15 0.469  sp 0.586  ari 0.188  geo 0.773  (n=5)
+  SGD deep 0.3                 knn15 0.471  sp 0.495  ari 0.188  geo 0.711  (n=5)  diff: knn15 +0.002 +- 0.004  sp -0.091 +- 0.026  ari +0.000 +- 0.012  geo -0.061 +- 0.017
+  SGD deep 0.3 x2              knn15 0.471  sp 0.548  ari 0.177  geo 0.750  (n=5)  diff: knn15 +0.002 +- 0.002  sp -0.037 +- 0.012  ari -0.012 +- 0.014  geo -0.023 +- 0.008
+  SGD default + post           knn15 0.467  sp 0.589  ari 0.163  geo 0.773  (n=5)
+  SGD deep 0.3 + post          knn15 0.469  sp 0.540  ari 0.163  geo 0.742  (n=5)  diff: knn15 +0.002 +- 0.004  sp -0.048 +- 0.016  ari +0.000 +- 0.004  geo -0.031 +- 0.010
+  SGD deep 0.3 x2 + post       knn15 0.469  sp 0.576  ari 0.160  geo 0.767  (n=5)  diff: knn15 +0.002 +- 0.002  sp -0.013 +- 0.008  ari -0.003 +- 0.010  geo -0.007 +- 0.007
+  hybrid default               knn15 0.626  sp 0.594  ari 0.181  geo 0.899  (n=5)
+  hybrid deep 0.3              knn15 0.625  sp 0.539  ari 0.172  geo 0.856  (n=5)  diff: knn15 -0.000 +- 0.001  sp -0.055 +- 0.012  ari -0.009 +- 0.015  geo -0.043 +- 0.010
+  hybrid deep 0.3 x2           knn15 0.625  sp 0.554  ari 0.163  geo 0.868  (n=5)  diff: knn15 -0.001 +- 0.001  sp -0.040 +- 0.010  ari -0.018 +- 0.006  geo -0.031 +- 0.007
+  hybrid default + post        knn15 0.612  sp 0.587  ari 0.185  geo 0.884  (n=5)
+  hybrid deep 0.3 + post       knn15 0.613  sp 0.542  ari 0.185  geo 0.850  (n=5)  diff: knn15 +0.001 +- 0.004  sp -0.045 +- 0.013  ari +0.000 +- 0.020  geo -0.034 +- 0.010
+  hybrid deep 0.3 x2 + post    knn15 0.612  sp 0.557  ari 0.191  geo 0.861  (n=5)  diff: knn15 +0.000 +- 0.004  sp -0.030 +- 0.015  ari +0.005 +- 0.012  geo -0.023 +- 0.010
+
+=== covertype
+  SGD default                  knn15 0.467  sp 0.586  ari 0.026  geo 0.757  (n=5)
+  SGD deep 0.3                 knn15 0.471  sp 0.551  ari 0.033  geo 0.737  (n=5)  diff: knn15 +0.004 +- 0.004  sp -0.036 +- 0.006  ari +0.007 +- 0.010  geo -0.020 +- 0.003
+  SGD deep 0.3 x2              knn15 0.470  sp 0.550  ari 0.037  geo 0.736  (n=5)  diff: knn15 +0.003 +- 0.003  sp -0.036 +- 0.010  ari +0.011 +- 0.009  geo -0.021 +- 0.008
+  SGD default + post           knn15 0.466  sp 0.765  ari 0.071  geo 0.864  (n=5)
+  SGD deep 0.3 + post          knn15 0.471  sp 0.753  ari 0.079  geo 0.862  (n=5)  diff: knn15 +0.005 +- 0.005  sp -0.012 +- 0.008  ari +0.008 +- 0.011  geo -0.002 +- 0.006
+  SGD deep 0.3 x2 + post       knn15 0.470  sp 0.749  ari 0.081  geo 0.859  (n=5)  diff: knn15 +0.004 +- 0.002  sp -0.016 +- 0.014  ari +0.010 +- 0.021  geo -0.005 +- 0.010
+  hybrid default               knn15 0.625  sp 0.545  ari 0.021  geo 0.845  (n=5)
+  hybrid deep 0.3              knn15 0.624  sp 0.507  ari 0.024  geo 0.814  (n=5)  diff: knn15 -0.001 +- 0.001  sp -0.039 +- 0.016  ari +0.004 +- 0.009  geo -0.031 +- 0.013
+  hybrid deep 0.3 x2           knn15 0.623  sp 0.503  ari 0.027  geo 0.811  (n=5)  diff: knn15 -0.002 +- 0.001  sp -0.042 +- 0.018  ari +0.006 +- 0.008  geo -0.035 +- 0.014
+  hybrid default + post        knn15 0.619  sp 0.693  ari 0.068  geo 0.948  (n=5)
+  hybrid deep 0.3 + post       knn15 0.622  sp 0.656  ari 0.073  geo 0.924  (n=5)  diff: knn15 +0.003 +- 0.003  sp -0.037 +- 0.009  ari +0.005 +- 0.024  geo -0.024 +- 0.007
+  hybrid deep 0.3 x2 + post    knn15 0.620  sp 0.657  ari 0.068  geo 0.924  (n=5)  diff: knn15 +0.001 +- 0.003  sp -0.035 +- 0.014  ari -0.001 +- 0.013  geo -0.024 +- 0.011
+
+=== pbmc68k
+  SGD default                  knn15 0.056  sp 0.766  ari 0.215  geo 0.655  (n=5)
+  SGD deep 0.3                 knn15 0.057  sp 0.747  ari 0.221  geo 0.660  (n=5)  diff: knn15 +0.001 +- 0.001  sp -0.019 +- 0.015  ari +0.007 +- 0.008  geo +0.005 +- 0.011
+  SGD deep 0.3 x2              knn15 0.056  sp 0.753  ari 0.207  geo 0.643  (n=5)  diff: knn15 -0.000 +- 0.001  sp -0.013 +- 0.013  ari -0.007 +- 0.010  geo -0.012 +- 0.011
+  SGD default + post           knn15 0.056  sp 0.816  ari 0.224  geo 0.676  (n=5)
+  SGD deep 0.3 + post          knn15 0.057  sp 0.808  ari 0.223  geo 0.679  (n=5)  diff: knn15 +0.001 +- 0.001  sp -0.008 +- 0.010  ari -0.000 +- 0.006  geo +0.002 +- 0.008
+  SGD deep 0.3 x2 + post       knn15 0.056  sp 0.815  ari 0.219  geo 0.672  (n=5)  diff: knn15 +0.000 +- 0.001  sp -0.002 +- 0.004  ari -0.004 +- 0.006  geo -0.004 +- 0.005
+  hybrid default               knn15 0.150  sp 0.752  ari 0.195  geo 0.875  (n=5)
+  hybrid deep 0.3              knn15 0.152  sp 0.736  ari 0.198  geo 0.875  (n=5)  diff: knn15 +0.002 +- 0.001  sp -0.016 +- 0.005  ari +0.003 +- 0.010  geo +0.001 +- 0.014
+  hybrid deep 0.3 x2           knn15 0.151  sp 0.749  ari 0.194  geo 0.874  (n=5)  diff: knn15 +0.001 +- 0.002  sp -0.003 +- 0.014  ari -0.001 +- 0.009  geo -0.000 +- 0.017
+  hybrid default + post        knn15 0.149  sp 0.792  ari 0.201  geo 0.897  (n=5)
+  hybrid deep 0.3 + post       knn15 0.151  sp 0.801  ari 0.208  geo 0.915  (n=5)  diff: knn15 +0.002 +- 0.001  sp +0.009 +- 0.021  ari +0.008 +- 0.009  geo +0.018 +- 0.021
+  hybrid deep 0.3 x2 + post    knn15 0.151  sp 0.799  ari 0.196  geo 0.895  (n=5)  diff: knn15 +0.001 +- 0.002  sp +0.008 +- 0.025  ari -0.004 +- 0.010  geo -0.001 +- 0.021
+
+=== tasic2018
+  SGD default                  knn15 0.349  sp 0.706  ari 0.512  geo 0.751  (n=5)
+  SGD deep 0.3                 knn15 0.353  sp 0.681  ari 0.572  geo 0.772  (n=5)  diff: knn15 +0.003 +- 0.002  sp -0.025 +- 0.017  ari +0.060 +- 0.032  geo +0.021 +- 0.014
+  SGD deep 0.3 x2              knn15 0.350  sp 0.696  ari 0.537  geo 0.759  (n=5)  diff: knn15 +0.000 +- 0.002  sp -0.010 +- 0.011  ari +0.025 +- 0.035  geo +0.009 +- 0.020
+  SGD default + post           knn15 0.348  sp 0.848  ari 0.511  geo 0.796  (n=5)
+  SGD deep 0.3 + post          knn15 0.352  sp 0.841  ari 0.549  geo 0.816  (n=5)  diff: knn15 +0.004 +- 0.002  sp -0.007 +- 0.013  ari +0.038 +- 0.047  geo +0.020 +- 0.027
+  SGD deep 0.3 x2 + post       knn15 0.349  sp 0.843  ari 0.537  geo 0.809  (n=5)  diff: knn15 +0.001 +- 0.002  sp -0.004 +- 0.011  ari +0.026 +- 0.049  geo +0.013 +- 0.029
+  hybrid default               knn15 0.485  sp 0.648  ari 0.456  geo 0.783  (n=5)
+  hybrid deep 0.3              knn15 0.485  sp 0.618  ari 0.491  geo 0.790  (n=5)  diff: knn15 +0.000 +- 0.001  sp -0.030 +- 0.022  ari +0.036 +- 0.026  geo +0.007 +- 0.006
+  hybrid deep 0.3 x2           knn15 0.486  sp 0.637  ari 0.452  geo 0.777  (n=5)  diff: knn15 +0.001 +- 0.001  sp -0.011 +- 0.010  ari -0.003 +- 0.014  geo -0.006 +- 0.008
+  hybrid default + post        knn15 0.481  sp 0.813  ari 0.522  geo 0.881  (n=5)
+  hybrid deep 0.3 + post       knn15 0.484  sp 0.784  ari 0.567  geo 0.897  (n=5)  diff: knn15 +0.003 +- 0.002  sp -0.029 +- 0.010  ari +0.045 +- 0.020  geo +0.015 +- 0.010
+  hybrid deep 0.3 x2 + post    knn15 0.483  sp 0.809  ari 0.525  geo 0.882  (n=5)  diff: knn15 +0.002 +- 0.002  sp -0.004 +- 0.017  ari +0.003 +- 0.029  geo +0.001 +- 0.018
