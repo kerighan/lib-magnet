@@ -117,15 +117,17 @@ def test_single_thread_is_reproducible():
     assert np.allclose(Y1, Y2)
 
 
-def test_serial_mode_is_reproducible_with_threads():
+@pytest.mark.parametrize("kw", [dict(loss="hybrid", parallel="serial", contraction=0.7), dict(loss="tsne", n_epochs=200), dict(parallel="owner")],
+                         ids=["hybrid-serial", "tsne", "owner"])
+def test_serial_mode_is_reproducible_with_threads(kw):
     # the lock-free default differs between two fits; parallel="serial" runs the SGD on one thread and the rest on
     # n_threads, and the full-batch pass and the post-process must then give the same bits (9000 points: the
     # interpolation-grid scatter is multithreaded from 8000 on, where a box-boundary write race used to live)
     X, _ = blobs(9000)
-    for kw in (dict(loss="hybrid", parallel="serial", contraction=0.7), dict(loss="tsne", n_epochs=200), dict(parallel="owner")):
-        Y1 = MAGNET(random_state=1, n_threads=4, **kw).fit_transform(X)
-        Y2 = MAGNET(random_state=1, n_threads=4, **kw).fit_transform(X)
-        assert np.array_equal(Y1, Y2), kw
+    # n_threads=4 is above the core count of some CI runners (3 on macOS arm64): that case must stay fast as well
+    Y1 = MAGNET(random_state=1, n_threads=4, **kw).fit_transform(X)
+    Y2 = MAGNET(random_state=1, n_threads=4, **kw).fit_transform(X)
+    assert np.array_equal(Y1, Y2), kw
     with pytest.raises(ValueError):
         MAGNET(parallel="threads").fit(X[:500])
 

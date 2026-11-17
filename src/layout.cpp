@@ -51,7 +51,12 @@ struct Barrier {
             count.store(0, std::memory_order_relaxed);
             gen.store(g + 1, std::memory_order_release);
         } else {
-            while (gen.load(std::memory_order_acquire) == g) std::this_thread::yield();
+            // yield first, then sleep: with more threads than free cores (n_threads above the core count, a container
+            // CPU quota, a loaded machine) waiters that only yield can starve the thread everyone is waiting for
+            for (int spins = 0; gen.load(std::memory_order_acquire) == g; ++spins) {
+                if (spins < 256) std::this_thread::yield();
+                else std::this_thread::sleep_for(std::chrono::microseconds(50));
+            }
         }
     }
 };

@@ -22,7 +22,8 @@ public:
 
     void run(int nt, const std::function<void(int)>& f) {
         if (nt <= 1) { f(0); return; }
-        if (nt > n_workers_ + 1) nt = n_workers_ + 1;
+        // nt may exceed the pool size (n_threads above the core count): every index in [0, nt) still runs, the
+        // threads share them through the counter. Clamping nt here silently dropped the last chunks of the callers.
         uint64_t gen;
         pthread_mutex_lock(&m_);
         gen = ++generation_;
