@@ -1,0 +1,130 @@
+
+######## sgd (as is): mean of the base, then paired difference (config - sgd hogwild 0.1), mean +- sd over seeds
+mnist      sgd hogwild 0.1      knn15 0.192+-0.001  sp 0.417+-0.003  ari 0.750+-0.003  geo 0.723+-0.002  fit_s 5.580+-0.613
+           sgd owner 0.1        knn15 -0.001+-0.001  sp +0.032+-0.004  ari -0.212+-0.039  geo -0.061+-0.015  fit_s -0.870+-0.319   (ARI sd of the config 0.040)
+           sgd owner 0.05       knn15 +0.008+-0.001  sp +0.007+-0.005  ari -0.175+-0.038  geo -0.049+-0.015  fit_s -0.832+-0.698   (ARI sd of the config 0.038)
+           sgd serial 0.1       knn15 -0.001+-0.001  sp -0.000+-0.003  ari +0.003+-0.005  geo +0.000+-0.004  fit_s +7.642+-0.996   (ARI sd of the config 0.004)
+fmnist     sgd hogwild 0.1      knn15 0.204+-0.000  sp 0.723+-0.001  ari 0.434+-0.006  geo 0.772+-0.003  fit_s 6.098+-0.347
+           sgd owner 0.1        knn15 -0.001+-0.001  sp +0.055+-0.002  ari -0.115+-0.010  geo -0.059+-0.007  fit_s -1.370+-0.383   (ARI sd of the config 0.013)
+           sgd owner 0.05       knn15 +0.005+-0.001  sp +0.033+-0.003  ari -0.110+-0.012  geo -0.055+-0.010  fit_s -1.230+-0.485   (ARI sd of the config 0.012)
+           sgd serial 0.1       knn15 -0.002+-0.001  sp +0.001+-0.001  ari -0.017+-0.024  geo -0.012+-0.014  fit_s +8.256+-0.764   (ARI sd of the config 0.025)
+letter     sgd hogwild 0.1      knn15 0.469+-0.008  sp 0.588+-0.006  ari 0.187+-0.005  geo 0.774+-0.008  fit_s 1.174+-0.109
+           sgd owner 0.1        knn15 +0.029+-0.006  sp +0.034+-0.009  ari -0.063+-0.014  geo +0.047+-0.004  fit_s -0.178+-0.069   (ARI sd of the config 0.012)
+           sgd owner 0.05       knn15 +0.032+-0.006  sp -0.064+-0.020  ari -0.042+-0.023  geo -0.019+-0.010  fit_s -0.218+-0.206   (ARI sd of the config 0.019)
+           sgd serial 0.1       knn15 +0.000+-0.007  sp -0.004+-0.004  ari +0.007+-0.012  geo -0.003+-0.006  fit_s +1.688+-0.126   (ARI sd of the config 0.012)
+covertype  sgd hogwild 0.1      knn15 0.469+-0.002  sp 0.584+-0.005  ari 0.026+-0.009  geo 0.758+-0.004  fit_s 1.244+-0.217
+           sgd owner 0.1        knn15 +0.016+-0.002  sp -0.016+-0.007  ari +0.003+-0.010  geo +0.003+-0.005  fit_s -0.328+-0.293   (ARI sd of the config 0.010)
+           sgd owner 0.05       knn15 +0.024+-0.002  sp -0.018+-0.006  ari +0.005+-0.010  geo +0.007+-0.005  fit_s -0.376+-0.241   (ARI sd of the config 0.011)
+           sgd serial 0.1       knn15 -0.004+-0.004  sp +0.002+-0.006  ari +0.005+-0.005  geo -0.002+-0.006  fit_s +1.624+-0.206   (ARI sd of the config 0.010)
+pbmc68k    sgd hogwild 0.1      knn15 0.057+-0.001  sp 0.756+-0.013  ari 0.219+-0.002  geo 0.658+-0.003  fit_s 4.154+-0.588
+           sgd owner 0.1        knn15 -0.000+-0.001  sp -0.046+-0.025  ari -0.018+-0.005  geo -0.033+-0.004  fit_s -0.694+-0.508   (ARI sd of the config 0.003)
+           sgd owner 0.05       knn15 +0.002+-0.000  sp -0.036+-0.022  ari -0.015+-0.004  geo -0.018+-0.006  fit_s -0.824+-0.452   (ARI sd of the config 0.002)
+           sgd serial 0.1       knn15 -0.001+-0.001  sp +0.004+-0.014  ari -0.008+-0.003  geo -0.010+-0.004  fit_s +6.336+-0.351   (ARI sd of the config 0.004)
+tasic2018  sgd hogwild 0.1      knn15 0.352+-0.001  sp 0.715+-0.005  ari 0.523+-0.022  geo 0.761+-0.011  fit_s 1.358+-0.168
+           sgd owner 0.1        knn15 -0.003+-0.001  sp +0.019+-0.006  ari -0.141+-0.021  geo -0.072+-0.012  fit_s -0.328+-0.259   (ARI sd of the config 0.022)
+           sgd owner 0.05       knn15 +0.003+-0.001  sp -0.023+-0.027  ari -0.099+-0.019  geo -0.058+-0.008  fit_s -0.392+-0.134   (ARI sd of the config 0.031)
+           sgd serial 0.1       knn15 -0.003+-0.001  sp -0.008+-0.006  ari +0.011+-0.014  geo +0.000+-0.008  fit_s +1.926+-0.201   (ARI sd of the config 0.019)
+mean over 6 sets, geo difference: sgd owner 0.1        -0.0293  worst -0.0717
+mean over 6 sets, geo difference: sgd owner 0.05       -0.0318  worst -0.0578
+mean over 6 sets, geo difference: sgd serial 0.1       -0.0043  worst -0.0120
+
+######## hybrid (as is): mean of the base, then paired difference (config - hybrid hogwild 0.2), mean +- sd over seeds
+mnist      hybrid hogwild 0.2   knn15 0.355+-0.001  sp 0.423+-0.004  ari 0.718+-0.016  geo 0.879+-0.007  fit_s 11.636+-0.723
+           hybrid owner 0.1     knn15 -0.002+-0.001  sp +0.007+-0.006  ari -0.109+-0.049  geo -0.044+-0.025  fit_s -0.920+-0.471   (ARI sd of the config 0.043)
+           hybrid owner 0.2     knn15 -0.002+-0.001  sp +0.025+-0.007  ari -0.133+-0.040  geo -0.044+-0.021  fit_s -0.842+-0.705   (ARI sd of the config 0.031)
+           hybrid owner 0.3     knn15 -0.005+-0.001  sp +0.045+-0.017  ari -0.280+-0.041  geo -0.113+-0.015  fit_s -1.370+-0.824   (ARI sd of the config 0.033)
+           hybrid serial 0.2    knn15 +0.001+-0.001  sp +0.002+-0.005  ari -0.023+-0.032  geo -0.008+-0.014  fit_s +10.106+-1.668   (ARI sd of the config 0.021)
+fmnist     hybrid hogwild 0.2   knn15 0.329+-0.001  sp 0.727+-0.003  ari 0.324+-0.030  geo 0.822+-0.025  fit_s 11.080+-0.407
+           hybrid owner 0.1     knn15 +0.000+-0.001  sp +0.029+-0.003  ari -0.010+-0.036  geo +0.002+-0.032  fit_s -0.740+-0.798   (ARI sd of the config 0.009)
+           hybrid owner 0.2     knn15 -0.001+-0.001  sp +0.038+-0.003  ari -0.011+-0.037  geo +0.004+-0.032  fit_s -0.792+-0.588   (ARI sd of the config 0.010)
+           hybrid owner 0.3     knn15 -0.002+-0.001  sp +0.042+-0.003  ari -0.013+-0.031  geo +0.004+-0.026  fit_s -0.880+-0.717   (ARI sd of the config 0.011)
+           hybrid serial 0.2    knn15 +0.001+-0.001  sp +0.002+-0.003  ari -0.014+-0.041  geo -0.010+-0.036  fit_s +9.950+-1.157   (ARI sd of the config 0.014)
+letter     hybrid hogwild 0.2   knn15 0.625+-0.001  sp 0.594+-0.003  ari 0.177+-0.009  geo 0.899+-0.002  fit_s 5.140+-0.341
+           hybrid owner 0.1     knn15 -0.003+-0.001  sp +0.002+-0.012  ari -0.042+-0.011  geo -0.001+-0.009  fit_s +0.186+-0.505   (ARI sd of the config 0.003)
+           hybrid owner 0.2     knn15 -0.004+-0.001  sp +0.021+-0.018  ari -0.050+-0.005  geo +0.012+-0.014  fit_s -0.244+-0.123   (ARI sd of the config 0.006)
+           hybrid owner 0.3     knn15 -0.007+-0.001  sp +0.018+-0.007  ari -0.063+-0.007  geo +0.008+-0.005  fit_s -0.624+-0.314   (ARI sd of the config 0.007)
+           hybrid serial 0.2    knn15 -0.000+-0.001  sp -0.002+-0.004  ari -0.008+-0.013  geo -0.001+-0.003  fit_s +1.250+-0.950   (ARI sd of the config 0.010)
+covertype  hybrid hogwild 0.2   knn15 0.625+-0.001  sp 0.550+-0.002  ari 0.023+-0.006  geo 0.849+-0.002  fit_s 4.746+-0.171
+           hybrid owner 0.1     knn15 -0.002+-0.001  sp -0.014+-0.010  ari +0.003+-0.004  geo -0.012+-0.008  fit_s +0.056+-0.551   (ARI sd of the config 0.008)
+           hybrid owner 0.2     knn15 -0.004+-0.002  sp -0.007+-0.008  ari -0.002+-0.004  geo -0.008+-0.007  fit_s +0.282+-0.537   (ARI sd of the config 0.004)
+           hybrid owner 0.3     knn15 -0.010+-0.003  sp -0.033+-0.013  ari -0.009+-0.008  geo -0.033+-0.012  fit_s +0.326+-0.514   (ARI sd of the config 0.003)
+           hybrid serial 0.2    knn15 -0.000+-0.001  sp +0.003+-0.003  ari -0.003+-0.005  geo +0.002+-0.002  fit_s +1.692+-0.292   (ARI sd of the config 0.007)
+pbmc68k    hybrid hogwild 0.2   knn15 0.151+-0.001  sp 0.749+-0.002  ari 0.196+-0.005  geo 0.875+-0.009  fit_s 10.122+-1.199
+           hybrid owner 0.1     knn15 -0.001+-0.001  sp -0.046+-0.012  ari +0.002+-0.007  geo -0.017+-0.006  fit_s -1.808+-0.462   (ARI sd of the config 0.005)
+           hybrid owner 0.2     knn15 -0.001+-0.001  sp -0.009+-0.016  ari -0.006+-0.011  geo -0.014+-0.013  fit_s -1.566+-1.432   (ARI sd of the config 0.014)
+           hybrid owner 0.3     knn15 -0.001+-0.001  sp +0.010+-0.002  ari -0.014+-0.011  geo -0.020+-0.016  fit_s -1.164+-1.457   (ARI sd of the config 0.011)
+           hybrid serial 0.2    knn15 +0.000+-0.001  sp -0.000+-0.011  ari -0.005+-0.012  geo -0.008+-0.018  fit_s +5.652+-1.132   (ARI sd of the config 0.007)
+tasic2018  hybrid hogwild 0.2   knn15 0.485+-0.000  sp 0.649+-0.003  ari 0.455+-0.020  geo 0.783+-0.011  fit_s 4.462+-0.428
+           hybrid owner 0.1     knn15 -0.002+-0.001  sp +0.023+-0.008  ari -0.051+-0.029  geo -0.022+-0.018  fit_s -0.484+-0.378   (ARI sd of the config 0.012)
+           hybrid owner 0.2     knn15 -0.002+-0.001  sp +0.037+-0.008  ari -0.053+-0.017  geo -0.019+-0.012  fit_s +0.386+-1.235   (ARI sd of the config 0.023)
+           hybrid owner 0.3     knn15 -0.002+-0.002  sp +0.025+-0.033  ari -0.074+-0.013  geo -0.037+-0.013  fit_s -0.228+-0.345   (ARI sd of the config 0.009)
+           hybrid serial 0.2    knn15 +0.001+-0.001  sp +0.000+-0.006  ari -0.001+-0.040  geo -0.001+-0.022  fit_s +1.242+-0.512   (ARI sd of the config 0.027)
+mean over 6 sets, geo difference: hybrid owner 0.1     -0.0158  worst -0.0442
+mean over 6 sets, geo difference: hybrid owner 0.2     -0.0116  worst -0.0444
+mean over 6 sets, geo difference: hybrid owner 0.3     -0.0317  worst -0.1126
+mean over 6 sets, geo difference: hybrid serial 0.2    -0.0042  worst -0.0102
+
+######## sgd + post: mean of the base, then paired difference (config - sgd hogwild 0.1), mean +- sd over seeds
+mnist      sgd hogwild 0.1      knn15 0.192+-0.001  sp 0.501+-0.003  ari 0.777+-0.012  geo 0.777+-0.003  fit_s 6.960+-0.622
+           sgd owner 0.1        knn15 -0.001+-0.001  sp +0.002+-0.007  ari -0.158+-0.044  geo -0.057+-0.016  fit_s -0.798+-0.331   (ARI sd of the config 0.044)
+           sgd owner 0.05       knn15 +0.009+-0.001  sp -0.009+-0.005  ari -0.070+-0.052  geo -0.017+-0.017  fit_s -0.738+-0.791   (ARI sd of the config 0.048)
+           sgd serial 0.1       knn15 -0.001+-0.001  sp -0.001+-0.003  ari +0.036+-0.037  geo +0.010+-0.012  fit_s +7.836+-1.109   (ARI sd of the config 0.031)
+fmnist     sgd hogwild 0.1      knn15 0.204+-0.000  sp 0.694+-0.006  ari 0.441+-0.009  geo 0.766+-0.006  fit_s 7.112+-0.338
+           sgd owner 0.1        knn15 -0.000+-0.002  sp +0.034+-0.005  ari -0.035+-0.006  geo -0.009+-0.005  fit_s -1.366+-0.402   (ARI sd of the config 0.007)
+           sgd owner 0.05       knn15 +0.005+-0.001  sp +0.025+-0.007  ari -0.038+-0.014  geo -0.007+-0.008  fit_s -1.282+-0.570   (ARI sd of the config 0.017)
+           sgd serial 0.1       knn15 -0.001+-0.001  sp +0.000+-0.002  ari +0.001+-0.007  geo -0.001+-0.004  fit_s +8.120+-0.816   (ARI sd of the config 0.004)
+letter     sgd hogwild 0.1      knn15 0.467+-0.008  sp 0.593+-0.007  ari 0.171+-0.010  geo 0.776+-0.006  fit_s 2.790+-0.128
+           sgd owner 0.1        knn15 +0.028+-0.005  sp +0.028+-0.016  ari -0.048+-0.006  geo +0.042+-0.008  fit_s +0.124+-0.197   (ARI sd of the config 0.008)
+           sgd owner 0.05       knn15 +0.032+-0.006  sp -0.050+-0.019  ari -0.020+-0.014  geo -0.009+-0.009  fit_s +0.082+-0.229   (ARI sd of the config 0.016)
+           sgd serial 0.1       knn15 -0.000+-0.006  sp -0.002+-0.006  ari -0.003+-0.009  geo -0.001+-0.005  fit_s +1.606+-0.198   (ARI sd of the config 0.012)
+covertype  sgd hogwild 0.1      knn15 0.468+-0.002  sp 0.774+-0.006  ari 0.073+-0.022  geo 0.872+-0.003  fit_s 3.452+-0.417
+           sgd owner 0.1        knn15 +0.016+-0.002  sp -0.055+-0.014  ari +0.003+-0.013  geo -0.017+-0.010  fit_s -0.314+-0.631   (ARI sd of the config 0.018)
+           sgd owner 0.05       knn15 +0.024+-0.002  sp -0.045+-0.008  ari +0.001+-0.019  geo -0.004+-0.007  fit_s -0.350+-0.401   (ARI sd of the config 0.010)
+           sgd serial 0.1       knn15 -0.004+-0.003  sp -0.005+-0.012  ari +0.001+-0.030  geo -0.007+-0.006  fit_s +1.330+-0.453   (ARI sd of the config 0.019)
+pbmc68k    sgd hogwild 0.1      knn15 0.057+-0.001  sp 0.814+-0.039  ari 0.221+-0.004  geo 0.676+-0.010  fit_s 4.994+-0.737
+           sgd owner 0.1        knn15 -0.000+-0.001  sp -0.015+-0.012  ari -0.003+-0.004  geo -0.008+-0.004  fit_s -0.606+-0.562   (ARI sd of the config 0.003)
+           sgd owner 0.05       knn15 +0.002+-0.000  sp -0.011+-0.009  ari -0.004+-0.002  geo +0.001+-0.003  fit_s -0.702+-0.466   (ARI sd of the config 0.005)
+           sgd serial 0.1       knn15 -0.001+-0.001  sp +0.002+-0.008  ari -0.000+-0.006  geo -0.002+-0.008  fit_s +6.192+-0.455   (ARI sd of the config 0.003)
+tasic2018  sgd hogwild 0.1      knn15 0.351+-0.001  sp 0.859+-0.003  ari 0.515+-0.026  geo 0.805+-0.014  fit_s 2.554+-0.235
+           sgd owner 0.1        knn15 -0.004+-0.001  sp +0.002+-0.003  ari -0.109+-0.026  geo -0.064+-0.014  fit_s -0.226+-0.420   (ARI sd of the config 0.018)
+           sgd owner 0.05       knn15 +0.002+-0.001  sp -0.031+-0.017  ari -0.040+-0.060  geo -0.030+-0.030  fit_s -0.320+-0.301   (ARI sd of the config 0.037)
+           sgd serial 0.1       knn15 -0.003+-0.001  sp -0.001+-0.008  ari +0.017+-0.032  geo +0.006+-0.014  fit_s +1.722+-0.359   (ARI sd of the config 0.021)
+mean over 6 sets, geo difference: sgd owner 0.1        -0.0188  worst -0.0635
+mean over 6 sets, geo difference: sgd owner 0.05       -0.0110  worst -0.0299
+mean over 6 sets, geo difference: sgd serial 0.1       +0.0008  worst -0.0067
+
+######## hybrid + post: mean of the base, then paired difference (config - hybrid hogwild 0.2), mean +- sd over seeds
+mnist      hybrid hogwild 0.2   knn15 0.351+-0.001  sp 0.495+-0.003  ari 0.844+-0.038  geo 0.973+-0.016  fit_s 13.222+-0.691
+           hybrid owner 0.1     knn15 -0.004+-0.002  sp -0.009+-0.008  ari -0.122+-0.039  geo -0.059+-0.020  fit_s -0.800+-0.466   (ARI sd of the config 0.017)
+           hybrid owner 0.2     knn15 -0.004+-0.001  sp -0.001+-0.010  ari -0.133+-0.068  geo -0.058+-0.034  fit_s -0.870+-0.739   (ARI sd of the config 0.034)
+           hybrid owner 0.3     knn15 -0.012+-0.002  sp +0.001+-0.013  ari -0.279+-0.049  geo -0.132+-0.015  fit_s -1.410+-0.874   (ARI sd of the config 0.038)
+           hybrid serial 0.2    knn15 +0.000+-0.002  sp +0.000+-0.003  ari +0.007+-0.041  geo +0.003+-0.016  fit_s +10.172+-1.671   (ARI sd of the config 0.026)
+fmnist     hybrid hogwild 0.2   knn15 0.328+-0.001  sp 0.692+-0.011  ari 0.434+-0.007  geo 0.891+-0.008  fit_s 12.052+-0.456
+           hybrid owner 0.1     knn15 +0.000+-0.001  sp +0.019+-0.004  ari -0.027+-0.009  geo -0.011+-0.008  fit_s -0.640+-0.844   (ARI sd of the config 0.007)
+           hybrid owner 0.2     knn15 -0.001+-0.001  sp +0.027+-0.004  ari -0.040+-0.007  geo -0.018+-0.007  fit_s -0.686+-0.608   (ARI sd of the config 0.009)
+           hybrid owner 0.3     knn15 -0.002+-0.002  sp +0.032+-0.007  ari -0.046+-0.011  geo -0.021+-0.006  fit_s -0.720+-0.686   (ARI sd of the config 0.014)
+           hybrid serial 0.2    knn15 +0.001+-0.001  sp +0.002+-0.004  ari -0.014+-0.015  geo -0.008+-0.012  fit_s +10.120+-1.258   (ARI sd of the config 0.017)
+letter     hybrid hogwild 0.2   knn15 0.612+-0.002  sp 0.590+-0.001  ari 0.187+-0.008  geo 0.886+-0.001  fit_s 7.200+-0.385
+           hybrid owner 0.1     knn15 -0.006+-0.002  sp -0.000+-0.017  ari -0.038+-0.013  geo -0.005+-0.013  fit_s +0.262+-0.592   (ARI sd of the config 0.012)
+           hybrid owner 0.2     knn15 -0.009+-0.004  sp +0.014+-0.019  ari -0.047+-0.007  geo +0.004+-0.016  fit_s -0.164+-0.101   (ARI sd of the config 0.004)
+           hybrid owner 0.3     knn15 -0.013+-0.003  sp +0.008+-0.005  ari -0.060+-0.013  geo -0.004+-0.006  fit_s -0.648+-0.411   (ARI sd of the config 0.013)
+           hybrid serial 0.2    knn15 -0.002+-0.002  sp -0.003+-0.001  ari -0.009+-0.011  geo -0.003+-0.002  fit_s +1.202+-0.892   (ARI sd of the config 0.012)
+covertype  hybrid hogwild 0.2   knn15 0.620+-0.001  sp 0.689+-0.009  ari 0.060+-0.013  geo 0.946+-0.006  fit_s 7.106+-0.156
+           hybrid owner 0.1     knn15 +0.000+-0.001  sp -0.009+-0.021  ari +0.010+-0.017  geo -0.006+-0.014  fit_s +0.222+-0.472   (ARI sd of the config 0.012)
+           hybrid owner 0.2     knn15 -0.005+-0.002  sp -0.016+-0.030  ari -0.007+-0.018  geo -0.015+-0.022  fit_s +0.500+-0.442   (ARI sd of the config 0.011)
+           hybrid owner 0.3     knn15 -0.019+-0.005  sp -0.066+-0.016  ari -0.022+-0.017  geo -0.060+-0.012  fit_s +0.648+-0.357   (ARI sd of the config 0.010)
+           hybrid serial 0.2    knn15 +0.001+-0.002  sp +0.004+-0.010  ari -0.004+-0.018  geo +0.004+-0.006  fit_s +1.652+-0.474   (ARI sd of the config 0.007)
+pbmc68k    hybrid hogwild 0.2   knn15 0.150+-0.001  sp 0.774+-0.028  ari 0.195+-0.007  geo 0.881+-0.012  fit_s 10.950+-1.276
+           hybrid owner 0.1     knn15 -0.000+-0.001  sp +0.018+-0.034  ari +0.018+-0.009  geo +0.033+-0.024  fit_s -1.874+-0.499   (ARI sd of the config 0.005)
+           hybrid owner 0.2     knn15 -0.000+-0.001  sp +0.031+-0.032  ari -0.003+-0.008  geo +0.006+-0.018  fit_s -1.534+-1.484   (ARI sd of the config 0.012)
+           hybrid owner 0.3     knn15 -0.000+-0.001  sp +0.009+-0.007  ari -0.006+-0.009  geo -0.007+-0.016  fit_s -1.180+-1.427   (ARI sd of the config 0.004)
+           hybrid serial 0.2    knn15 +0.001+-0.001  sp +0.008+-0.039  ari -0.003+-0.018  geo -0.000+-0.033  fit_s +5.584+-1.143   (ARI sd of the config 0.012)
+tasic2018  hybrid hogwild 0.2   knn15 0.482+-0.002  sp 0.806+-0.007  ari 0.518+-0.019  geo 0.877+-0.009  fit_s 5.752+-0.526
+           hybrid owner 0.1     knn15 -0.007+-0.003  sp +0.006+-0.010  ari -0.051+-0.009  geo -0.032+-0.008  fit_s -0.446+-0.442   (ARI sd of the config 0.023)
+           hybrid owner 0.2     knn15 -0.007+-0.003  sp +0.017+-0.007  ari -0.059+-0.024  geo -0.033+-0.013  fit_s +0.550+-1.342   (ARI sd of the config 0.012)
+           hybrid owner 0.3     knn15 -0.008+-0.005  sp +0.006+-0.025  ari -0.072+-0.026  geo -0.045+-0.019  fit_s -0.134+-0.491   (ARI sd of the config 0.020)
+           hybrid serial 0.2    knn15 -0.001+-0.003  sp +0.007+-0.014  ari -0.002+-0.025  geo +0.001+-0.018  fit_s +1.124+-0.613   (ARI sd of the config 0.028)
+mean over 6 sets, geo difference: hybrid owner 0.1     -0.0132  worst -0.0585
+mean over 6 sets, geo difference: hybrid owner 0.2     -0.0191  worst -0.0582
+mean over 6 sets, geo difference: hybrid owner 0.3     -0.0446  worst -0.1316
+mean over 6 sets, geo difference: hybrid serial 0.2    -0.0006  worst -0.0080

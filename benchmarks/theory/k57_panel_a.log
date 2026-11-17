@@ -1,0 +1,312 @@
+mnist | sgd hogwild 0.1 | 0 {'knn15': 0.192, 'sp': 0.415, 'ari': 0.755, 'geo': 0.723, 'min': 0.538, 'fit_s': 6.56}
+mnist | sgd hogwild 0.1 + post | 0 {'knn15': 0.191, 'sp': 0.498, 'ari': 0.777, 'geo': 0.774, 'min': 0.536, 'fit_s': 7.92}
+mnist | sgd owner 0.1 | 0 {'knn15': 0.192, 'sp': 0.452, 'ari': 0.542, 'geo': 0.667, 'min': 0.539, 'fit_s': 5.1}
+mnist | sgd owner 0.1 + post | 0 {'knn15': 0.191, 'sp': 0.509, 'ari': 0.592, 'geo': 0.713, 'min': 0.537, 'fit_s': 6.49}
+mnist | sgd owner 0.05 | 0 {'knn15': 0.2, 'sp': 0.424, 'ari': 0.538, 'geo': 0.66, 'min': 0.563, 'fit_s': 4.85}
+mnist | sgd owner 0.05 + post | 0 {'knn15': 0.2, 'sp': 0.492, 'ari': 0.632, 'geo': 0.731, 'min': 0.56, 'fit_s': 6.17}
+mnist | hybrid hogwild 0.2 | 0 {'knn15': 0.355, 'sp': 0.421, 'ari': 0.687, 'geo': 0.865, 'min': 0.751, 'fit_s': 11.67}
+mnist | hybrid hogwild 0.2 + post | 0 {'knn15': 0.35, 'sp': 0.491, 'ari': 0.815, 'geo': 0.959, 'min': 0.892, 'fit_s': 13.03}
+mnist | hybrid owner 0.1 | 0 {'knn15': 0.354, 'sp': 0.434, 'ari': 0.63, 'geo': 0.848, 'min': 0.689, 'fit_s': 11.08}
+mnist | hybrid owner 0.1 + post | 0 {'knn15': 0.349, 'sp': 0.49, 'ari': 0.701, 'geo': 0.911, 'min': 0.767, 'fit_s': 12.59}
+mnist | hybrid owner 0.2 | 0 {'knn15': 0.352, 'sp': 0.454, 'ari': 0.62, 'geo': 0.855, 'min': 0.678, 'fit_s': 11.46}
+mnist | hybrid owner 0.2 + post | 0 {'knn15': 0.346, 'sp': 0.503, 'ari': 0.737, 'geo': 0.932, 'min': 0.807, 'fit_s': 12.89}
+mnist | hybrid owner 0.3 | 0 {'knn15': 0.35, 'sp': 0.468, 'ari': 0.447, 'geo': 0.772, 'min': 0.489, 'fit_s': 11.3}
+mnist | hybrid owner 0.3 + post | 0 {'knn15': 0.34, 'sp': 0.495, 'ari': 0.511, 'geo': 0.815, 'min': 0.559, 'fit_s': 12.9}
+mnist | sgd hogwild 0.1 | 1 {'knn15': 0.193, 'sp': 0.416, 'ari': 0.748, 'geo': 0.723, 'min': 0.542, 'fit_s': 4.89}
+mnist | sgd hogwild 0.1 + post | 1 {'knn15': 0.192, 'sp': 0.503, 'ari': 0.776, 'geo': 0.779, 'min': 0.54, 'fit_s': 6.34}
+mnist | sgd owner 0.1 | 1 {'knn15': 0.193, 'sp': 0.449, 'ari': 0.506, 'geo': 0.652, 'min': 0.543, 'fit_s': 4.08}
+mnist | sgd owner 0.1 + post | 1 {'knn15': 0.192, 'sp': 0.501, 'ari': 0.648, 'geo': 0.733, 'min': 0.54, 'fit_s': 5.68}
+mnist | sgd owner 0.05 | 1 {'knn15': 0.202, 'sp': 0.416, 'ari': 0.573, 'geo': 0.671, 'min': 0.567, 'fit_s': 4.49}
+mnist | sgd owner 0.05 + post | 1 {'knn15': 0.202, 'sp': 0.492, 'ari': 0.742, 'geo': 0.775, 'min': 0.568, 'fit_s': 5.99}
+mnist | hybrid hogwild 0.2 | 1 {'knn15': 0.355, 'sp': 0.428, 'ari': 0.721, 'geo': 0.883, 'min': 0.789, 'fit_s': 12.49}
+mnist | hybrid hogwild 0.2 + post | 1 {'knn15': 0.35, 'sp': 0.499, 'ari': 0.855, 'geo': 0.98, 'min': 0.935, 'fit_s': 14.23}
+mnist | hybrid owner 0.1 | 1 {'knn15': 0.354, 'sp': 0.43, 'ari': 0.636, 'geo': 0.848, 'min': 0.696, 'fit_s': 10.91}
+mnist | hybrid owner 0.1 + post | 1 {'knn15': 0.347, 'sp': 0.483, 'ari': 0.723, 'geo': 0.914, 'min': 0.792, 'fit_s': 12.71}
+mnist | hybrid owner 0.2 | 1 {'knn15': 0.353, 'sp': 0.445, 'ari': 0.578, 'geo': 0.831, 'min': 0.633, 'fit_s': 10.71}
+mnist | hybrid owner 0.2 + post | 1 {'knn15': 0.346, 'sp': 0.487, 'ari': 0.699, 'geo': 0.906, 'min': 0.765, 'fit_s': 12.37}
+mnist | hybrid owner 0.3 | 1 {'knn15': 0.35, 'sp': 0.469, 'ari': 0.429, 'geo': 0.763, 'min': 0.469, 'fit_s': 10.32}
+mnist | hybrid owner 0.3 + post | 1 {'knn15': 0.339, 'sp': 0.499, 'ari': 0.61, 'geo': 0.866, 'min': 0.668, 'fit_s': 11.92}
+mnist | sgd hogwild 0.1 | 2 {'knn15': 0.193, 'sp': 0.422, 'ari': 0.75, 'geo': 0.728, 'min': 0.543, 'fit_s': 5.83}
+mnist | sgd hogwild 0.1 + post | 2 {'knn15': 0.193, 'sp': 0.5, 'ari': 0.782, 'geo': 0.78, 'min': 0.541, 'fit_s': 7.25}
+mnist | sgd owner 0.1 | 2 {'knn15': 0.192, 'sp': 0.452, 'ari': 0.614, 'geo': 0.694, 'min': 0.539, 'fit_s': 5.22}
+mnist | sgd owner 0.1 + post | 2 {'knn15': 0.19, 'sp': 0.505, 'ari': 0.693, 'geo': 0.749, 'min': 0.535, 'fit_s': 6.64}
+mnist | sgd owner 0.05 | 2 {'knn15': 0.2, 'sp': 0.425, 'ari': 0.597, 'geo': 0.684, 'min': 0.563, 'fit_s': 5.12}
+mnist | sgd owner 0.05 + post | 2 {'knn15': 0.201, 'sp': 0.495, 'ari': 0.764, 'geo': 0.782, 'min': 0.564, 'fit_s': 6.6}
+mnist | hybrid hogwild 0.2 | 2 {'knn15': 0.355, 'sp': 0.422, 'ari': 0.733, 'geo': 0.884, 'min': 0.802, 'fit_s': 10.82}
+mnist | hybrid hogwild 0.2 + post | 2 {'knn15': 0.351, 'sp': 0.494, 'ari': 0.88, 'geo': 0.987, 'min': 0.963, 'fit_s': 12.64}
+mnist | hybrid owner 0.1 | 2 {'knn15': 0.352, 'sp': 0.435, 'ari': 0.655, 'geo': 0.859, 'min': 0.717, 'fit_s': 10.58}
+mnist | hybrid owner 0.1 + post | 2 {'knn15': 0.345, 'sp': 0.492, 'ari': 0.748, 'geo': 0.928, 'min': 0.819, 'fit_s': 12.41}
+mnist | hybrid owner 0.2 | 2 {'knn15': 0.354, 'sp': 0.439, 'ari': 0.609, 'geo': 0.842, 'min': 0.666, 'fit_s': 10.95}
+mnist | hybrid owner 0.2 + post | 2 {'knn15': 0.346, 'sp': 0.493, 'ari': 0.724, 'geo': 0.92, 'min': 0.792, 'fit_s': 12.75}
+mnist | hybrid owner 0.3 | 2 {'knn15': 0.351, 'sp': 0.487, 'ari': 0.391, 'geo': 0.749, 'min': 0.428, 'fit_s': 10.46}
+mnist | hybrid owner 0.3 + post | 2 {'knn15': 0.338, 'sp': 0.511, 'ari': 0.531, 'geo': 0.833, 'min': 0.581, 'fit_s': 12.01}
+mnist | sgd hogwild 0.1 | 3 {'knn15': 0.193, 'sp': 0.416, 'ari': 0.75, 'geo': 0.723, 'min': 0.542, 'fit_s': 4.97}
+mnist | sgd hogwild 0.1 + post | 3 {'knn15': 0.193, 'sp': 0.505, 'ari': 0.756, 'geo': 0.774, 'min': 0.541, 'fit_s': 6.23}
+mnist | sgd owner 0.1 | 3 {'knn15': 0.192, 'sp': 0.442, 'ari': 0.51, 'geo': 0.649, 'min': 0.54, 'fit_s': 4.07}
+mnist | sgd owner 0.1 + post | 3 {'knn15': 0.192, 'sp': 0.496, 'ari': 0.582, 'geo': 0.704, 'min': 0.539, 'fit_s': 5.43}
+mnist | sgd owner 0.05 | 3 {'knn15': 0.201, 'sp': 0.427, 'ari': 0.634, 'geo': 0.7, 'min': 0.565, 'fit_s': 5.14}
+mnist | sgd owner 0.05 + post | 3 {'knn15': 0.201, 'sp': 0.487, 'ari': 0.723, 'geo': 0.764, 'min': 0.566, 'fit_s': 6.71}
+mnist | hybrid hogwild 0.2 | 3 {'knn15': 0.355, 'sp': 0.418, 'ari': 0.729, 'geo': 0.88, 'min': 0.798, 'fit_s': 12.38}
+mnist | hybrid hogwild 0.2 + post | 3 {'knn15': 0.353, 'sp': 0.495, 'ari': 0.885, 'geo': 0.991, 'min': 0.968, 'fit_s': 13.8}
+mnist | hybrid owner 0.1 | 3 {'knn15': 0.353, 'sp': 0.421, 'ari': 0.533, 'geo': 0.793, 'min': 0.584, 'fit_s': 11.14}
+mnist | hybrid owner 0.1 + post | 3 {'knn15': 0.346, 'sp': 0.475, 'ari': 0.707, 'geo': 0.901, 'min': 0.774, 'fit_s': 12.68}
+mnist | hybrid owner 0.2 | 3 {'knn15': 0.353, 'sp': 0.45, 'ari': 0.588, 'geo': 0.838, 'min': 0.643, 'fit_s': 11.07}
+mnist | hybrid owner 0.2 + post | 3 {'knn15': 0.347, 'sp': 0.484, 'ari': 0.651, 'geo': 0.883, 'min': 0.712, 'fit_s': 12.56}
+mnist | hybrid owner 0.3 | 3 {'knn15': 0.351, 'sp': 0.472, 'ari': 0.43, 'geo': 0.766, 'min': 0.471, 'fit_s': 10.37}
+mnist | hybrid owner 0.3 + post | 3 {'knn15': 0.342, 'sp': 0.502, 'ari': 0.593, 'geo': 0.862, 'min': 0.648, 'fit_s': 12.02}
+mnist | sgd hogwild 0.1 | 4 {'knn15': 0.191, 'sp': 0.417, 'ari': 0.745, 'geo': 0.72, 'min': 0.537, 'fit_s': 5.65}
+mnist | sgd hogwild 0.1 + post | 4 {'knn15': 0.191, 'sp': 0.498, 'ari': 0.794, 'geo': 0.78, 'min': 0.536, 'fit_s': 7.06}
+mnist | sgd owner 0.1 | 4 {'knn15': 0.19, 'sp': 0.447, 'ari': 0.516, 'geo': 0.651, 'min': 0.533, 'fit_s': 5.08}
+mnist | sgd owner 0.1 + post | 4 {'knn15': 0.189, 'sp': 0.504, 'ari': 0.581, 'geo': 0.704, 'min': 0.532, 'fit_s': 6.57}
+mnist | sgd owner 0.05 | 4 {'knn15': 0.2, 'sp': 0.428, 'ari': 0.532, 'geo': 0.659, 'min': 0.561, 'fit_s': 4.14}
+mnist | sgd owner 0.05 + post | 4 {'knn15': 0.201, 'sp': 0.494, 'ari': 0.673, 'geo': 0.749, 'min': 0.564, 'fit_s': 5.64}
+mnist | hybrid hogwild 0.2 | 4 {'knn15': 0.356, 'sp': 0.425, 'ari': 0.721, 'geo': 0.882, 'min': 0.789, 'fit_s': 10.82}
+mnist | hybrid hogwild 0.2 + post | 4 {'knn15': 0.351, 'sp': 0.494, 'ari': 0.785, 'geo': 0.95, 'min': 0.859, 'fit_s': 12.41}
+mnist | hybrid owner 0.1 | 4 {'knn15': 0.354, 'sp': 0.427, 'ari': 0.59, 'geo': 0.826, 'min': 0.646, 'fit_s': 9.87}
+mnist | hybrid owner 0.1 + post | 4 {'knn15': 0.347, 'sp': 0.489, 'ari': 0.729, 'geo': 0.92, 'min': 0.798, 'fit_s': 11.72}
+mnist | hybrid owner 0.2 | 4 {'knn15': 0.353, 'sp': 0.447, 'ari': 0.529, 'geo': 0.807, 'min': 0.579, 'fit_s': 9.78}
+mnist | hybrid owner 0.2 + post | 4 {'knn15': 0.348, 'sp': 0.502, 'ari': 0.745, 'geo': 0.936, 'min': 0.815, 'fit_s': 11.19}
+mnist | hybrid owner 0.3 | 4 {'knn15': 0.349, 'sp': 0.44, 'ari': 0.492, 'geo': 0.781, 'min': 0.538, 'fit_s': 8.88}
+mnist | hybrid owner 0.3 + post | 4 {'knn15': 0.336, 'sp': 0.471, 'ari': 0.579, 'geo': 0.832, 'min': 0.633, 'fit_s': 10.21}
+
+=== covertype_20000 (54 features, metric euclidean, hand-over scale 16.6)
+2026-11-16 22:20:43.079628: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1794864043.092314  869058 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1794864043.096128  869058 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2026-11-16 22:20:43.108883: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+
+=== letter_20000 (16 features, metric euclidean, hand-over scale 16.6)
+
+=== covertype_70000 (54 features, metric euclidean, hand-over scale 31.0)
+
+=== rcv1_70000 (300 features, metric cosine, hand-over scale 31.0)
+
+=== covertype_250000 (54 features, metric euclidean, hand-over scale 58.6)
+letter | sgd hogwild 0.1 | 0 {'knn15': 0.468, 'sp': 0.589, 'ari': 0.181, 'geo': 0.774, 'min': 0.729, 'fit_s': 1.32}
+letter | sgd hogwild 0.1 + post | 0 {'knn15': 0.466, 'sp': 0.592, 'ari': 0.177, 'geo': 0.774, 'min': 0.725, 'fit_s': 2.77}
+letter | sgd owner 0.1 | 0 {'knn15': 0.497, 'sp': 0.627, 'ari': 0.127, 'geo': 0.823, 'min': 0.773, 'fit_s': 1.11}
+letter | sgd owner 0.1 + post | 0 {'knn15': 0.493, 'sp': 0.63, 'ari': 0.127, 'geo': 0.822, 'min': 0.768, 'fit_s': 3.24}
+letter | sgd owner 0.05 | 0 {'knn15': 0.5, 'sp': 0.518, 'ari': 0.177, 'geo': 0.751, 'min': 0.723, 'fit_s': 0.79}
+letter | sgd owner 0.05 + post | 0 {'knn15': 0.498, 'sp': 0.535, 'ari': 0.183, 'geo': 0.762, 'min': 0.747, 'fit_s': 2.81}
+letter | hybrid hogwild 0.2 | 0 {'knn15': 0.625, 'sp': 0.59, 'ari': 0.188, 'geo': 0.896, 'min': 0.825, 'fit_s': 4.75}
+letter | hybrid hogwild 0.2 + post | 0 {'knn15': 0.612, 'sp': 0.59, 'ari': 0.176, 'geo': 0.886, 'min': 0.823, 'fit_s': 6.91}
+letter | hybrid owner 0.1 | 0 {'knn15': 0.622, 'sp': 0.603, 'ari': 0.135, 'geo': 0.903, 'min': 0.842, 'fit_s': 5.94}
+letter | hybrid owner 0.1 + post | 0 {'knn15': 0.603, 'sp': 0.603, 'ari': 0.147, 'geo': 0.889, 'min': 0.842, 'fit_s': 8.35}
+letter | hybrid owner 0.2 | 0 {'knn15': 0.622, 'sp': 0.624, 'ari': 0.133, 'geo': 0.919, 'min': 0.871, 'fit_s': 4.55}
+letter | hybrid owner 0.2 + post | 0 {'knn15': 0.604, 'sp': 0.616, 'ari': 0.14, 'geo': 0.899, 'min': 0.86, 'fit_s': 6.73}
+letter | hybrid owner 0.3 | 0 {'knn15': 0.62, 'sp': 0.61, 'ari': 0.112, 'geo': 0.906, 'min': 0.851, 'fit_s': 4.63}
+letter | hybrid owner 0.3 + post | 0 {'knn15': 0.598, 'sp': 0.596, 'ari': 0.12, 'geo': 0.881, 'min': 0.833, 'fit_s': 6.83}
+letter | sgd hogwild 0.1 | 1 {'knn15': 0.467, 'sp': 0.583, 'ari': 0.189, 'geo': 0.77, 'min': 0.727, 'fit_s': 1.27}
+letter | sgd hogwild 0.1 + post | 1 {'knn15': 0.465, 'sp': 0.591, 'ari': 0.18, 'geo': 0.773, 'min': 0.724, 'fit_s': 2.93}
+letter | sgd owner 0.1 | 1 {'knn15': 0.498, 'sp': 0.625, 'ari': 0.143, 'geo': 0.822, 'min': 0.775, 'fit_s': 0.98}
+letter | sgd owner 0.1 + post | 1 {'knn15': 0.495, 'sp': 0.626, 'ari': 0.129, 'geo': 0.821, 'min': 0.771, 'fit_s': 3.15}
+letter | sgd owner 0.05 | 1 {'knn15': 0.499, 'sp': 0.529, 'ari': 0.135, 'geo': 0.758, 'min': 0.739, 'fit_s': 0.92}
+letter | sgd owner 0.05 + post | 1 {'knn15': 0.496, 'sp': 0.552, 'ari': 0.147, 'geo': 0.772, 'min': 0.771, 'fit_s': 2.66}
+letter | hybrid hogwild 0.2 | 1 {'knn15': 0.625, 'sp': 0.595, 'ari': 0.167, 'geo': 0.9, 'min': 0.831, 'fit_s': 4.94}
+letter | hybrid hogwild 0.2 + post | 1 {'knn15': 0.611, 'sp': 0.59, 'ari': 0.183, 'geo': 0.886, 'min': 0.824, 'fit_s': 6.86}
+letter | hybrid owner 0.1 | 1 {'knn15': 0.621, 'sp': 0.597, 'ari': 0.136, 'geo': 0.898, 'min': 0.834, 'fit_s': 4.98}
+letter | hybrid owner 0.1 + post | 1 {'knn15': 0.606, 'sp': 0.594, 'ari': 0.146, 'geo': 0.885, 'min': 0.83, 'fit_s': 6.75}
+letter | hybrid owner 0.2 | 1 {'knn15': 0.621, 'sp': 0.624, 'ari': 0.122, 'geo': 0.918, 'min': 0.871, 'fit_s': 4.59}
+letter | hybrid owner 0.2 + post | 1 {'knn15': 0.605, 'sp': 0.615, 'ari': 0.141, 'geo': 0.9, 'min': 0.86, 'fit_s': 6.66}
+letter | hybrid owner 0.3 | 1 {'knn15': 0.617, 'sp': 0.613, 'ari': 0.111, 'geo': 0.907, 'min': 0.856, 'fit_s': 4.38}
+letter | hybrid owner 0.3 + post | 1 {'knn15': 0.598, 'sp': 0.604, 'ari': 0.129, 'geo': 0.887, 'min': 0.844, 'fit_s': 6.41}
+letter | sgd hogwild 0.1 | 2 {'knn15': 0.462, 'sp': 0.596, 'ari': 0.194, 'geo': 0.774, 'min': 0.719, 'fit_s': 1.02}
+letter | sgd hogwild 0.1 + post | 2 {'knn15': 0.461, 'sp': 0.607, 'ari': 0.158, 'geo': 0.78, 'min': 0.718, 'fit_s': 2.81}
+letter | sgd owner 0.1 | 2 {'knn15': 0.498, 'sp': 0.62, 'ari': 0.106, 'geo': 0.82, 'min': 0.776, 'fit_s': 0.85}
+letter | sgd owner 0.1 + post | 2 {'knn15': 0.495, 'sp': 0.622, 'ari': 0.107, 'geo': 0.818, 'min': 0.771, 'fit_s': 2.77}
+letter | sgd owner 0.05 | 2 {'knn15': 0.501, 'sp': 0.501, 'ari': 0.144, 'geo': 0.739, 'min': 0.7, 'fit_s': 0.96}
+letter | sgd owner 0.05 + post | 2 {'knn15': 0.499, 'sp': 0.528, 'ari': 0.142, 'geo': 0.757, 'min': 0.737, 'fit_s': 2.79}
+letter | hybrid hogwild 0.2 | 2 {'knn15': 0.626, 'sp': 0.595, 'ari': 0.181, 'geo': 0.9, 'min': 0.83, 'fit_s': 4.91}
+letter | hybrid hogwild 0.2 + post | 2 {'knn15': 0.615, 'sp': 0.588, 'ari': 0.2, 'geo': 0.887, 'min': 0.821, 'fit_s': 6.9}
+letter | hybrid owner 0.1 | 2 {'knn15': 0.623, 'sp': 0.593, 'ari': 0.131, 'geo': 0.896, 'min': 0.828, 'fit_s': 4.84}
+letter | hybrid owner 0.1 + post | 2 {'knn15': 0.611, 'sp': 0.584, 'ari': 0.143, 'geo': 0.881, 'min': 0.816, 'fit_s': 6.96}
+letter | hybrid owner 0.2 | 2 {'knn15': 0.621, 'sp': 0.626, 'ari': 0.135, 'geo': 0.92, 'min': 0.875, 'fit_s': 4.67}
+letter | hybrid owner 0.2 + post | 2 {'knn15': 0.604, 'sp': 0.614, 'ari': 0.145, 'geo': 0.898, 'min': 0.857, 'fit_s': 6.73}
+letter | hybrid owner 0.3 | 2 {'knn15': 0.619, 'sp': 0.607, 'ari': 0.116, 'geo': 0.904, 'min': 0.847, 'fit_s': 4.38}
+letter | hybrid owner 0.3 + post | 2 {'knn15': 0.598, 'sp': 0.587, 'ari': 0.12, 'geo': 0.873, 'min': 0.82, 'fit_s': 6.37}
+letter | sgd hogwild 0.1 | 3 {'knn15': 0.483, 'sp': 0.592, 'ari': 0.191, 'geo': 0.789, 'min': 0.753, 'fit_s': 1.1}
+letter | sgd hogwild 0.1 + post | 3 {'knn15': 0.482, 'sp': 0.59, 'ari': 0.179, 'geo': 0.786, 'min': 0.75, 'fit_s': 2.56}
+letter | sgd owner 0.1 | 3 {'knn15': 0.502, 'sp': 0.637, 'ari': 0.121, 'geo': 0.834, 'min': 0.781, 'fit_s': 1.01}
+letter | sgd owner 0.1 + post | 3 {'knn15': 0.5, 'sp': 0.636, 'ari': 0.129, 'geo': 0.832, 'min': 0.779, 'fit_s': 2.53}
+letter | sgd owner 0.05 | 3 {'knn15': 0.504, 'sp': 0.557, 'ari': 0.121, 'geo': 0.781, 'min': 0.777, 'fit_s': 0.9}
+letter | sgd owner 0.05 + post | 3 {'knn15': 0.503, 'sp': 0.566, 'ari': 0.146, 'geo': 0.787, 'min': 0.783, 'fit_s': 2.85}
+letter | hybrid hogwild 0.2 | 3 {'knn15': 0.624, 'sp': 0.6, 'ari': 0.182, 'geo': 0.903, 'min': 0.838, 'fit_s': 5.58}
+letter | hybrid hogwild 0.2 + post | 3 {'knn15': 0.61, 'sp': 0.59, 'ari': 0.192, 'geo': 0.885, 'min': 0.825, 'fit_s': 7.57}
+letter | hybrid owner 0.1 | 3 {'knn15': 0.622, 'sp': 0.614, 'ari': 0.133, 'geo': 0.912, 'min': 0.858, 'fit_s': 5.45}
+letter | hybrid owner 0.1 + post | 3 {'knn15': 0.607, 'sp': 0.607, 'ari': 0.171, 'geo': 0.895, 'min': 0.847, 'fit_s': 7.56}
+letter | hybrid owner 0.2 | 3 {'knn15': 0.621, 'sp': 0.624, 'ari': 0.126, 'geo': 0.919, 'min': 0.872, 'fit_s': 5.54}
+letter | hybrid owner 0.2 + post | 3 {'knn15': 0.605, 'sp': 0.609, 'ari': 0.14, 'geo': 0.895, 'min': 0.85, 'fit_s': 7.59}
+letter | hybrid owner 0.3 | 3 {'knn15': 0.619, 'sp': 0.61, 'ari': 0.127, 'geo': 0.906, 'min': 0.852, 'fit_s': 4.57}
+letter | hybrid owner 0.3 + post | 3 {'knn15': 0.601, 'sp': 0.599, 'ari': 0.151, 'geo': 0.885, 'min': 0.837, 'fit_s': 6.68}
+letter | sgd hogwild 0.1 | 4 {'knn15': 0.463, 'sp': 0.579, 'ari': 0.182, 'geo': 0.764, 'min': 0.722, 'fit_s': 1.16}
+letter | sgd hogwild 0.1 + post | 4 {'knn15': 0.462, 'sp': 0.586, 'ari': 0.161, 'geo': 0.768, 'min': 0.72, 'fit_s': 2.88}
+letter | sgd owner 0.1 | 4 {'knn15': 0.494, 'sp': 0.602, 'ari': 0.124, 'geo': 0.804, 'min': 0.77, 'fit_s': 1.03}
+letter | sgd owner 0.1 + post | 4 {'knn15': 0.493, 'sp': 0.589, 'ari': 0.124, 'geo': 0.795, 'min': 0.769, 'fit_s': 2.88}
+letter | sgd owner 0.05 | 4 {'knn15': 0.499, 'sp': 0.513, 'ari': 0.15, 'geo': 0.746, 'min': 0.717, 'fit_s': 1.21}
+letter | sgd owner 0.05 + post | 4 {'knn15': 0.497, 'sp': 0.532, 'ari': 0.137, 'geo': 0.758, 'min': 0.743, 'fit_s': 3.25}
+letter | hybrid hogwild 0.2 | 4 {'knn15': 0.627, 'sp': 0.591, 'ari': 0.167, 'geo': 0.898, 'min': 0.826, 'fit_s': 5.52}
+letter | hybrid hogwild 0.2 + post | 4 {'knn15': 0.614, 'sp': 0.59, 'ari': 0.184, 'geo': 0.888, 'min': 0.824, 'fit_s': 7.76}
+letter | hybrid owner 0.1 | 4 {'knn15': 0.622, 'sp': 0.573, 'ari': 0.141, 'geo': 0.881, 'min': 0.801, 'fit_s': 5.42}
+letter | hybrid owner 0.1 + post | 4 {'knn15': 0.606, 'sp': 0.559, 'ari': 0.136, 'geo': 0.858, 'min': 0.78, 'fit_s': 7.69}
+letter | hybrid owner 0.2 | 4 {'knn15': 0.621, 'sp': 0.577, 'ari': 0.12, 'geo': 0.883, 'min': 0.805, 'fit_s': 5.13}
+letter | hybrid owner 0.2 + post | 4 {'knn15': 0.598, 'sp': 0.567, 'ari': 0.132, 'geo': 0.859, 'min': 0.792, 'fit_s': 7.47}
+letter | hybrid owner 0.3 | 4 {'knn15': 0.618, 'sp': 0.621, 'ari': 0.104, 'geo': 0.914, 'min': 0.868, 'fit_s': 4.62}
+letter | hybrid owner 0.3 + post | 4 {'knn15': 0.602, 'sp': 0.603, 'ari': 0.116, 'geo': 0.888, 'min': 0.842, 'fit_s': 6.47}
+pbmc68k | sgd hogwild 0.1 | 0 {'knn15': 0.057, 'sp': 0.751, 'ari': 0.215, 'geo': 0.655, 'min': 0.38, 'fit_s': 3.96}
+pbmc68k | sgd hogwild 0.1 + post | 0 {'knn15': 0.057, 'sp': 0.83, 'ari': 0.222, 'geo': 0.684, 'min': 0.379, 'fit_s': 4.75}
+pbmc68k | sgd owner 0.1 | 0 {'knn15': 0.057, 'sp': 0.702, 'ari': 0.2, 'geo': 0.623, 'min': 0.377, 'fit_s': 3.41}
+pbmc68k | sgd owner 0.1 + post | 0 {'knn15': 0.057, 'sp': 0.812, 'ari': 0.221, 'geo': 0.676, 'min': 0.377, 'fit_s': 4.18}
+pbmc68k | sgd owner 0.05 | 0 {'knn15': 0.06, 'sp': 0.724, 'ari': 0.206, 'geo': 0.647, 'min': 0.396, 'fit_s': 3.1}
+pbmc68k | sgd owner 0.05 + post | 0 {'knn15': 0.06, 'sp': 0.823, 'ari': 0.221, 'geo': 0.69, 'min': 0.396, 'fit_s': 4.05}
+pbmc68k | hybrid hogwild 0.2 | 0 {'knn15': 0.15, 'sp': 0.747, 'ari': 0.197, 'geo': 0.876, 'min': 0.778, 'fit_s': 11.06}
+pbmc68k | hybrid hogwild 0.2 + post | 0 {'knn15': 0.149, 'sp': 0.761, 'ari': 0.194, 'geo': 0.875, 'min': 0.768, 'fit_s': 11.98}
+pbmc68k | hybrid owner 0.1 | 0 {'knn15': 0.15, 'sp': 0.698, 'ari': 0.206, 'geo': 0.868, 'min': 0.808, 'fit_s': 9.23}
+pbmc68k | hybrid owner 0.1 + post | 0 {'knn15': 0.15, 'sp': 0.806, 'ari': 0.219, 'geo': 0.93, 'min': 0.867, 'fit_s': 10.01}
+pbmc68k | hybrid owner 0.2 | 0 {'knn15': 0.15, 'sp': 0.71, 'ari': 0.2, 'geo': 0.865, 'min': 0.79, 'fit_s': 9.33}
+pbmc68k | hybrid owner 0.2 + post | 0 {'knn15': 0.149, 'sp': 0.819, 'ari': 0.204, 'geo': 0.912, 'min': 0.807, 'fit_s': 10.19}
+pbmc68k | hybrid owner 0.3 | 0 {'knn15': 0.15, 'sp': 0.761, 'ari': 0.176, 'geo': 0.847, 'min': 0.694, 'fit_s': 9.7}
+pbmc68k | hybrid owner 0.3 + post | 0 {'knn15': 0.149, 'sp': 0.77, 'ari': 0.191, 'geo': 0.875, 'min': 0.757, 'fit_s': 10.78}
+pbmc68k | sgd hogwild 0.1 | 1 {'knn15': 0.057, 'sp': 0.77, 'ari': 0.217, 'geo': 0.66, 'min': 0.376, 'fit_s': 4.64}
+pbmc68k | sgd hogwild 0.1 + post | 1 {'knn15': 0.057, 'sp': 0.831, 'ari': 0.217, 'geo': 0.677, 'min': 0.376, 'fit_s': 5.82}
+pbmc68k | sgd owner 0.1 | 1 {'knn15': 0.056, 'sp': 0.69, 'ari': 0.206, 'geo': 0.624, 'min': 0.374, 'fit_s': 4.07}
+pbmc68k | sgd owner 0.1 + post | 1 {'knn15': 0.056, 'sp': 0.801, 'ari': 0.219, 'geo': 0.669, 'min': 0.373, 'fit_s': 5.29}
+pbmc68k | sgd owner 0.05 | 1 {'knn15': 0.059, 'sp': 0.701, 'ari': 0.203, 'geo': 0.636, 'min': 0.394, 'fit_s': 3.92}
+pbmc68k | sgd owner 0.05 + post | 1 {'knn15': 0.059, 'sp': 0.805, 'ari': 0.211, 'geo': 0.674, 'min': 0.394, 'fit_s': 5.11}
+pbmc68k | hybrid hogwild 0.2 | 1 {'knn15': 0.15, 'sp': 0.745, 'ari': 0.185, 'geo': 0.858, 'min': 0.733, 'fit_s': 9.7}
+pbmc68k | hybrid hogwild 0.2 + post | 1 {'knn15': 0.15, 'sp': 0.824, 'ari': 0.195, 'geo': 0.901, 'min': 0.77, 'fit_s': 10.68}
+pbmc68k | hybrid owner 0.1 | 1 {'knn15': 0.147, 'sp': 0.683, 'ari': 0.195, 'geo': 0.841, 'min': 0.771, 'fit_s': 7.98}
+pbmc68k | hybrid owner 0.1 + post | 1 {'knn15': 0.147, 'sp': 0.794, 'ari': 0.217, 'geo': 0.916, 'min': 0.857, 'fit_s': 8.73}
+pbmc68k | hybrid owner 0.2 | 1 {'knn15': 0.149, 'sp': 0.746, 'ari': 0.174, 'geo': 0.838, 'min': 0.687, 'fit_s': 10.24}
+pbmc68k | hybrid owner 0.2 + post | 1 {'knn15': 0.149, 'sp': 0.829, 'ari': 0.195, 'geo': 0.901, 'min': 0.77, 'fit_s': 11.29}
+pbmc68k | hybrid owner 0.3 | 1 {'knn15': 0.15, 'sp': 0.757, 'ari': 0.179, 'geo': 0.852, 'min': 0.708, 'fit_s': 10.53}
+pbmc68k | hybrid owner 0.3 + post | 1 {'knn15': 0.15, 'sp': 0.824, 'ari': 0.184, 'geo': 0.883, 'min': 0.726, 'fit_s': 11.33}
+pbmc68k | sgd hogwild 0.1 | 2 {'knn15': 0.056, 'sp': 0.769, 'ari': 0.222, 'geo': 0.662, 'min': 0.37, 'fit_s': 4.85}
+pbmc68k | sgd hogwild 0.1 + post | 2 {'knn15': 0.056, 'sp': 0.84, 'ari': 0.227, 'geo': 0.686, 'min': 0.37, 'fit_s': 5.68}
+pbmc68k | sgd owner 0.1 | 2 {'knn15': 0.057, 'sp': 0.705, 'ari': 0.199, 'geo': 0.623, 'min': 0.376, 'fit_s': 3.21}
+pbmc68k | sgd owner 0.1 + post | 2 {'knn15': 0.057, 'sp': 0.817, 'ari': 0.219, 'geo': 0.675, 'min': 0.376, 'fit_s': 4.13}
+pbmc68k | sgd owner 0.05 | 2 {'knn15': 0.058, 'sp': 0.718, 'ari': 0.206, 'geo': 0.638, 'min': 0.384, 'fit_s': 3.19}
+pbmc68k | sgd owner 0.05 + post | 2 {'knn15': 0.058, 'sp': 0.823, 'ari': 0.223, 'geo': 0.686, 'min': 0.383, 'fit_s': 4.17}
+pbmc68k | hybrid hogwild 0.2 | 2 {'knn15': 0.149, 'sp': 0.749, 'ari': 0.199, 'geo': 0.877, 'min': 0.785, 'fit_s': 10.44}
+pbmc68k | hybrid hogwild 0.2 + post | 2 {'knn15': 0.148, 'sp': 0.769, 'ari': 0.19, 'geo': 0.87, 'min': 0.753, 'fit_s': 11.28}
+pbmc68k | hybrid owner 0.1 | 2 {'knn15': 0.149, 'sp': 0.696, 'ari': 0.203, 'geo': 0.861, 'min': 0.801, 'fit_s': 8.73}
+pbmc68k | hybrid owner 0.1 + post | 2 {'knn15': 0.149, 'sp': 0.809, 'ari': 0.213, 'geo': 0.919, 'min': 0.84, 'fit_s': 9.67}
+pbmc68k | hybrid owner 0.2 | 2 {'knn15': 0.149, 'sp': 0.748, 'ari': 0.176, 'geo': 0.842, 'min': 0.697, 'fit_s': 8.43}
+pbmc68k | hybrid owner 0.2 + post | 2 {'knn15': 0.149, 'sp': 0.835, 'ari': 0.184, 'geo': 0.885, 'min': 0.727, 'fit_s': 9.51}
+pbmc68k | hybrid owner 0.3 | 2 {'knn15': 0.149, 'sp': 0.758, 'ari': 0.169, 'geo': 0.833, 'min': 0.669, 'fit_s': 9.23}
+pbmc68k | hybrid owner 0.3 + post | 2 {'knn15': 0.148, 'sp': 0.782, 'ari': 0.196, 'geo': 0.884, 'min': 0.774, 'fit_s': 10.07}
+pbmc68k | sgd hogwild 0.1 | 3 {'knn15': 0.056, 'sp': 0.753, 'ari': 0.219, 'geo': 0.656, 'min': 0.375, 'fit_s': 4.15}
+pbmc68k | sgd hogwild 0.1 + post | 3 {'knn15': 0.056, 'sp': 0.831, 'ari': 0.217, 'geo': 0.676, 'min': 0.375, 'fit_s': 4.95}
+pbmc68k | sgd owner 0.1 | 3 {'knn15': 0.056, 'sp': 0.727, 'ari': 0.202, 'geo': 0.629, 'min': 0.369, 'fit_s': 4.05}
+pbmc68k | sgd owner 0.1 + post | 3 {'knn15': 0.055, 'sp': 0.835, 'ari': 0.219, 'geo': 0.676, 'min': 0.369, 'fit_s': 5.17}
+pbmc68k | sgd owner 0.05 | 3 {'knn15': 0.058, 'sp': 0.731, 'ari': 0.2, 'geo': 0.638, 'min': 0.388, 'fit_s': 3.8}
+pbmc68k | sgd owner 0.05 + post | 3 {'knn15': 0.058, 'sp': 0.829, 'ari': 0.212, 'geo': 0.678, 'min': 0.387, 'fit_s': 4.88}
+pbmc68k | hybrid hogwild 0.2 | 3 {'knn15': 0.152, 'sp': 0.75, 'ari': 0.196, 'geo': 0.879, 'min': 0.775, 'fit_s': 11.39}
+pbmc68k | hybrid hogwild 0.2 + post | 3 {'knn15': 0.151, 'sp': 0.776, 'ari': 0.187, 'geo': 0.873, 'min': 0.74, 'fit_s': 12.18}
+pbmc68k | hybrid owner 0.1 | 3 {'knn15': 0.151, 'sp': 0.721, 'ari': 0.194, 'geo': 0.862, 'min': 0.766, 'fit_s': 8.78}
+pbmc68k | hybrid owner 0.1 + post | 3 {'knn15': 0.15, 'sp': 0.827, 'ari': 0.208, 'geo': 0.923, 'min': 0.821, 'fit_s': 9.5}
+pbmc68k | hybrid owner 0.2 | 3 {'knn15': 0.15, 'sp': 0.759, 'ari': 0.187, 'geo': 0.866, 'min': 0.74, 'fit_s': 7.58}
+pbmc68k | hybrid owner 0.2 + post | 3 {'knn15': 0.15, 'sp': 0.818, 'ari': 0.172, 'geo': 0.863, 'min': 0.681, 'fit_s': 8.25}
+pbmc68k | hybrid owner 0.3 | 3 {'knn15': 0.15, 'sp': 0.759, 'ari': 0.18, 'geo': 0.854, 'min': 0.713, 'fit_s': 7.76}
+pbmc68k | hybrid owner 0.3 + post | 3 {'knn15': 0.149, 'sp': 0.796, 'ari': 0.187, 'geo': 0.876, 'min': 0.738, 'fit_s': 8.49}
+pbmc68k | sgd hogwild 0.1 | 4 {'knn15': 0.057, 'sp': 0.735, 'ari': 0.22, 'geo': 0.656, 'min': 0.381, 'fit_s': 3.17}
+pbmc68k | sgd hogwild 0.1 + post | 4 {'knn15': 0.057, 'sp': 0.736, 'ari': 0.222, 'geo': 0.657, 'min': 0.38, 'fit_s': 3.77}
+pbmc68k | sgd owner 0.1 | 4 {'knn15': 0.057, 'sp': 0.724, 'ari': 0.197, 'geo': 0.626, 'min': 0.376, 'fit_s': 2.56}
+pbmc68k | sgd owner 0.1 + post | 4 {'knn15': 0.056, 'sp': 0.73, 'ari': 0.214, 'geo': 0.644, 'min': 0.375, 'fit_s': 3.17}
+pbmc68k | sgd owner 0.05 | 4 {'knn15': 0.059, 'sp': 0.726, 'ari': 0.202, 'geo': 0.641, 'min': 0.392, 'fit_s': 2.64}
+pbmc68k | sgd owner 0.05 + post | 4 {'knn15': 0.059, 'sp': 0.734, 'ari': 0.218, 'geo': 0.659, 'min': 0.392, 'fit_s': 3.25}
+pbmc68k | hybrid hogwild 0.2 | 4 {'knn15': 0.151, 'sp': 0.752, 'ari': 0.201, 'geo': 0.886, 'min': 0.795, 'fit_s': 8.02}
+pbmc68k | hybrid hogwild 0.2 + post | 4 {'knn15': 0.15, 'sp': 0.738, 'ari': 0.207, 'geo': 0.887, 'min': 0.819, 'fit_s': 8.63}
+pbmc68k | hybrid owner 0.1 | 4 {'knn15': 0.15, 'sp': 0.718, 'ari': 0.193, 'geo': 0.859, 'min': 0.763, 'fit_s': 6.85}
+pbmc68k | hybrid owner 0.1 + post | 4 {'knn15': 0.15, 'sp': 0.722, 'ari': 0.208, 'geo': 0.881, 'min': 0.821, 'fit_s': 7.47}
+pbmc68k | hybrid owner 0.2 | 4 {'knn15': 0.15, 'sp': 0.738, 'ari': 0.212, 'geo': 0.892, 'min': 0.837, 'fit_s': 7.2}
+pbmc68k | hybrid owner 0.2 + post | 4 {'knn15': 0.149, 'sp': 0.72, 'ari': 0.204, 'geo': 0.873, 'min': 0.804, 'fit_s': 7.84}
+pbmc68k | hybrid owner 0.3 | 4 {'knn15': 0.15, 'sp': 0.759, 'ari': 0.202, 'geo': 0.888, 'min': 0.8, 'fit_s': 7.57}
+pbmc68k | hybrid owner 0.3 + post | 4 {'knn15': 0.15, 'sp': 0.74, 'ari': 0.186, 'geo': 0.856, 'min': 0.735, 'fit_s': 8.18}
+mnist | sgd serial 0.1 | 0 {'knn15': 0.191, 'sp': 0.417, 'ari': 0.757, 'geo': 0.724, 'min': 0.537, 'fit_s': 14.12}
+mnist | sgd serial 0.1 + post | 0 {'knn15': 0.191, 'sp': 0.498, 'ari': 0.87, 'geo': 0.804, 'min': 0.536, 'fit_s': 15.65}
+mnist | hybrid serial 0.2 | 0 {'knn15': 0.356, 'sp': 0.425, 'ari': 0.718, 'geo': 0.881, 'min': 0.786, 'fit_s': 23.19}
+mnist | hybrid serial 0.2 + post | 0 {'knn15': 0.351, 'sp': 0.491, 'ari': 0.871, 'geo': 0.982, 'min': 0.952, 'fit_s': 24.76}
+mnist | sgd serial 0.1 | 1 {'knn15': 0.194, 'sp': 0.419, 'ari': 0.759, 'geo': 0.729, 'min': 0.544, 'fit_s': 13.6}
+mnist | sgd serial 0.1 + post | 1 {'knn15': 0.193, 'sp': 0.503, 'ari': 0.799, 'geo': 0.787, 'min': 0.542, 'fit_s': 14.9}
+mnist | hybrid serial 0.2 | 1 {'knn15': 0.355, 'sp': 0.421, 'ari': 0.691, 'geo': 0.867, 'min': 0.756, 'fit_s': 20.38}
+mnist | hybrid serial 0.2 + post | 1 {'knn15': 0.351, 'sp': 0.494, 'ari': 0.874, 'geo': 0.985, 'min': 0.957, 'fit_s': 22.01}
+mnist | sgd serial 0.1 | 2 {'knn15': 0.19, 'sp': 0.417, 'ari': 0.75, 'geo': 0.721, 'min': 0.534, 'fit_s': 11.62}
+mnist | sgd serial 0.1 + post | 2 {'knn15': 0.19, 'sp': 0.495, 'ari': 0.801, 'geo': 0.78, 'min': 0.533, 'fit_s': 13.06}
+mnist | hybrid serial 0.2 | 2 {'knn15': 0.357, 'sp': 0.426, 'ari': 0.719, 'geo': 0.883, 'min': 0.786, 'fit_s': 23.32}
+mnist | hybrid serial 0.2 + post | 2 {'knn15': 0.353, 'sp': 0.496, 'ari': 0.871, 'geo': 0.987, 'min': 0.952, 'fit_s': 24.96}
+mnist | sgd serial 0.1 | 3 {'knn15': 0.192, 'sp': 0.414, 'ari': 0.748, 'geo': 0.721, 'min': 0.539, 'fit_s': 12.97}
+mnist | sgd serial 0.1 + post | 3 {'knn15': 0.191, 'sp': 0.501, 'ari': 0.816, 'geo': 0.79, 'min': 0.538, 'fit_s': 14.26}
+mnist | hybrid serial 0.2 | 3 {'knn15': 0.357, 'sp': 0.424, 'ari': 0.665, 'geo': 0.859, 'min': 0.728, 'fit_s': 21.74}
+mnist | hybrid serial 0.2 + post | 3 {'knn15': 0.35, 'sp': 0.499, 'ari': 0.82, 'geo': 0.966, 'min': 0.897, 'fit_s': 23.72}
+mnist | sgd serial 0.1 | 4 {'knn15': 0.191, 'sp': 0.417, 'ari': 0.75, 'geo': 0.723, 'min': 0.538, 'fit_s': 13.8}
+mnist | sgd serial 0.1 + post | 4 {'knn15': 0.19, 'sp': 0.502, 'ari': 0.779, 'geo': 0.776, 'min': 0.533, 'fit_s': 16.11}
+mnist | hybrid serial 0.2 | 4 {'knn15': 0.355, 'sp': 0.427, 'ari': 0.682, 'geo': 0.866, 'min': 0.746, 'fit_s': 20.08}
+mnist | hybrid serial 0.2 + post | 4 {'knn15': 0.35, 'sp': 0.496, 'ari': 0.818, 'geo': 0.963, 'min': 0.895, 'fit_s': 21.52}
+
+=== covertype_20000 (54 features, metric euclidean, hand-over scale 16.6)
+2026-11-16 23:07:16.403498: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1794866836.416503 1985150 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1794866836.420479 1985150 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2026-11-16 23:07:16.433352: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+
+=== letter_20000 (16 features, metric euclidean, hand-over scale 16.6)
+
+=== covertype_70000 (54 features, metric euclidean, hand-over scale 31.0)
+
+=== rcv1_70000 (300 features, metric cosine, hand-over scale 31.0)
+
+=== covertype_250000 (54 features, metric euclidean, hand-over scale 58.6)
+letter | sgd serial 0.1 | 0 {'knn15': 0.46, 'sp': 0.588, 'ari': 0.185, 'geo': 0.767, 'min': 0.717, 'fit_s': 2.92}
+letter | sgd serial 0.1 + post | 0 {'knn15': 0.458, 'sp': 0.592, 'ari': 0.16, 'geo': 0.768, 'min': 0.714, 'fit_s': 4.62}
+letter | hybrid serial 0.2 | 0 {'knn15': 0.625, 'sp': 0.596, 'ari': 0.163, 'geo': 0.9, 'min': 0.832, 'fit_s': 7.55}
+letter | hybrid serial 0.2 + post | 0 {'knn15': 0.611, 'sp': 0.588, 'ari': 0.178, 'geo': 0.884, 'min': 0.821, 'fit_s': 9.52}
+letter | sgd serial 0.1 | 1 {'knn15': 0.466, 'sp': 0.585, 'ari': 0.218, 'geo': 0.77, 'min': 0.726, 'fit_s': 2.8}
+letter | sgd serial 0.1 + post | 1 {'knn15': 0.463, 'sp': 0.6, 'ari': 0.173, 'geo': 0.778, 'min': 0.722, 'fit_s': 4.3}
+letter | hybrid serial 0.2 | 1 {'knn15': 0.625, 'sp': 0.595, 'ari': 0.178, 'geo': 0.899, 'min': 0.831, 'fit_s': 6.38}
+letter | hybrid serial 0.2 + post | 1 {'knn15': 0.613, 'sp': 0.588, 'ari': 0.185, 'geo': 0.886, 'min': 0.822, 'fit_s': 8.21}
+letter | sgd serial 0.1 | 2 {'knn15': 0.467, 'sp': 0.592, 'ari': 0.195, 'geo': 0.776, 'min': 0.728, 'fit_s': 2.88}
+letter | sgd serial 0.1 + post | 2 {'knn15': 0.465, 'sp': 0.601, 'ari': 0.153, 'geo': 0.779, 'min': 0.724, 'fit_s': 4.58}
+letter | hybrid serial 0.2 | 2 {'knn15': 0.625, 'sp': 0.594, 'ari': 0.181, 'geo': 0.899, 'min': 0.829, 'fit_s': 6.41}
+letter | hybrid serial 0.2 + post | 2 {'knn15': 0.61, 'sp': 0.586, 'ari': 0.196, 'geo': 0.882, 'min': 0.818, 'fit_s': 8.43}
+letter | sgd serial 0.1 | 3 {'knn15': 0.477, 'sp': 0.582, 'ari': 0.185, 'geo': 0.777, 'min': 0.742, 'fit_s': 2.74}
+letter | sgd serial 0.1 + post | 3 {'knn15': 0.476, 'sp': 0.586, 'ari': 0.189, 'geo': 0.778, 'min': 0.741, 'fit_s': 4.22}
+letter | hybrid serial 0.2 | 3 {'knn15': 0.625, 'sp': 0.594, 'ari': 0.169, 'geo': 0.899, 'min': 0.83, 'fit_s': 5.96}
+letter | hybrid serial 0.2 + post | 3 {'knn15': 0.608, 'sp': 0.587, 'ari': 0.171, 'geo': 0.881, 'min': 0.82, 'fit_s': 8.04}
+letter | sgd serial 0.1 | 4 {'knn15': 0.474, 'sp': 0.572, 'ari': 0.188, 'geo': 0.768, 'min': 0.739, 'fit_s': 2.97}
+letter | sgd serial 0.1 + post | 4 {'knn15': 0.472, 'sp': 0.579, 'ari': 0.166, 'geo': 0.771, 'min': 0.736, 'fit_s': 4.26}
+letter | hybrid serial 0.2 | 4 {'knn15': 0.626, 'sp': 0.585, 'ari': 0.155, 'geo': 0.892, 'min': 0.816, 'fit_s': 5.65}
+letter | hybrid serial 0.2 + post | 4 {'knn15': 0.613, 'sp': 0.584, 'ari': 0.161, 'geo': 0.883, 'min': 0.816, 'fit_s': 7.81}
+pbmc68k | sgd serial 0.1 | 0 {'knn15': 0.055, 'sp': 0.771, 'ari': 0.208, 'geo': 0.645, 'min': 0.366, 'fit_s': 10.64}
+pbmc68k | sgd serial 0.1 + post | 0 {'knn15': 0.055, 'sp': 0.832, 'ari': 0.225, 'geo': 0.678, 'min': 0.365, 'fit_s': 11.37}
+pbmc68k | hybrid serial 0.2 | 0 {'knn15': 0.151, 'sp': 0.759, 'ari': 0.186, 'geo': 0.865, 'min': 0.734, 'fit_s': 15.5}
+pbmc68k | hybrid serial 0.2 + post | 0 {'knn15': 0.151, 'sp': 0.809, 'ari': 0.18, 'geo': 0.873, 'min': 0.711, 'fit_s': 16.34}
+pbmc68k | sgd serial 0.1 | 1 {'knn15': 0.057, 'sp': 0.774, 'ari': 0.205, 'geo': 0.649, 'min': 0.377, 'fit_s': 10.75}
+pbmc68k | sgd serial 0.1 + post | 1 {'knn15': 0.057, 'sp': 0.837, 'ari': 0.223, 'geo': 0.685, 'min': 0.377, 'fit_s': 11.51}
+pbmc68k | hybrid serial 0.2 | 1 {'knn15': 0.15, 'sp': 0.747, 'ari': 0.2, 'geo': 0.88, 'min': 0.789, 'fit_s': 16.0}
+pbmc68k | hybrid serial 0.2 + post | 1 {'knn15': 0.15, 'sp': 0.765, 'ari': 0.196, 'geo': 0.88, 'min': 0.776, 'fit_s': 16.85}
+pbmc68k | sgd serial 0.1 | 2 {'knn15': 0.055, 'sp': 0.752, 'ari': 0.212, 'geo': 0.645, 'min': 0.368, 'fit_s': 11.07}
+pbmc68k | sgd serial 0.1 + post | 2 {'knn15': 0.055, 'sp': 0.832, 'ari': 0.217, 'geo': 0.672, 'min': 0.367, 'fit_s': 11.79}
+pbmc68k | hybrid serial 0.2 | 2 {'knn15': 0.15, 'sp': 0.748, 'ari': 0.195, 'geo': 0.874, 'min': 0.772, 'fit_s': 16.94}
+pbmc68k | hybrid serial 0.2 + post | 2 {'knn15': 0.149, 'sp': 0.768, 'ari': 0.197, 'geo': 0.882, 'min': 0.78, 'fit_s': 17.73}
+pbmc68k | sgd serial 0.1 | 3 {'knn15': 0.057, 'sp': 0.75, 'ari': 0.215, 'geo': 0.652, 'min': 0.375, 'fit_s': 10.02}
+pbmc68k | sgd serial 0.1 + post | 3 {'knn15': 0.056, 'sp': 0.83, 'ari': 0.221, 'geo': 0.68, 'min': 0.375, 'fit_s': 10.68}
+pbmc68k | hybrid serial 0.2 | 3 {'knn15': 0.152, 'sp': 0.731, 'ari': 0.192, 'geo': 0.865, 'min': 0.758, 'fit_s': 15.53}
+pbmc68k | hybrid serial 0.2 + post | 3 {'knn15': 0.152, 'sp': 0.823, 'ari': 0.21, 'geo': 0.927, 'min': 0.831, 'fit_s': 16.25}
+pbmc68k | sgd serial 0.1 | 4 {'knn15': 0.056, 'sp': 0.751, 'ari': 0.214, 'geo': 0.65, 'min': 0.373, 'fit_s': 9.97}
+pbmc68k | sgd serial 0.1 + post | 4 {'knn15': 0.056, 'sp': 0.75, 'ari': 0.217, 'geo': 0.652, 'min': 0.373, 'fit_s': 10.58}
+pbmc68k | hybrid serial 0.2 | 4 {'knn15': 0.15, 'sp': 0.76, 'ari': 0.18, 'geo': 0.854, 'min': 0.71, 'fit_s': 14.9}
+pbmc68k | hybrid serial 0.2 + post | 4 {'knn15': 0.15, 'sp': 0.744, 'ari': 0.177, 'geo': 0.843, 'min': 0.698, 'fit_s': 15.5}

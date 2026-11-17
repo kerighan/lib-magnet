@@ -11,13 +11,13 @@ repulsion is estimated.
 objectives: a sampled SGD pass with a decoupled, heavy-tailed attraction places the clusters, a full-batch FFT
 pass with t-SNE's objective refines the neighbourhoods, and an optional label-free post-process moves the
 communities of the graph to raise the agreement of pairwise distances (`contraction=0.7`). MNIST 70k: the
-full-batch pass reaches Barnes-Hut t-SNE's neighbourhood preservation (0.349 against 0.350) in 4.9 s against 175
-(interleaved timings on a quiet 20-thread machine, `benchmarks/timing.py`: sampled pass 3.6 s, sequence 7.3, with
-the post-process 9.0; UMAP 8.5, PaCMAP 31, openTSNE 93);
+full-batch pass reaches Barnes-Hut t-SNE's neighbourhood preservation (0.349 against 0.350) in 5.1 s against 179
+(interleaved timings on a quiet 20-thread machine, `benchmarks/timing.py`: sampled pass 3.5 s, sequence 7.2, with
+the post-process 8.6; UMAP 10.4, PaCMAP 31, openTSNE 93);
 the sequence has the highest 15-NN and the highest pairwise Spearman of the neighbour embeddings tested
-(0.353 / 0.446 over five seeds); with the post-process given to every method of a twelve-method panel on five
+(0.356 / 0.426 over five seeds); with the post-process given to every method of a twelve-method panel on five
 seeds, the sequence keeps the best composite balance of local, global and cluster structure on three data sets
-of four (on MNIST the post-processed t-SNE layouts converge). Two papers: the exhaustive document
+of four (on MNIST it is level with the post-processed t-SNE layouts, which converge). Two papers: the exhaustive document
 (`paper/main.tex`, every experiment and negative result) and the short one (`paper/human/main.tex`).
 
 ![The complete pipeline next to UMAP and Barnes-Hut t-SNE](https://raw.githubusercontent.com/kerighan/lib-magnet/master/benchmarks/plots/pipeline_mnist_fmnist.png)
@@ -42,7 +42,10 @@ pip install git+https://github.com/kerighan/lib-magnet    # or, from a clone: pi
 python -m pytest tests -q
 ```
 
-A C++17 compiler is needed (gcc, clang or MSVC); the dependencies are numpy, scipy, scikit-learn and tqdm.
+Linux and macOS (the thread pool is written against pthreads: no Windows build). Installing from source needs a
+C++17 compiler (gcc or clang); the tagged releases also come as binary wheels for CPython 3.10 to 3.13 on Linux
+x86_64 / aarch64 and macOS arm64 / x86_64 (`.github/workflows/wheels.yml`). The dependencies are numpy, scipy,
+scikit-learn and tqdm.
 Optional extras: `[hnsw]` (hnswlib, an alternative kNN backend), `[graphs]` (networkx inputs), `[leiden]`
 (python-igraph, the Leiden backend of the post-process; the default Louvain is built in), `[clustering]`
 (hdbscan, for `kernel_b="consistent"` on old scikit-learn), `[test]`. One research option uses the author's
@@ -91,7 +94,7 @@ Hamprecht 2021). MAGNET exposes this directly:
 |---|---|---|---|
 | `loss="umap"` | sampled (5 random points per positive sample) | UMAP-like, with the global structure of PaCMAP | speed, 3-D, graphs, millions of points |
 | `loss="tsne"` | exact, all pairs, FFT-accelerated (2-D) | t-SNE-like, finest local structure | best neighbourhood preservation |
-| `loss="hybrid"` | sampled, then exact for 300 iterations at the exact mode's scale | the global structure of the first with the local structure of the second | the best 2-D layout MAGNET makes (MNIST 70k: 15-NN kept 0.353, distance Spearman 0.444, 12.5 s) |
+| `loss="hybrid"` | sampled, then exact for 300 iterations at the exact mode's scale | the global structure of the first with the local structure of the second | the best 2-D layout MAGNET makes (MNIST 70k: 15-NN kept 0.356, distance Spearman 0.426, 7.7 s) |
 | `loss="tsne", exaggeration=4` | exact | UMAP-like again | the two regimes really are one spectrum |
 
 `repulsion_strength` (default 2) and `exaggeration` move along the spectrum within each mode, and
@@ -99,10 +102,11 @@ Hamprecht 2021). MAGNET exposes this directly:
 15-NN kept 0.206 / 0.193 / 0.187 / 0.168, distance Spearman 0.285 / 0.413 / 0.427 / 0.478). Under
 `loss="hybrid"` the SGD pass only has to place the clusters, so it runs a stiffer spring: its
 local cost is erased by the exact pass, its global gain is kept. The default there is `mid_weight=0.2`.
-The hybrid rows of the tables below were measured at 0.5, the default of the 3.0.0 tag, which
-buys +0.01 to +0.02 Spearman more and blurs the clusters (six data sets, five seeds, `k53_hybrid_kappa.py`:
-MNIST k-means ARI 0.59 at 0.5, 0.68 at 0.2; composite of the three axes level without the post-process,
-+0.017 on average with it); `mid_weight=0.5` reproduces them. The two
+0.5, the default of the 3.0.0 tag, buys +0.01 to +0.02 Spearman more and blurs the clusters (six data sets,
+five seeds, `k53_hybrid_kappa.py`: MNIST k-means ARI 0.59 at 0.5, 0.68 at 0.2; composite of the three axes level
+without the post-process, +0.017 on average with it). The benchmark table, the matched control and the two papers
+are at 0.2; the research notes further down (staged baselines, strata, separability, timings of the optimisation
+round) quote the 0.5 runs they were written on, which `mid_weight=0.5` reproduces. The two
 modes' strengths do not blend inside one loss (a constant far-field repulsion, a bounded mid-range
 term or a longer schedule in the exact mode each cost local structure before buying any global, and
 the exaggeration knob trades local for compactness, not for global; `docs/kernel_exponents.md`,
@@ -257,7 +261,7 @@ sits below the CPU t-SNEs on neighbourhood preservation.
 | MAGNET, `repulsion_b=None` (coupled kernel, UMAP's compact look: silhouette 0.51 against 0.52 for UMAP and 0.40 for the default) | 5.5 s | 0.190 | 0.958 | 0.405 | 0.641 | 0.966 |
 | MAGNET, `late_exaggeration=1.5` (compact preset, silhouette 0.51) | 4.7 s | 0.181 | 0.956 | 0.386 | 0.637 | 0.967 |
 | **MAGNET `loss="tsne"`** | 7.0 s | 0.349 | 0.966 | 0.349 | 0.627 | 0.967 |
-| **MAGNET `loss="hybrid"`** | 8.6 s | **0.355** | 0.960 | **0.445** | **0.652** | 0.962 |
+| **MAGNET `loss="hybrid"`** | 7.7 s | **0.356** | 0.961 | **0.424** | **0.647** | 0.965 |
 | UMAP 0.5.12 | 11.2 s | 0.117 | 0.951 | 0.297 | 0.606 | 0.967 |
 | densMAP (umap-learn 0.5.12) | 37.2 s | 0.068 | 0.921 | 0.364 | 0.623 | 0.945 |
 | openTSNE 1.0.4 | 102.5 s | 0.347 | **0.968** | 0.330 | 0.619 | 0.965 |
@@ -269,11 +273,11 @@ sits below the CPU t-SNEs on neighbourhood preservation.
 | t-SNE-CUDA 3.0.1 (GPU) | 13.8 s | 0.169 | 0.967 | 0.169 | 0.567 | 0.957 |
 
 `loss="hybrid"` is the first row of this table to lead both the local and the global columns at once:
-15-NN kept equal to the best t-SNE (0.355 against 0.350), distance correlation above the SGD mode
-(0.444 against 0.413), 16 times faster than scikit-learn's t-SNE. Fashion-MNIST: 0.328 / 0.752
-(t-SNE 0.327 / 0.634, SGD 0.202 / 0.730); 20 newsgroups 0.181 / 0.073 (t-SNE 0.192 / 0.232, which
+15-NN kept equal to the best t-SNE (0.356 against 0.350), distance correlation above the SGD mode
+(0.424 against 0.414), 16 times faster than scikit-learn's t-SNE. Fashion-MNIST: 0.329 / 0.728
+(t-SNE 0.327 / 0.634, SGD 0.205 / 0.729); 20 newsgroups 0.183 / 0.106 (t-SNE 0.192 / 0.232, which
 keeps the global lead there; the global column of that set moves by 0.02 between seeds); blobs
-0.124 / 0.684 (t-SNE 0.114 / 0.381, SGD 0.067 / 0.690). The exact pass refines the SGD layout, it
+0.128 / 0.695 (t-SNE 0.114 / 0.381, SGD 0.053 / 0.697). The exact pass refines the SGD layout, it
 does not repair one: the SGD pass must run its full schedule (100 epochs: 15-NN 0.276), and the knobs
 of the exact pass (scale, learning rate, iterations, dof, exaggeration) buy at most 0.005 of 15-NN and 0.015 of Spearman for 5-6 s more, or hurt (`docs/kernel_exponents.md`, section 6.1). The time of the hybrid is the exact pass's
 repulsion (the FFT grid is set by the layout's extent, 162 boxes from the first iteration; the box width
@@ -613,8 +617,20 @@ spring. Result on MNIST, 20 threads with other jobs running: SGD 1.45 s against 
 against 0.415, triplets 0.656 against 0.645. Same trade on Fashion-MNIST (0.202 / 0.974 / 0.782 against
 0.205 / 0.979 / 0.731), 20 newsgroups (0.133 / 0.742 / 0.090 against 0.134 / 0.755 / 0.046) and blobs; SBM
 graph 2.9 s against 4.0 s at the same accuracy. The layout is identical for any `n_threads` given the graph
-and the seed. The hogwild mode stays the default until the hybrid's `mid_weight` is re-tuned for it (the
-owner mode shifts the attraction / mid-range balance; `benchmarks/theory/k11_owner.py`).
+and the seed. (`benchmarks/theory/k11_owner.py`).
+
+**Reproducible fits.** The lock-free default gives a different layout on every call, `random_state` or not. Three
+ways to a bit-identical fit for a given `random_state` and `n_threads` (the kNN search depends on the thread
+count): `loss="tsne"`, which has no sampled pass; `parallel="serial"`, the default's updates on one thread while
+the kNN search, the full-batch pass and the post-process stay multithreaded; `parallel="owner"`. Measured on six
+data sets and five seeds (`benchmarks/theory/k57_owner_default.py`): `"serial"` is the default's quality on every
+axis (mean composite difference -0.004 as is, -0.001 after the post-process, all within the seed-to-seed spread)
+for 8 to 10 s more at 70 000 points and 1.5 s at 20 000; `"owner"` is faster than the default but blurs the
+clusters (k-means ARI -0.21 on MNIST and -0.14 on Tasic 2018 in the sampled mode, -0.13 on MNIST in the sequence;
+composite -0.029 and -0.012 on average) and no mid-range stiffness from 0.05 to 0.3 brings them back, so the
+lock-free mode stays the default. The same study found and fixed a write race in the full-batch pass (a point on
+a box boundary of the interpolation grid could be scattered into a row owned by another thread), which made two
+runs of `loss="tsne"` differ at 70 000 points.
 
 Regenerate everything with `benchmarks/full_table.py`, `benchmarks/render_table.py`, `benchmarks/plot_tradeoff.py`,
 `benchmarks/compare_plots.py`, `benchmarks/scaling.py` and `benchmarks/graph_demo.py`.
@@ -641,7 +657,7 @@ Any networkx graph or sparse adjacency matrix is laid out directly, in linear ti
 | `samples_per_node` | 5 | attractive samples per node and per epoch |
 | `negative_sample_rate` | 5 | negatives per positive sample |
 | `mid_source`, `n_mid_pairs`, `mid_jump` | `"auto"`, 5, 0.5 | mid-range partners from the data (PaCMAP-style pairs), from random walks on the graph, or `"hybrid"` walks on both layers |
-| `parallel` | `"hogwild"` | `"owner"`: threads own node chunks and read the others from a per-epoch snapshot; the SGD runs 2x faster, the layout is deterministic for any `n_threads`, global structure up (MNIST Spearman 0.451 against 0.415), local slightly down (15-NN 0.189 against 0.193, trustworthiness 0.948 against 0.957) |
+| `parallel` | `"hogwild"` | `"serial"`: the same SGD on one thread, bit-reproducible for a given `random_state` and `n_threads`, same quality, 8 to 10 s more at 70k. `"owner"`: threads own node chunks and read the others from a per-epoch snapshot; the SGD runs 2x faster, the layout is deterministic for any `n_threads`, global structure up (MNIST Spearman 0.451 against 0.415), local slightly down (15-NN 0.189 against 0.193, trustworthiness 0.948 against 0.957) |
 | `walk_len`, `mid_weight`, `mid_rate`, `mid_phase` | 4, None (0.1; 0.2 under `loss="hybrid"`), 0.25, 0.5 | strength and schedule of the mid-range attraction (`mid_weight=0` disables) |
 | `init` | `"auto"` | PCA for `loss="tsne"` on data, spectral otherwise; or `"spectral"`, `"pca"`, `"random"`, an array |
 | `knn` | `"nndescent"` | or `"hnsw"` (needs hnswlib) |

@@ -214,7 +214,11 @@ class MAGNET(BaseEstimator, TransformerMixin):
         points are multiplied by exp(-2.5 / (1 - target_weight)); -1 marks an unlabelled point. Default 0.5.
     transform_epochs : epochs used by transform() (default 200).
     parallel : how the SGD threads share the layout. "hogwild" (default): every thread writes any node, lock-free,
-        as UMAP does. "owner": the nodes are split into chunks that the threads claim one at a time; a chunk's
+        as UMAP does; fastest at full quality, but two fits with the same random_state differ. "serial": the same
+        updates on one thread (the kNN search, the full-batch pass and the post-process keep n_threads): the fit
+        is bit-reproducible for a given random_state and n_threads, at the quality of the default (six data sets,
+        five seeds, every axis within the seed-to-seed spread, k57) and 8 to 10 s more at 70 000 points, 1.5 s
+        at 20 000. "owner": the nodes are split into chunks that the threads claim one at a time; a chunk's
         nodes are written by its thread only, and every other node is read from a snapshot of the layout frozen
         for the epoch, so no cache line is written by two threads and the per-epoch barrier is the only
         synchronisation (hogwild spent half its wall-clock time in cache-line transfers and in waiting for the
@@ -223,7 +227,10 @@ class MAGNET(BaseEstimator, TransformerMixin):
         through the reverse pairs. MNIST 70k: the SGD runs 2x faster, the fit 1.4x; 15-NN kept 0.189 against
         0.193, trustworthiness 0.948 against 0.957, distance Spearman 0.451 against 0.415 (Fashion-MNIST 0.782
         against 0.731, 20 newsgroups 0.090 against 0.046). The layout is identical for any n_threads given the
-        graph and the seed (the kNN search itself is multithreaded and is not). Not available with loss="infonce".
+        graph and the seed (the kNN search itself is multithreaded and is not), so the fit is reproducible too, and
+        faster than the default; not the default because it blurs the clusters (k57: k-means ARI -0.21 on MNIST
+        and -0.14 on Tasic 2018 in the sampled mode, -0.13 in the sequence, at any mid-range stiffness). Not
+        available with loss="infonce". loss="tsne" has no sampled pass and is reproducible as it is.
     graph_norm : for graph inputs, "sym" rescales w_ij by 1/sqrt(deg_i deg_j) so that every node
         receives a comparable number of updates (hubs do not monopolise the budget); "none" keeps
         the raw weights.
@@ -748,8 +755,8 @@ class MAGNET(BaseEstimator, TransformerMixin):
         n = Y.shape[0]
         lr = float(self.learning_rate)
         loss = {"umap": 0, "infonce": 1, "hybrid": 0, "tsne": 0}[self.loss]   # tsne: only reached by transform()
-        if self.parallel not in ("hogwild", "owner"):
-            raise ValueError("parallel must be 'hogwild' or 'owner'")
+        if self.parallel not in ("hogwild", "owner", "serial"):
+            raise ValueError("parallel must be 'hogwild', 'serial' or 'owner'")
         if self.parallel == "owner" and loss == 1:
             raise ValueError("parallel='owner' is not available with loss='infonce' (the negatives are moved)")
         kernel = {"power": 0, "gaussian": 1, "sech": 2, "tanh": 3}[self.kernel]
@@ -793,8 +800,9 @@ class MAGNET(BaseEstimator, TransformerMixin):
                             float(self.exaggeration if exag is None else exag), float(self.repulsion_strength), int(self.walk_len),
                             float(self.mid_rate), optimizer, clip, int(n_fixed),
                             adam_m, adam_v, adam_t, float(self.beta1), float(self.beta2), walk_lens, mid_pairs, jump_indptr, jump_indices,
-                            float(self.mid_jump) if J is not None else 0.0, kernel, node_b, seed, int(self.n_threads),
-                            {"hogwild": 0, "owner": 1}[self.parallel], rev_indptr, rev_indices)
+                            float(self.mid_jump) if J is not None else 0.0, kernel, node_b, seed,
+                            1 if self.parallel == "serial" else int(self.n_threads),   # serial: this pass only
+                            {"hogwild": 0, "serial": 0, "owner": 1}[self.parallel], rev_indptr, rev_indices)
 
         # ---- schedule: list of (epoch_start, epoch_end, lr_start, lr_end), plus the mid-range weight
         if isinstance(n_epochs, (int, np.integer)):

@@ -34,3 +34,15 @@ Issues = "https://github.com/kerighan/lib-magnet/issues"
 
 [tool.setuptools]
 packages = ["magnet"]
+
+[tool.cibuildwheel]
+build = "cp310-* cp311-* cp312-* cp313-*"
+skip = "*-musllinux_* *-manylinux_i686"
+# numpy / scipy ship manylinux_2_28 wheels only: the 2014 image would build them from source in the test step
+manylinux-x86_64-image = "manylinux_2_28"
+manylinux-aarch64-image = "manylinux_2_28"
+test-requires = ["pytest", "networkx"]
+test-command = "MAGNET_TEST_INSTALLED=1 pytest -q {project}/tests"
+
+[tool.cibuildwheel.macos]
+environment = { MACOSX_DEPLOYMENT_TARGET = "11.0" }

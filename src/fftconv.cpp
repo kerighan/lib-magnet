@@ -104,9 +104,11 @@ public:
                     const int64_t i = order[k];
                     const float x = Y[2 * i], y = Y[2 * i + 1];
                     const float ux = (x - xmin) / width, uy = (y - ymin) / width;
-                    const int bx = std::min(n_boxes - 1, std::max(0, (int)ux)), by = std::min(n_boxes - 1, std::max(0, (int)uy));
+                    // the x-box is the one the point was sorted by (bxs), not a second evaluation: the sort multiplies by
+                    // 1 / width and this line divides, so a point on a box boundary could land in the next box, whose grid
+                    // rows belong to another thread (a lost update now and then: two runs of the pass differed at 70 000 points)
+                    const int bx = bxs[i], by = std::min(n_boxes - 1, std::max(0, (int)uy));
                     lagrange_w(std::min(1.f, std::max(0.f, ux - bx)), ni, wx); lagrange_w(std::min(1.f, std::max(0.f, uy - by)), ni, wy);
-                    const float ch[3] = {1.f, x, y};
                     for (int a = 0; a < ni; ++a) {
                         const int gx = bx * ni + a;
                         for (int b = 0; b < ni; ++b) {
@@ -204,7 +206,7 @@ public:
                     const int64_t i = order[kk];   // points in x-box order: the potentials are read with locality
                     const float x = Y[2 * i], y = Y[2 * i + 1];
                     const float ux = (x - xmin) / width, uy = (y - ymin) / width;
-                    const int bx = std::min(n_boxes - 1, std::max(0, (int)ux)), by = std::min(n_boxes - 1, std::max(0, (int)uy));
+                    const int bx = bxs[i], by = std::min(n_boxes - 1, std::max(0, (int)uy));   // same box as the scatter
                     lagrange_w(std::min(1.f, std::max(0.f, ux - bx)), ni, wx); lagrange_w(std::min(1.f, std::max(0.f, uy - by)), ni, wy);
                     float pot[4] = {0.f, 0.f, 0.f, 0.f};
                     for (int a = 0; a < ni; ++a) {
