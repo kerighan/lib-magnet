@@ -34,16 +34,16 @@ an initial arrangement, 300 iterations of a full-batch, FFT-interpolated $t$-SNE
 refine the measured neighbourhood overlap, and an optional post-process, label-free in execution, translates the graph's communities to increase a
 sampled distance-rank correlation under a sampled cross-community nearest-neighbour guard, then contracts each by
 a fixed factor; its settings were selected on the development benchmarks. On MNIST 70k the standalone full-batch
-mode obtains a \knn{} overlap of 0.349 against 0.350 for Barnes--Hut $t$-SNE in 4.9~s against 175 (interleaved
+mode obtains a \knn{} overlap of 0.349 against 0.350 for Barnes--Hut $t$-SNE in 5.1~s against 179 (interleaved
 timings on a quiet 20-thread machine, graph construction included); on MNIST and Fashion-MNIST the unprocessed
 sequence has a higher mean pairwise Spearman than UMAP, PaCMAP, openTSNE and Barnes--Hut $t$-SNE, with a \knn{}
 overlap comparable to the $t$-SNE baselines' and above UMAP's and PaCMAP's. In a matched control in which every
 configuration of a twelve-configuration panel receives the identical post-process on five runs, the sequence has
 the highest observed four-development-set mean composite (\knn{} overlap and Spearman throughout, $k$-means ARI
 added on the image sets) against frozen references and wins three data-set means; its paired difference from the
-post-processed Barnes--Hut layout is $0.023 \pm 0.047$ across 20 runs (sd across paired runs) and reverses on
-MNIST ($-0.046 \pm 0.022$), where the three standalone $t$-SNE-type layouts converge after the step (0.971--0.976)
-above the sequence (0.930). On two single-cell RNA-seq data sets never used during development (Tasic 2018,
+post-processed Barnes--Hut layout is $0.041 \pm 0.037$ across 20 runs (sd across paired runs) and vanishes on
+MNIST ($-0.004 \pm 0.014$), where the sequence and the three standalone $t$-SNE-type layouts converge after the
+step (0.971--0.976). On two single-cell RNA-seq data sets never used during development (Tasic 2018,
 PBMC 68k), with every default frozen, the 15-NN overlap stays level with the $t$-SNE baselines' and the pairwise
 Spearman above theirs, but with the post-process given to every method the post-processed $t$-SNE layouts come first
 on both. The companion report, the implementation and the experiment artifacts are public at a pinned revision.
@@ -79,7 +79,7 @@ community-merge heuristic are reported as design decisions with their evidence, 
 arrangement), handed over at a first-coordinate standard deviation of $31 \sqrt{n / 70\,000}$ to 300 full-batch
 iterations without exaggeration (the neighbourhoods), and an optional post-process that applies to any layout; the
 matched control of Sec.~\ref{sec:results} gives it to every method. Times are for MNIST 70k on a quiet 20-thread
-machine: sampled pass 3.6~s including graph construction, full-batch pass 3.7~s more, post-process 1.7~s.}
+machine: sampled pass 3.5~s including graph construction, full-batch pass 3.7~s more, post-process 1.4~s.}
 \label{fig:method}
 \end{figure*}
 
@@ -100,10 +100,13 @@ change both kernels and are a different operation. Second, a transient mid-range
 point, five partners, each the second closest in the input of six rows drawn at random; with probability 0.25 a
 positive-edge update $(u, v)$ is followed by a spring pull of $u$ towards one of its partners with stiffness
 $\kappa$, annealed linearly to zero over the first half of the epochs. $\kappa = 0.1$ in the standalone sampled
-mode; the sequence uses the stiffer $\kappa = 0.5$, which costs the first stage 0.015 of \knn{} that the second
-stage erases and buys 0.02--0.04 of Spearman that it keeps. This term, not the exponent, supplies the first pass's
+mode; the sequence uses the stiffer $\kappa = 0.2$, whose cost in \knn{} at the first stage is erased by the
+second and which leaves the sequence up to 0.02 of Spearman more than 0.1 does (six data sets, five runs,
+\texttt{k53}). $\kappa = 0.5$, the default of earlier revisions, adds as much again and lowers the $k$-means ARI
+(MNIST: $0.60 \pm 0.07$ against $0.70 \pm 0.03$), with a composite level with 0.2 as shipped and 0.017 lower
+after the post-process. This term, not the exponent, supplies the first pass's
 global advantage; without it the sampled layout's Spearman falls below openTSNE's (companion report, Sec.~3).
-The pass takes 3.6~s on MNIST 70k, graph construction included.
+The pass takes 3.5~s on MNIST 70k, graph construction included.
 
 \paragraph{An empirical size-dependent exponent.} The heavy tail that maximises \knn{} overlap at 70k
 fragments the small data sets we tried: on MNIST subsamples at $n \le 10$k, HDBSCAN \citep{campello2013hdbscan,
@@ -120,20 +123,20 @@ sweeps and the settings that did not remove the effect.
 coordinate is $31 \sqrt{n / 70\,000}$, an empirical finite-budget reference set on MNIST 70k. A radial derivative
 identity of the full-batch objective (Appendix~\ref{app:virial}) diagnoses the scale pressure at a given layout
 but does not select this operating point: starting at the stationary dilation costs about five times as much and
-gives 0.349 / 0.460 overlap / Spearman against 0.350 / 0.450 at scale 31. From $t$-SNE's tiny initialisation the pass re-expands and loses the
+gives 0.349 / 0.460 overlap / Spearman against 0.350 / 0.450 at scale 31 (measured from a $\kappa = 0.5$ start). From $t$-SNE's tiny initialisation the pass re-expands and loses the
 arrangement (Spearman 0.29--0.39); from the sampled layout's own scale it loses it too.
 
 \paragraph{Full-batch pass.} $t$-SNE's Kullback--Leibler objective \citep{vandermaaten2008tsne} on the same fuzzy
 graph (no perplexity calibration), the repulsion by FIt-SNE's interpolation \citep{linderman2019fitsne} with three
 Lagrange points per box, momentum and gains as in openTSNE \citep{policar2019opentsne}. As the second stage: 300
-iterations without exaggeration and without the mid-range term (which is fatal at this scale), 3.7~s more on MNIST 70k. Standalone (\texttt{loss="tsne"}): 600 iterations with early exaggeration from a PCA start, 4.9~s.
+iterations without exaggeration and without the mid-range term (which is fatal at this scale), 3.7~s more on MNIST 70k. Standalone (\texttt{loss="tsne"}): 600 iterations with early exaggeration from a PCA start, 5.1~s.
 The box width is 0.7 in layout units: against the exact all-pairs sum on the audited MNIST layout, FIt-SNE's unit
 box leaves a 3.5\% relative RMS force error (1.2\% at 0.7, 0.4\% at 0.5), and narrowing the box raises \knn{} overlap
 from 0.346 to 0.349--0.350 on MNIST and from 0.118 to 0.136 on Gaussian blobs while the FFT cost grows as the
 inverse square of the width; 0.7 is the knee (Appendix~\ref{app:box}).
 
 \paragraph{What the sequence does, and what it inherits.} The 300-iteration pass is an early stop: continued
-optimisation raises \knn{} and lowers the inherited Spearman (0.480 at the start, 0.470 at 300 iterations, 0.446 at
+optimisation raises \knn{} and lowers the inherited Spearman (from a $\kappa = 0.5$ start: 0.480 at the start, 0.470 at 300 iterations, 0.446 at
 3000, the layout still expanding). Across the neighbour-embedding starts tested in the matched-start experiment, the pass reaches 0.352--0.356
 of \knn{} on MNIST and 0.327--0.331 on Fashion-MNIST over five runs (a PCA start reaches 0.315, a random one
 0.065), and it changes the start's Spearman by $-0.025$ to $+0.033$, so much of the measured ordering of the starts
@@ -199,8 +202,8 @@ coloured by class (class labels are not supplied during embedding or post-proces
 evaluation used label-derived scores); display runs separate from the control runs, seed 0 for the seeded
 methods; each panel is scaled to its own extent. Left to right: Barnes--Hut $t$-SNE as shipped and with our post-process, the \magnet{} sequence as shipped
 and with the post-process (the complete pipeline). Under each panel: \knn{} overlap and pairwise Spearman of that
-run; over the five control runs the MNIST $k$-means ARI of the sequence is $0.60 \pm 0.07$ before and $0.73 \pm
-0.07$ after the step (Tables~\ref{tab:raw} and \ref{tab:configs}). The post-process moves the zeros away from the
+run; over the five control runs the MNIST $k$-means ARI of the sequence is $0.70 \pm 0.03$ before and $0.84 \pm
+0.04$ after the step (Tables~\ref{tab:raw} and \ref{tab:configs}). The post-process moves the zeros away from the
 other digits on both layouts; because every panel is scaled to its own extent, absolute inter-cluster distances
 are not comparable across panels.}
 \label{fig:pipeline}
@@ -230,7 +233,7 @@ recovery and not as evidence that classes are density components. A composite of
 the minimum) of the ratios of its axes to frozen references: the per-axis maxima over the thirteen unprocessed
 calibration configurations of \texttt{benchmarks/composite\_table.py} at seed 0 (the twelve of the panel plus the
 full-batch quality preset), distinct from the matched-control runs (MNIST 0.356 / 0.488 / 0.914 from the quality
-preset, PCA-2 and PaCMAP; Fashion-MNIST 0.330 / 0.873 / 0.483 from the sequence, PCA-2 and PaCMAP; letter 0.642 /
+preset, PCA-2 and PaCMAP; Fashion-MNIST 0.330 / 0.873 / 0.483 from the sequence (run at $\kappa = 0.5$, its default when the references were frozen), PCA-2 and PaCMAP; letter 0.642 /
 0.716 from Barnes--Hut and PCA-2; covertype 0.632 / 0.755 from Barnes--Hut and TriMap; ratios may exceed one); composites are
 computed per run, then averaged over runs, then over data sets with equal weight.
 
@@ -251,7 +254,7 @@ times include graph construction and exclude the post-process unless stated. Sta
 \centering\footnotesize
 \caption{Raw axes of every configuration as shipped, mean over the five matched-control runs. Run standard
 deviations (\texttt{k41}): at most 0.01 on \knn{} everywhere, at most 0.04 on Spearman (covertype UMAP) and at most
-0.07 on ARI (MNIST sequence 0.07, densMAP 0.07, PaCMAP 0.06, h-NNE 0.04, openTSNE 0.03). Bold: best of the column, underlined: second, among the ten ranked configurations; PCA-2 and PCA-2 refined by our pass are reference rows below the rule, not ranked.}
+0.07 on ARI (densMAP 0.07, PaCMAP 0.06, h-NNE 0.04, openTSNE 0.03, MNIST sequence 0.03). Bold: best of the column, underlined: second, among the ten ranked configurations; PCA-2 and PCA-2 refined by our pass are reference rows below the rule, not ranked.}
 \label{tab:raw}
 \setlength{\tabcolsep}{4pt}
 \input{tables/raw_axes.tex}
@@ -260,25 +263,25 @@ deviations (\texttt{k41}): at most 0.01 on \knn{} everywhere, at most 0.04 on Sp
 \paragraph{Raw axes} (Table~\ref{tab:raw}). The standalone full-batch mode obtains a \knn{} overlap of 0.349 on
 MNIST against 0.350 for Barnes--Hut $t$-SNE and 0.347 for openTSNE, and a higher Spearman than both; on the two
 image sets the unprocessed sequence has a higher mean Spearman than UMAP, PaCMAP, openTSNE and Barnes--Hut $t$-SNE
-at a \knn{} within 0.004 of the best. Its MNIST $k$-means ARI is the weak axis, $0.60 \pm 0.07$ against 0.83 for
-Barnes--Hut and 0.79 for the full-batch mode; on letter its \knn{} (0.625) is below Barnes--Hut's (0.642) and
-openTSNE's (0.639); on covertype its Spearman (0.536) is below the sampled pass's (0.592) and TriMap's (0.748). The
-pairwise Spearman of the sequence exceeds PCA-2's on covertype (0.536 against 0.397) and stays below it on the
+at a \knn{} within 0.004 of the best. Its MNIST $k$-means ARI is the weak axis, $0.70 \pm 0.03$ against 0.83 for
+Barnes--Hut and 0.79 for the full-batch mode; on letter its \knn{} (0.626) is below Barnes--Hut's (0.642) and
+openTSNE's (0.639); on covertype its Spearman (0.552) is below the sampled pass's (0.592) and TriMap's (0.748). The
+pairwise Spearman of the sequence exceeds PCA-2's on covertype (0.552 against 0.397) and stays below it on the
 three other sets.
 
 \paragraph{The matched control} (Fig.~\ref{fig:control}; Table~\ref{tab:control} in Appendix~\ref{app:configs}). As shipped, the sequence has
-the highest four-set mean composite (0.854; Barnes--Hut 0.799, full-batch 0.801, openTSNE 0.749, PaCMAP 0.590,
-UMAP 0.581). With the identical post-process given to every configuration it keeps the highest mean (0.907;
-Barnes--Hut 0.883, full-batch 0.879, openTSNE 0.854, UMAP 0.677, PaCMAP 0.670; minimum composite 0.826 against
+the highest four-set mean composite (0.860; Barnes--Hut 0.799, full-batch 0.801, openTSNE 0.749, PaCMAP 0.590,
+UMAP 0.581). With the identical post-process given to every configuration it keeps the highest mean (0.925;
+Barnes--Hut 0.883, full-batch 0.879, openTSNE 0.854, UMAP 0.677, PaCMAP 0.670; minimum composite 0.864 against
 0.779) and wins three data-set means of four, but its paired difference from the post-processed Barnes--Hut
-layout is $0.023 \pm 0.047$ across the 20 runs (sd across paired runs, which mixes between-data-set
-heterogeneity with run variability) and reverses on MNIST: $-0.046 \pm 0.022$ there, $+0.020 \pm 0.015$ on
-Fashion-MNIST, $+0.071 \pm 0.003$ on letter, $+0.047 \pm 0.013$ on covertype. On MNIST the three standalone
+layout is $0.041 \pm 0.037$ across the 20 runs (sd across paired runs, which mixes between-data-set
+heterogeneity with run variability) and vanishes on MNIST: $-0.004 \pm 0.014$ there, $+0.021 \pm 0.009$ on
+Fashion-MNIST, $+0.062 \pm 0.002$ on letter, $+0.085 \pm 0.012$ on covertype. On MNIST the three standalone
 configurations, our full-batch mode, openTSNE and Barnes--Hut, reach 0.976, 0.971 and 0.976 after the step
-against 0.930 for the sequence, whose Spearman is higher (0.504 against 0.464) and whose $k$-means ARI lower
-($0.73 \pm 0.07$ against 0.918). The control measures post-processing increments and final rankings; it does not
-decompose causes, and the sequence's MNIST loss is the composite of a higher Spearman and a substantially lower
-ARI, not a negligible convergence effect. It does show that the step changes the rankings substantially, that it lifts most
+against 0.972 for the sequence, whose Spearman is higher (0.496 against 0.464) and whose $k$-means ARI lower
+($0.84 \pm 0.04$ against 0.918). The control measures post-processing increments and final rankings; it does not
+decompose causes, and the sequence's MNIST parity is the composite of a higher Spearman and a lower
+ARI, not a convergence of the layouts. It does show that the step changes the rankings substantially, that it lifts most
 configuration--data-set combinations (exceptions: letter for the sequence, the full-batch mode, PCA-2 + pass and
 TriMap, $-0.01$ to $-0.10$; the sampled pass on Fashion-MNIST, $-0.003$), and that UMAP, PaCMAP, TriMap and densMAP
 remain far below with it (four-set mean composites 0.54--0.68), their \knn{} deficit being what the step does not
@@ -296,11 +299,12 @@ paired runs. The references are those of Sec.~\ref{sec:results}, Metrics.}
 
 
 
-\paragraph{Time} (Table~\ref{tab:time}). On MNIST 70k the sampled pass takes 3.6~s, the standalone full-batch mode
-4.9~s and the sequence 7.3~s, 9.0~s with the post-process; UMAP 8.5, PaCMAP 31, openTSNE 93, Barnes--Hut $t$-SNE
-175 (Fashion-MNIST: 3.7 / 4.9 / 6.7 / 7.5 against 8.4 / 30 / 85 / 174). The ranges over the three interleaved
-rounds are in Table~\ref{tab:time}; the widest are the sampled pass on Fashion-MNIST (3.2--4.5~s) and Barnes--Hut
-(171--181 and 156--184~s). The ratios are those
+\paragraph{Time} (Table~\ref{tab:time}). On MNIST 70k the sampled pass takes 3.5~s, the standalone full-batch mode
+5.1~s and the sequence 7.2~s, 8.6~s with the post-process; UMAP 10.4, PaCMAP 31, openTSNE 93, Barnes--Hut $t$-SNE
+179 (Fashion-MNIST: 3.5 / 5.0 / 6.7 / 7.7 against 10.5 / 31 / 86 / 169). The ranges over the three interleaved
+rounds are in Table~\ref{tab:time}; the widest are the sampled pass on Fashion-MNIST (3.2--3.9~s) and Barnes--Hut
+(177--182 and 162--181~s). An earlier run of the suite, before a system update of the machine, gave the same
+\magnet{} times within 0.4~s and 8.5~s for UMAP. The ratios are those
 of the shipped defaults of each library on this machine; the companion report audits openTSNE phase by phase
 (24~s of affinities, 0.15~s per iteration).
 
@@ -329,29 +333,29 @@ identical post-process; references fixed from the unprocessed runs before any po
 Tasic et al.\ 2018 (mouse cortex, 23\,822 cells, 26 subclasses derived from the cluster labels) and PBMC 68k (Zheng
 et al.\ 2017, 68\,579 cells, 11 annotated types), both log-CPM, 3000 most variable genes, PCA-50, the standard
 preprocessing of the field. The local result holds: the 15-NN overlap of \magnet{} is level with the $t$-SNE
-baselines' (Tasic: full-batch 0.489 against 0.483 for openTSNE and Barnes--Hut; PBMC: sequence 0.151 against 0.149
+baselines' (Tasic: full-batch 0.489 against 0.483 for openTSNE and Barnes--Hut; PBMC: sequence 0.150 against 0.149
 and 0.150). So does the pairwise Spearman above theirs, by the full-batch mode on Tasic (0.620 against 0.58--0.59)
-and by the sequence on PBMC (0.760 against 0.69--0.70). As shipped, the sequence has the best composite on PBMC
-(0.874, Barnes--Hut 0.872) and openTSNE and Barnes--Hut on Tasic (0.804 and 0.802, full-batch 0.795, sequence 0.772).
+and by the sequence on PBMC (0.749 against 0.69--0.70). As shipped, Barnes--Hut and the sequence have the two best
+composites on PBMC (0.872 and 0.870) and openTSNE and Barnes--Hut on Tasic (0.804 and 0.802, full-batch 0.795, sequence 0.789).
 With the post-process given to every method, the post-processed $t$-SNE layouts come first on both (Tasic:
-Barnes--Hut 0.922, openTSNE 0.916, full-batch 0.897, sequence 0.860; PBMC: 0.905, 0.897, sequence 0.881): the
-paired difference of the sequence from the post-processed Barnes--Hut layout is $-0.062 \pm 0.020$ on Tasic and
-$-0.023 \pm 0.023$ on PBMC. $k$-means ARI is again the weak axis of the \magnet{} modes (Tasic 0.43--0.53 against
+Barnes--Hut 0.922, openTSNE 0.916, full-batch 0.897, sequence 0.871; PBMC: 0.905, 0.897, sequence 0.889): the
+paired difference of the sequence from the post-processed Barnes--Hut layout is $-0.051 \pm 0.013$ on Tasic and
+$-0.016 \pm 0.024$ on PBMC. $k$-means ARI is again the weak axis of the \magnet{} modes (Tasic 0.46--0.53 against
 0.65 for UMAP and PaCMAP). The fit times of this panel were taken on a loaded machine and are not quoted.
 
-\paragraph{Other sizes and data.} With every rule frozen, on covertype 70k the sequence scores 0.622 / 0.560
-(\knn{} / Spearman) against 0.623 / 0.324 for UMAP and 0.624 / 0.298 for openTSNE; at 250k, 0.629 / 0.546; on RCV1
-text 70k, 0.490 / 0.400 against 0.495 / 0.246 for UMAP and 0.491 / 0.382 for openTSNE. These are additional sizes
-of development data families and one new text set, not a held-out population; a weaker first-stage stiffness
-transfers slightly better than the shipped one, and a refined PCA start wins on the nearly linear letter set
+\paragraph{Other sizes and data.} With every rule frozen, on covertype 70k the sequence scores 0.624 / 0.564
+(\knn{} / Spearman, one run) against 0.623 / 0.324 for UMAP and 0.624 / 0.298 for openTSNE; at 250k, 0.637 / 0.567; on RCV1
+text 70k, 0.497 / 0.405 against 0.495 / 0.246 for UMAP and 0.491 / 0.382 for openTSNE. These are additional sizes
+of development data families and one new text set, not a held-out population; in the frozen-rule study of the companion report a first-stage
+stiffness of 0.1 transfers slightly better than 0.5 (the shipped 0.2 lies between them), and a refined PCA start wins on the nearly linear letter set
 (companion report, Sec.~4).
 
 \section{Limitations}
 On held-out single-cell RNA-seq the post-processed $t$-SNE layouts beat every post-processed \magnet{} mode, so the
 matched-control ranking of the development sets does not transfer. The advantage is metric-specific: \knn{} overlap at $k = 15$ and pairwise Spearman on four development sets, with
-one text set where every neighbour embedding is weak. The MNIST class-centroid geometry of the sequence is poor
-and variable before the post-process, and its $k$-means ARI varies by $\pm 0.07$ across runs with or without
-it. The post-process optimises a sampled version of one reported metric, with settings chosen on the development
+one text set where every neighbour embedding is weak. The MNIST class-centroid geometry of the sequence (Spearman of the 45 centroid distances $0.61 \pm 0.01$)
+stays below the sampled pass's (0.635), and its $k$-means ARI varies by $\pm 0.03$--$0.04$ across runs with or
+without the post-process. The post-process optimises a sampled version of one reported metric, with settings chosen on the development
 sets; its communities come from a heuristic whose threshold has a reference but not a derivation; classes that
 are not density clusters are merged or left alone by it. On the tested small-data cases, raising the attraction exponent reduces the observed fragmentation but does not
 remove every clustering failure (the sampled pass stays behind PaCMAP for HDBSCAN clustering on phonemes, 4.5k);
@@ -365,11 +369,11 @@ of this kind is open. Timings are those of one machine and one set of library ve
 The recipe combines a sampled pass with an empirical size-dependent exponent and a transient mid-range
 attraction, a 300-iteration full-batch refinement with an interpolation box of 0.7 at an empirical hand-over scale,
 and an optional community post-process. On the two image benchmarks the unprocessed sequence obtains a \knn{} overlap similar to Barnes--Hut
-$t$-SNE's in 7.3 and 6.7~s against 175 and 174 in the interleaved suite with graph construction included (9.0 and
-7.5~s with the post-process), and a higher pairwise Spearman than UMAP, PaCMAP, openTSNE and Barnes--Hut $t$-SNE;
+$t$-SNE's in 7.2 and 6.7~s against 179 and 169 in the interleaved suite with graph construction included (8.6 and
+7.7~s with the post-process), and a higher pairwise Spearman than UMAP, PaCMAP, openTSNE and Barnes--Hut $t$-SNE;
 with identical post-processing it has the highest observed four-development-set mean composite of a
 twelve-configuration panel and wins three data-set means, its paired difference from the post-processed
-Barnes--Hut layout being $0.023 \pm 0.047$ across 20 runs and $-0.046 \pm 0.022$ on MNIST, both standard
+Barnes--Hut layout being $0.041 \pm 0.037$ across 20 runs and $-0.004 \pm 0.014$ on MNIST, both standard
 deviations of paired differences. On two held-out single-cell RNA-seq data sets the local and Spearman results hold and the post-processed ranking
 does not. What the recipe buys is therefore metric- and data-set-dependent: the
 arrangement on the sets where the global axis weighs, and on MNIST a layout whose higher Spearman comes with a
@@ -379,7 +383,7 @@ lower $k$-means ARI than a post-processed $t$-SNE's.
 (\texttt{benchmarks/theory/k*.json}, \texttt{benchmarks/cache/timing\_quiet.json}) and the scripts that produced
 every table and figure (\texttt{benchmarks/theory/k41\_matched\_postprocess.py}, \texttt{benchmarks/timing.py},
 \texttt{paper/human/make\_*.py}) are in \url{https://github.com/kerighan/lib-magnet} at the tag
-\texttt{short-paper-v4}, which is the revision this manuscript describes; the dependency manifest is
+\texttt{short-paper-v5}, which is the revision this manuscript describes; the dependency manifest is
 \texttt{paper/human/requirements-frozen.txt} (Python 3.10.8, numpy 2.2.6, scipy 1.13.1, scikit-learn 1.7.2,
 umap-learn 0.5.12, pynndescent 0.7.0, openTSNE 1.0.4, pacmap 0.9.1, trimap 1.2.0, hnne 2.0.1, hdbscan 0.8.40).
 Hardware: one 10-core / 20-thread i9-9900X, 64~GB. Data: MNIST and Fashion-MNIST from OpenML and
@@ -428,7 +432,7 @@ changes, momentum and gains. The root along the ray $sY_0$ is a stationary dilat
 jointly optimal scale; a 13-point scan found it to be the lowest evaluated value of $F(sY_0)$ along the scanned ray for the starts tested (companion report,
 Table~3): 85--102 for our sampled starts, 10 for PCA-2, about 120 for UMAP, with the full-batch layout after 600
 iterations still far from its own stationary dilation, which is the radial component of the slow expansion seen
-when the pass is continued. Handed over at its stationary dilation, the stiff start gives \knn{} / Spearman 0.349 /
+when the pass is continued. Handed over at its stationary dilation, a $\kappa = 0.5$ start gives \knn{} / Spearman 0.349 /
 0.460 against 0.350 / 0.450 at 31 and 0.357 / 0.458 at 62, at five times the cost of 31.
 
 \section{The attraction exponent at small $n$}\label{app:small}

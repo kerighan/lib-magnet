@@ -1,0 +1,14 @@
+
+=== pbmc68k: 68579 points, 11 classes, refs {'knn15': 0.1505546666666667, 'sp': 0.8640473583751136, 'ari': 0.25299031427605734}, 15853 evaluation points excluded from the search sample
+  MAGNET hybrid        seed 0: 0.150/0.747/0.195 geo 0.873 min 0.771 -> 0.148/0.757/0.197 geo 0.876 min 0.779 | fit 8.0 s, graph 3.1, post 0.8, 6 comm
+  MAGNET hybrid        seed 1: 0.149/0.749/0.195 geo 0.871 min 0.769 -> 0.148/0.762/0.192 geo 0.870 min 0.758 | fit 8.0 s, graph 3.1, post 0.7, 5 comm
+  MAGNET hybrid        seed 2: 0.151/0.749/0.193 geo 0.872 min 0.762 -> 0.151/0.819/0.207 geo 0.919 min 0.818 | fit 7.7 s, graph 3.2, post 0.7, 6 comm
+  MAGNET hybrid        seed 3: 0.150/0.757/0.178 geo 0.851 min 0.704 -> 0.150/0.822/0.191 geo 0.893 min 0.753 | fit 8.4 s, graph 3.1, post 0.7, 6 comm
+  MAGNET hybrid        seed 4: 0.150/0.745/0.201 geo 0.882 min 0.795 -> 0.150/0.736/0.207 geo 0.886 min 0.818 | fit 8.2 s, graph 3.2, post 0.6, 5 comm
+
+=== tasic2018: 23822 points, 26 classes, refs {'knn15': 0.4886026666666667, 'sp': 0.9410821338722222, 'ari': 0.6485068974870581}, 13826 evaluation points excluded from the search sample
+  MAGNET hybrid        seed 0: 0.485/0.659/0.469 geo 0.795 min 0.700 -> 0.480/0.796/0.512 geo 0.869 min 0.790 | fit 3.1 s, graph 1.0, post 1.1, 18 comm
+  MAGNET hybrid        seed 1: 0.485/0.657/0.449 geo 0.782 min 0.692 -> 0.483/0.809/0.499 geo 0.868 min 0.770 | fit 3.1 s, graph 0.9, post 1.1, 18 comm
+  MAGNET hybrid        seed 2: 0.485/0.653/0.484 geo 0.801 min 0.694 -> 0.483/0.824/0.502 geo 0.875 min 0.774 | fit 3.3 s, graph 1.0, post 1.1, 18 comm
+  MAGNET hybrid        seed 3: 0.485/0.664/0.443 geo 0.782 min 0.683 -> 0.480/0.832/0.490 geo 0.869 min 0.755 | fit 3.1 s, graph 1.0, post 1.1, 18 comm
+  MAGNET hybrid        seed 4: 0.484/0.635/0.468 geo 0.784 min 0.674 -> 0.479/0.791/0.520 geo 0.871 min 0.802 | fit 3.3 s, graph 0.9, post 1.2, 18 comm

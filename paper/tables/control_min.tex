@@ -3,10 +3,10 @@
 configuration & \multicolumn{2}{c}{MNIST 70k} & \multicolumn{2}{c}{Fashion-MNIST 70k} & \multicolumn{2}{c}{letter 20k} & \multicolumn{2}{c}{covertype 20k} & mean \\
  & plain & + post & plain & + post & plain & + post & plain & + post & + post \\
 \midrule
-\magnet{} sequence & 0.652 & 0.796 & 0.674 & \textbf{0.808} & \textbf{0.854} & \textbf{0.842} & \underline{0.710} & \textbf{0.858} & \textbf{0.826} \\
-\magnet{} full-batch & \textbf{0.718} & \textbf{0.956} & \underline{0.711} & \underline{0.774} & \underline{0.741} & \underline{0.741} & 0.473 & 0.686 & \underline{0.789} \\
+\magnet{} sequence & \textbf{0.770} & 0.917 & 0.654 & \textbf{0.793} & \textbf{0.831} & \textbf{0.824} & \underline{0.731} & \textbf{0.924} & \textbf{0.864} \\
+\magnet{} full-batch & \underline{0.718} & \textbf{0.956} & \underline{0.711} & \underline{0.774} & \underline{0.741} & \underline{0.741} & 0.473 & 0.686 & \underline{0.789} \\
 \magnet{} sampled & 0.543 & 0.541 & 0.617 & 0.617 & 0.732 & 0.729 & \textbf{0.738} & 0.738 & 0.656 \\
-Barnes-Hut t-SNE & \underline{0.693} & \underline{0.950} & \textbf{0.726} & 0.729 & 0.671 & 0.684 & 0.468 & \underline{0.753} & 0.779 \\
+Barnes-Hut t-SNE & 0.693 & \underline{0.950} & \textbf{0.726} & 0.729 & 0.671 & 0.684 & 0.468 & \underline{0.753} & 0.779 \\
 openTSNE & 0.676 & 0.947 & 0.707 & 0.712 & 0.633 & 0.663 & 0.344 & 0.601 & 0.731 \\
 UMAP & 0.329 & 0.332 & 0.404 & 0.404 & 0.399 & 0.504 & 0.482 & 0.712 & 0.488 \\
 PaCMAP & 0.265 & 0.269 & 0.299 & 0.300 & 0.679 & 0.679 & 0.540 & 0.583 & 0.458 \\

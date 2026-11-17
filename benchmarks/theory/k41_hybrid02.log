@@ -1,0 +1,49 @@
+
+=== mnist: 70000 points, 10 classes, refs {'knn15': 0.356, 'sp': 0.488, 'ari': 0.914}, 15880 evaluation points excluded from the search sample
+  MAGNET hybrid        seed 0: 0.356/0.427/0.717 geo 0.882 min 0.784 -> 0.351/0.503/0.778 geo 0.953 min 0.851 | fit 10.1 s, graph 4.4, post 1.3, 10 comm
+  MAGNET hybrid        seed 1: 0.357/0.416/0.685 geo 0.862 min 0.750 -> 0.353/0.492/0.839 geo 0.971 min 0.917 | fit 10.1 s, graph 4.6, post 1.3, 10 comm
+  MAGNET hybrid        seed 2: 0.356/0.421/0.733 geo 0.885 min 0.802 -> 0.351/0.490/0.875 geo 0.983 min 0.957 | fit 9.9 s, graph 4.6, post 1.4, 10 comm
+  MAGNET hybrid        seed 3: 0.355/0.424/0.721 geo 0.881 min 0.789 -> 0.352/0.498/0.879 geo 0.990 min 0.962 | fit 9.6 s, graph 4.6, post 1.3, 10 comm
+  MAGNET hybrid        seed 4: 0.355/0.425/0.664 geo 0.858 min 0.727 -> 0.350/0.495/0.820 geo 0.964 min 0.897 | fit 9.9 s, graph 4.4, post 1.3, 10 comm
+
+=== fmnist: 70000 points, 10 classes, refs {'knn15': 0.33, 'sp': 0.873, 'ari': 0.483}, 15880 evaluation points excluded from the search sample
+  MAGNET hybrid        seed 0: 0.329/0.728/0.302 geo 0.805 min 0.626 -> 0.329/0.699/0.430 geo 0.893 min 0.801 | fit 9.2 s, graph 4.5, post 0.8, 4 comm
+  MAGNET hybrid        seed 1: 0.329/0.725/0.336 geo 0.831 min 0.695 -> 0.329/0.673/0.412 geo 0.868 min 0.771 | fit 9.5 s, graph 4.6, post 0.8, 3 comm
+  MAGNET hybrid        seed 2: 0.328/0.729/0.324 geo 0.823 min 0.671 -> 0.328/0.695/0.435 geo 0.893 min 0.796 | fit 9.4 s, graph 4.4, post 0.9, 4 comm
+  MAGNET hybrid        seed 3: 0.329/0.727/0.323 geo 0.823 min 0.670 -> 0.328/0.696/0.428 geo 0.889 min 0.797 | fit 9.4 s, graph 4.6, post 0.9, 4 comm
+  MAGNET hybrid        seed 4: 0.329/0.728/0.294 geo 0.797 min 0.609 -> 0.329/0.698/0.433 geo 0.894 min 0.799 | fit 9.2 s, graph 4.5, post 0.9, 4 comm
+
+=== covertype_20000 (54 features, metric euclidean, hand-over scale 16.6)
+2026-11-16 16:47:54.819723: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1794844074.884253   94262 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1794844074.901379   94262 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2026-11-16 16:47:55.038404: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+
+=== letter_20000 (16 features, metric euclidean, hand-over scale 16.6)
+
+=== covertype_70000 (54 features, metric euclidean, hand-over scale 31.0)
+
+=== rcv1_70000 (300 features, metric cosine, hand-over scale 31.0)
+
+=== covertype_250000 (54 features, metric euclidean, hand-over scale 58.6)
+
+=== letter: 20000 points, 26 classes, refs {'knn15': 0.642, 'sp': 0.716}, 13232 evaluation points excluded from the search sample
+  MAGNET hybrid        seed 0: 0.625/0.594/0.176 geo 0.899 min 0.830 -> 0.612/0.588/0.196 geo 0.885 min 0.821 | fit 3.8 s, graph 1.0, post 1.8, 67 comm
+  MAGNET hybrid        seed 1: 0.626/0.596/0.182 geo 0.901 min 0.832 -> 0.609/0.589/0.178 geo 0.883 min 0.823 | fit 3.8 s, graph 1.0, post 1.6, 68 comm
+  MAGNET hybrid        seed 2: 0.626/0.602/0.163 geo 0.905 min 0.841 -> 0.611/0.596/0.190 geo 0.890 min 0.833 | fit 3.7 s, graph 1.1, post 1.7, 69 comm
+  MAGNET hybrid        seed 3: 0.625/0.592/0.185 geo 0.897 min 0.827 -> 0.614/0.588/0.171 geo 0.886 min 0.821 | fit 3.5 s, graph 0.9, post 1.7, 70 comm
+  MAGNET hybrid        seed 4: 0.626/0.593/0.158 geo 0.898 min 0.828 -> 0.613/0.589/0.164 geo 0.887 min 0.823 | fit 3.9 s, graph 1.2, post 1.7, 71 comm
+
+=== covertype: 20000 points, 7 classes, refs {'knn15': 0.632, 'sp': 0.755}, 13232 evaluation points excluded from the search sample
+  MAGNET hybrid        seed 0: 0.626/0.542/0.015 geo 0.843 min 0.717 -> 0.621/0.695/0.065 geo 0.951 min 0.920 | fit 3.8 s, graph 1.0, post 2.1, 59 comm
+  MAGNET hybrid        seed 1: 0.624/0.556/0.017 geo 0.853 min 0.737 -> 0.620/0.707/0.070 geo 0.958 min 0.937 | fit 3.7 s, graph 1.0, post 1.9, 61 comm
+  MAGNET hybrid        seed 2: 0.624/0.550/0.031 geo 0.848 min 0.728 -> 0.621/0.696/0.086 geo 0.952 min 0.922 | fit 3.9 s, graph 1.0, post 2.0, 62 comm
+  MAGNET hybrid        seed 3: 0.625/0.552/0.015 geo 0.850 min 0.731 -> 0.619/0.686/0.066 geo 0.943 min 0.908 | fit 3.7 s, graph 1.1, post 2.1, 61 comm
+  MAGNET hybrid        seed 4: 0.624/0.560/0.015 geo 0.856 min 0.741 -> 0.622/0.703/0.063 geo 0.958 min 0.932 | fit 3.7 s, graph 1.0, post 2.0, 62 comm

@@ -335,18 +335,6 @@
   "t_start": 5.658489465713501,
   "t_pass": 0.0
  },
- "covertype_20000/MAGNET hybrid (shipped)/run 0": {
-  "start": null,
-  "after": {
-   "knn15": 0.62236,
-   "sp": 0.538394229591078,
-   "trip": 0.6840695380486486,
-   "cent": 0.6922077922077923,
-   "acc": 0.7099
-  },
-  "t_start": 4.950824975967407,
-  "t_pass": 0.0
- },
  "covertype_20000/openTSNE default/run 0": {
   "start": null,
   "after": {
@@ -693,18 +681,6 @@
    "acc": 0.8957
   },
   "t_start": 6.023761749267578,
-  "t_pass": 0.0
- },
- "letter_20000/MAGNET hybrid (shipped)/run 0": {
-  "start": null,
-  "after": {
-   "knn15": 0.6229600000000001,
-   "sp": 0.6175982775374645,
-   "trip": 0.7230044362551197,
-   "cent": 0.8059710205722477,
-   "acc": 0.8925000000000001
-  },
-  "t_start": 4.937153100967407,
   "t_pass": 0.0
  },
  "letter_20000/openTSNE default/run 0": {
@@ -1055,18 +1031,6 @@
   "t_start": 8.65370798110962,
   "t_pass": 0.0
  },
- "covertype_70000/MAGNET hybrid (shipped)/run 0": {
-  "start": null,
-  "after": {
-   "knn15": 0.6217199999999999,
-   "sp": 0.5450230761950021,
-   "trip": 0.6931473377462222,
-   "cent": 0.6870129870129871,
-   "acc": 0.6974
-  },
-  "t_start": 12.708783864974976,
-  "t_pass": 0.0
- },
  "covertype_70000/openTSNE default/run 0": {
   "start": null,
   "after": {
@@ -1307,18 +1271,6 @@
   "t_start": 9.491401433944702,
   "t_pass": 0.0
  },
- "rcv1_70000/MAGNET hybrid (shipped)/run 0": {
-  "start": null,
-  "after": {
-   "knn15": 0.4898266666666667,
-   "sp": 0.40017566983380376,
-   "trip": 0.6200843188896343,
-   "cent": NaN,
-   "acc": NaN
-  },
-  "t_start": 14.348356008529663,
-  "t_pass": 0.0
- },
  "rcv1_70000/openTSNE default/run 0": {
   "start": null,
   "after": {
@@ -1451,7 +1403,55 @@
   "t_start": 19.20655107498169,
   "t_pass": 0.0
  },
- "covertype_250000/MAGNET hybrid (shipped)/run 0": {
+ "covertype_20000/MAGNET hybrid (kappa 0.5)/run 0": {
+  "start": null,
+  "after": {
+   "knn15": 0.62236,
+   "sp": 0.538394229591078,
+   "trip": 0.6840695380486486,
+   "cent": 0.6922077922077923,
+   "acc": 0.7099
+  },
+  "t_start": 4.950824975967407,
+  "t_pass": 0.0
+ },
+ "letter_20000/MAGNET hybrid (kappa 0.5)/run 0": {
+  "start": null,
+  "after": {
+   "knn15": 0.6229600000000001,
+   "sp": 0.6175982775374645,
+   "trip": 0.7230044362551197,
+   "cent": 0.8059710205722477,
+   "acc": 0.8925000000000001
+  },
+  "t_start": 4.937153100967407,
+  "t_pass": 0.0
+ },
+ "covertype_70000/MAGNET hybrid (kappa 0.5)/run 0": {
+  "start": null,
+  "after": {
+   "knn15": 0.6217199999999999,
+   "sp": 0.5450230761950021,
+   "trip": 0.6931473377462222,
+   "cent": 0.6870129870129871,
+   "acc": 0.6974
+  },
+  "t_start": 12.708783864974976,
+  "t_pass": 0.0
+ },
+ "rcv1_70000/MAGNET hybrid (kappa 0.5)/run 0": {
+  "start": null,
+  "after": {
+   "knn15": 0.4898266666666667,
+   "sp": 0.40017566983380376,
+   "trip": 0.6200843188896343,
+   "cent": NaN,
+   "acc": NaN
+  },
+  "t_start": 14.348356008529663,
+  "t_pass": 0.0
+ },
+ "covertype_250000/MAGNET hybrid (kappa 0.5)/run 0": {
   "start": null,
   "after": {
    "knn15": 0.6288,
@@ -1461,6 +1461,66 @@
    "acc": 0.6526
   },
   "t_start": 39.90748643875122,
+  "t_pass": 0.0
+ },
+ "covertype_20000/MAGNET hybrid (shipped)/run 0": {
+  "start": null,
+  "after": {
+   "knn15": 0.6253066666666667,
+   "sp": 0.5517112735667975,
+   "trip": 0.6986701248760753,
+   "cent": 0.838961038961039,
+   "acc": 0.7099
+  },
+  "t_start": 3.7640888690948486,
+  "t_pass": 0.0
+ },
+ "letter_20000/MAGNET hybrid (shipped)/run 0": {
+  "start": null,
+  "after": {
+   "knn15": 0.6251333333333334,
+   "sp": 0.5988917173704701,
+   "trip": 0.7138164812385464,
+   "cent": 0.8012262947232273,
+   "acc": 0.8965
+  },
+  "t_start": 3.7409000396728516,
+  "t_pass": 0.0
+ },
+ "covertype_70000/MAGNET hybrid (shipped)/run 0": {
+  "start": null,
+  "after": {
+   "knn15": 0.6243333333333333,
+   "sp": 0.5642168158044772,
+   "trip": 0.7059053265103796,
+   "cent": 0.8246753246753247,
+   "acc": 0.7075
+  },
+  "t_start": 9.986350536346436,
+  "t_pass": 0.0
+ },
+ "rcv1_70000/MAGNET hybrid (shipped)/run 0": {
+  "start": null,
+  "after": {
+   "knn15": 0.4968,
+   "sp": 0.40519722902815797,
+   "trip": 0.623098568982265,
+   "cent": NaN,
+   "acc": NaN
+  },
+  "t_start": 11.277529239654541,
+  "t_pass": 0.0
+ },
+ "covertype_250000/MAGNET hybrid (shipped)/run 0": {
+  "start": null,
+  "after": {
+   "knn15": 0.6369866666666667,
+   "sp": 0.566843978167204,
+   "trip": 0.7109674641244155,
+   "cent": 0.7948051948051948,
+   "acc": 0.7011
+  },
+  "t_start": 35.50998830795288,
   "t_pass": 0.0
  }
 }

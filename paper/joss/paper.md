@@ -42,7 +42,7 @@ and are slow at the scale of $10^5$ points, UMAP is fast and keeps fewer neighbo
 quantities that are usually traded against each other, the overlap of 15-nearest-neighbour sets and the
 Spearman correlation of pairwise distances, from one library, at the speed of UMAP. On MNIST 70k its full-batch
 mode reaches the 15-NN overlap of scikit-learn's Barnes--Hut $t$-SNE [@vandermaaten2014bh] (0.349 against 0.350)
-in 4.9 s against 175 s, and on MNIST and Fashion-MNIST the sequence has a higher pairwise Spearman than UMAP,
+in 5.1 s against 179 s, and on MNIST and Fashion-MNIST the sequence has a higher pairwise Spearman than UMAP,
 PaCMAP, openTSNE [@policar2019opentsne] and Barnes--Hut $t$-SNE at a 15-NN overlap comparable to the $t$-SNE
 baselines (interleaved timings on one machine, five runs for the quality figures). The community post-process
 applies to any layout and is offered as a separate function for that reason.
@@ -57,7 +57,7 @@ recipe and its implementation rather than a new objective: two existing objectiv
 a hand-over scale chosen empirically, plus a post-process. In a matched comparison in which every one of twelve
 configurations receives the same post-process (five runs, four data sets), the sequence has the highest mean of a
 composite of the two axes and of $k$-means ARI; its paired difference from a post-processed Barnes--Hut layout is
-$0.023 \pm 0.047$ and reverses on MNIST, so the advantage is data-set dependent. The companion report documents
+$0.041 \pm 0.037$ and vanishes on MNIST ($-0.004 \pm 0.014$), so the advantage is data-set dependent. The companion report documents
 every experiment behind the defaults, including the negative results.
 
 # Software design

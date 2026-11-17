@@ -32,19 +32,19 @@ nearly identical fidelity scores, five times slower: the pass is the objective a
 the implementation. The first
 stage's Spearman advantage is supplied by the mid-range attraction: without it the sampled layout scores
 below openTSNE. PaCMAP's own mid-near term, stiffened by a method-specific sweep of comparable size, reaches 0.346 / 0.648
-after the same refinement against 0.449 / 0.750 for our start (MNIST / Fashion-MNIST, five runs), a
-difference of 0.10 on both. The shipped operating point reaches 0.353 / 0.446 and 0.329 / 0.750 in 15-NN
-/ Spearman over the five runs of the seeds table (0.354 / 0.443 and 0.329 / 0.751 in the five-run matched control),
-in 7.3~s against 8.5 for UMAP and 93 for openTSNE on MNIST 70k in the quiet-machine timing suite. The result is metric
+after the same refinement against 0.449 / 0.750 for our start at stiffness 0.5 (MNIST / Fashion-MNIST, five runs), a
+difference of 0.10 on both. The shipped operating point (stiffness 0.2) reaches 0.356 / 0.426 and 0.330 / 0.727 in 15-NN
+/ Spearman over the five runs of the seeds table (0.356 / 0.423 and 0.329 / 0.728 in the five-run matched control),
+in 7.2~s against 10.4 for UMAP and 93 for openTSNE on MNIST 70k in the quiet-machine timing suite. The result is metric
 specific: the local advantage holds at the graph's own neighbourhood size and not at $k = 5$ or
-$k \ge 50$, the stiff attraction makes the class-centroid geometry of MNIST the worst and most variable
-among the methods with centroid measurements, before the post-process below PCA stays ahead of every neighbour embedding on pairwise Spearman on MNIST, Fashion-MNIST and letter (not on covertype, where the sequence, the sampled mode and TriMap exceed it),
-on 20 newsgroups the sequence trails six methods including our own full-batch mode, and on cluster
-recovery (ARI of $k$-means and HDBSCAN on the layout) the hybrid is last among the neighbour embeddings
-while PaCMAP and UMAP are first; on a composite of the three against frozen references the hybrid has the best four-set mean of the panel
-as shipped (0.85 against 0.80 for Barnes--Hut $t$-SNE) and with the same post-process given to every method
-(0.91 against 0.88), a margin that holds on three data sets of four and reverses on MNIST ($-0.046 \pm 0.022$ over five paired runs), where the
-post-processed $t$-SNE layouts converge. An optional
+$k \ge 50$, a stiffer attraction (0.5, shipped up to version 3.0.0) makes the class-centroid geometry of MNIST the worst and most variable
+among the methods with centroid measurements and lowers the $k$-means ARI, which is why the shipped stiffness is now 0.2, before the post-process PCA stays ahead of every neighbour embedding on pairwise Spearman on MNIST, Fashion-MNIST and letter (not on covertype, where the sequence, the sampled mode and TriMap exceed it),
+on 20 newsgroups the sequence trails three methods including our own full-batch mode, and on cluster
+recovery (ARI of $k$-means and HDBSCAN on the layout) the $t$-SNE-type layouts, the hybrid among them, are below
+PaCMAP and UMAP; on a composite of the three against frozen references the hybrid has the best four-set mean of the panel
+as shipped (0.86 against 0.80 for Barnes--Hut $t$-SNE) and with the same post-process given to every method
+(0.92 against 0.88), a margin that holds on three data sets of four and vanishes on MNIST ($-0.004 \pm 0.014$ over five paired runs), where the
+post-processed layouts converge. An optional
 post-process, label-free in execution, translates the communities of the fuzzy graph to raise a sampled
 distance Spearman under an overlap guard, then contracts each about its centroid: across three MNIST seeds
 the full-batch means go from 15-NN / Spearman / ARI 0.349 / 0.350 / 0.761 to 0.347 / 0.469 / 0.914 (run
@@ -54,11 +54,11 @@ With every setting frozen, the recipe reproduces the pattern on five further cas
 letter, RCV1): the pass equalises 15-NN across starts and our start keeps the highest pairwise Spearman
 on all five, by 0.07--0.13 over the stiffened PaCMAP start, with two caveats, PCA-2 refined by the same
 pass wins on a nearly linear data set and the weaker stiffness $\kappa = 0.1$ transfers better than the
-shipped 0.5. In the five-run control the sampled mode has the lowest mean fit time of the neighbour-embedding configurations on three of the four tabulated data sets; on Fashion-MNIST h-NNE is faster (5.1 against 5.8~s), and PCA is faster on all four.
+0.5 at which the rule was frozen (the shipped value is now 0.2). In the five-run control the sampled mode has the lowest mean fit time of the neighbour-embedding configurations on three of the four tabulated data sets; on Fashion-MNIST h-NNE is faster (5.1 against 5.8~s), and PCA is faster on all four.
 On two single-cell RNA-seq data sets never used during development (Tasic 2018, PBMC 68k), with every default
 frozen, the 15-NN overlap stays level with the $t$-SNE baselines' and the pairwise Spearman above theirs, while with
 the post-process given to every method the post-processed $t$-SNE layouts come first (paired difference of the
-sequence $-0.062 \pm 0.020$ and $-0.023 \pm 0.023$).
+sequence $-0.051 \pm 0.013$ and $-0.016 \pm 0.024$).
 \end{abstract}
 
 \section{Introduction}
@@ -105,8 +105,8 @@ The contributions, with their scope stated:
   open visual gaps at community boundaries.
 \item \textbf{What the global metric measures} (Sec.~\ref{sec:global}): split by class and by distance
   tercile and reduced to the class centroids, the pairwise Spearman and the centroid Spearman rank the
-  methods differently, among the configurations without the post-process PCA leads every neighbour embedding on both, and the hybrid is last among the
-  methods with centroid measurements on MNIST.
+  methods differently, among the configurations without the post-process PCA leads every neighbour embedding on both, and the hybrid at its former stiffness of 0.5 is last among the
+  methods with centroid measurements on MNIST (0.51 $\pm$ 0.08; 0.61 $\pm$ 0.01 at the shipped 0.2).
 \end{enumerate}
 A secondary contribution is the split of the kernel exponent into an attraction exponent and a
 repulsion exponent, which the implementation uses and which removes the \texttt{pow} from the
@@ -143,7 +143,7 @@ schedule is UMAP's. \emph{Mid-range attraction:} with probability
 $1/4$ a positive sample is followed by a partner $m$ of $i$ drawn from five PaCMAP-style mid-near pairs
 (the second closest of six random rows in the data space, \citealp{wang2021pacmap}; on graphs, the end
 of a short random walk), and $i$ is pulled towards $m$ with a linear spring of stiffness $\kappa$, annealed
-linearly to zero over the first half of the epochs. $\kappa = 0.1$ by default, $0.5$ in the hybrid. The
+linearly to zero over the first half of the epochs. $\kappa = 0.1$ by default, $0.2$ in the hybrid ($0.5$ up to version 3.0.0). The
 initialisation is spectral (Chebyshev-filtered subspace iteration).
 
 \paragraph{Full-batch objective (second stage, and \texttt{loss="tsne"}).} The Kullback--Leibler
@@ -169,7 +169,9 @@ normalisation, uniform weights, and $t$-SNE's perplexity-30 affinities) score at
 MNIST, Fashion-MNIST and 20 newsgroups (\texttt{k29}); $t$-SNE's own affinities are below the fuzzy graph in
 our optimiser on all three.
 
-\paragraph{The sequence (\texttt{loss="hybrid"}).} The first stage with $\kappa = 0.5$; the layout is
+\paragraph{The sequence (\texttt{loss="hybrid"}).} The first stage with $\kappa = 0.2$ (the experiments of
+this section predate that value and are run at the stiffnesses they name, 0.1 and 0.5; the benchmark rows of
+Sec.~\ref{sec:exp} are at the shipped 0.2); the layout is
 centred and rescaled to standard deviation $\sigma = 31 \sqrt{n / 70000}$ (the scale the full-batch
 mode reaches on its own at 70k points); then 300 iterations of the second stage with exaggeration 1
 throughout, momentum 0.8, no mid-range attraction. The hand-over scale is a rescaling of the start, not
@@ -220,8 +222,9 @@ the following settings, each on MNIST 70k from the same start:
   negative results on one data set.
 \end{itemize}
 The configuration kept (scale 31, no exaggeration, no zero-rest-length attraction, 300 iterations) gives 15-NN
-0.353--0.356 and Spearman 0.411--0.416 from the default start ($\kappa = 0.1$) and 0.353 $\pm$ 0.002 /
-0.446 $\pm$ 0.014 from the stiff start ($\kappa = 0.5$) over five runs (Table~\ref{tab:seeds}).
+0.353--0.356 and Spearman 0.411--0.416 from the default start ($\kappa = 0.1$), 0.356 $\pm$ 0.001 /
+0.426 $\pm$ 0.006 from the shipped start ($\kappa = 0.2$) over five runs (Table~\ref{tab:seeds}) and 0.353 $\pm$ 0.002 /
+0.446 $\pm$ 0.014 from the stiff start ($\kappa = 0.5$, five runs).
 
 \paragraph{The first stage can be tuned for global structure alone.} Since the second stage rebuilds
 the neighbourhoods, the local cost of a stiffer attraction in the first stage is erased and most of its
@@ -229,9 +232,14 @@ Spearman gain kept (Fig.~\ref{fig:hybrid}b): at $\kappa = 0.5$ the start alone s
 sequence 0.356 / 0.442; at $\kappa = 0.1$, 0.193 / 0.418 and 0.356 / 0.414 (single runs; the gap between the
 two stiffnesses is 0.041 before the pass and 0.028 after). $\kappa = 1.0$ scores higher still on
 pairwise Spearman after the pass (0.456 / 0.764 against 0.449 / 0.750 over five runs,
-Table~\ref{tab:staged_seeds}) and loses 0.04 on the blobs; $\kappa = 0.5$ is the shipped compromise, at
+Table~\ref{tab:staged_seeds}) and loses 0.04 on the blobs; $\kappa = 0.5$ was the shipped compromise up to version 3.0.0, at
 or above $\kappa = 0.1$ on 15-NN, Spearman and triplets on the four data sets and below it on the
-centroid Spearman of MNIST (Sec.~\ref{sec:global}). A shorter first stage does not work (100 epochs:
+centroid Spearman of MNIST (Sec.~\ref{sec:global}). With the $k$-means ARI counted as a third axis
+(\texttt{k53}: six data sets, five runs, the protocol and frozen references of Sec.~\ref{sec:placement}), 0.5 has
+the highest Spearman and the lowest ARI (MNIST 0.446 / 0.592 against 0.426 / 0.684 at 0.2 and 0.413 / 0.743 at
+0.1); the composite at 0.2 is level with 0.5 as shipped ($+0.005$ on average over the six sets) and above it with
+the post-process ($+0.017$, worst data set $-0.011$; 0.1 gives $+0.022$ with a worst case of $-0.024$), and 0.2 is
+the shipped value. A shorter first stage does not work (100 epochs:
 0.276 after the pass).
 
 \subsection{Staged baselines}\label{sec:stagedbase}
@@ -281,7 +289,7 @@ MNIST & PCA-2 & 0.010 $\to$ 0.315 & 0.488 $\to$ 0.399 & 0.814 $\to$ 0.811 & 15.9
  & PaCMAP & 0.094 $\to$ 0.354 & 0.306 $\to$ 0.311 & 0.684 $\to$ 0.633 & 11.4 \\
  & openTSNE & 0.348 $\to$ 0.354 & 0.329 $\to$ 0.326 & 0.607 $\to$ 0.614 & 11.8 \\
  & \magnet{} SGD, $\kappa = 0.1$ & 0.193 $\to$ 0.356 & 0.418 $\to$ 0.414 & 0.635 $\to$ 0.617 & 13.1 \\
- & \magnet{} SGD, $\kappa = 0.5$ (hybrid) & 0.178 $\to$ \textbf{0.356} & 0.459 $\to$ \textbf{0.442} & 0.524 $\to$ 0.492 & 11.8 \\
+ & \magnet{} SGD, $\kappa = 0.5$ (hybrid up to 3.0.0) & 0.178 $\to$ \textbf{0.356} & 0.459 $\to$ \textbf{0.442} & 0.524 $\to$ 0.492 & 11.8 \\
  & \magnet{} SGD, $\kappa = 0.5$ $\to$ openTSNE & 0.178 $\to$ 0.346 & 0.459 $\to$ 0.428 & 0.524 $\to$ 0.507 & 55.2 \\
  & PCA-2 $\to$ openTSNE & 0.010 $\to$ 0.333 & 0.488 $\to$ 0.376 & 0.814 $\to$ 0.756 & 60.2 \\
 \midrule
@@ -291,7 +299,7 @@ Fashion & PCA-2 & 0.018 $\to$ 0.315 & 0.873 $\to$ 0.799 & 0.971 $\to$ 0.962 & 9.
  & PaCMAP & 0.098 $\to$ 0.327 & 0.582 $\to$ 0.599 & 0.885 $\to$ 0.882 & 7.5 \\
  & openTSNE & 0.323 $\to$ 0.329 & 0.617 $\to$ 0.614 & 0.882 $\to$ 0.876 & 8.7 \\
  & \magnet{} SGD, $\kappa = 0.1$ & 0.203 $\to$ 0.328 & 0.729 $\to$ 0.716 & 0.939 $\to$ 0.908 & 8.3 \\
- & \magnet{} SGD, $\kappa = 0.5$ (hybrid) & 0.193 $\to$ 0.329 & 0.774 $\to$ \textbf{0.753} & 0.958 $\to$ 0.931 & 7.7 \\
+ & \magnet{} SGD, $\kappa = 0.5$ (hybrid up to 3.0.0) & 0.193 $\to$ 0.329 & 0.774 $\to$ \textbf{0.753} & 0.958 $\to$ 0.931 & 7.7 \\
  & \magnet{} SGD, $\kappa = 0.5$ $\to$ openTSNE & 0.193 $\to$ 0.322 & 0.774 $\to$ 0.743 & 0.958 $\to$ 0.924 & 44.1 \\
  & PCA-2 $\to$ openTSNE & 0.018 $\to$ 0.316 & 0.873 $\to$ 0.770 & 0.971 $\to$ 0.956 & 40.9 \\
 \bottomrule
@@ -423,7 +431,7 @@ It does not pick the hand-over. Handed over at $s^\ast$, the stiff start gives 0
 0.450; 62: 0.357 / 0.458) at five times the cost of 31, and PCA-2 at its $s^\ast = 10$ gives 0.319 / 0.343
 against 0.318 / 0.399 at 31 and 0.233 / 0.460 at 62. The scale is a dial between local repair and global
 retention whose stationary value the identity gives; the value that best trades the two is above the
-stationary one for PCA and below it for our starts. For the hybrid, scale 62 with the coarser FFT grid
+stationary one for PCA and below it for our starts. For the hybrid at $\kappa = 0.5$, scale 62 with the coarser FFT grid
 (box width 1.5, whose force error is 10--14\% RMS at the checked layout) gives 0.354 / 0.468 in 14~s
 against 0.356 / 0.457 in 10~s at the default (\texttt{k19}); the two changes were not separated, and the
 setting is shipped as a preset, not as a default.
@@ -452,7 +460,7 @@ full-batch layout (600 it.) & $> 124$ & & & \\
 \begin{figure}[t]
 \centering\includegraphics[width=\textwidth]{hybrid.png}
 \caption{(a) MNIST 70k, 15-NN against Spearman: the mid-range attraction is the sampled mode's
-local/global fade; the full-batch mode sits at the top of the local axis; the hybrid leads both
+local/global fade; the full-batch mode sits at the top of the local axis; the hybrid (here at $\kappa = 0.5$) leads both
 columns among the configurations shown. (b) Scores of the first stage alone (dashed) and after the pass (solid) against the
 stiffness $\kappa$ of the first stage.}
 \label{fig:hybrid}
@@ -547,27 +555,28 @@ reported metric, standard deviations below 0.001), in 6.2~s (shared machine; 8.2
 optimisation pass) against 93.5 and 186~s. $t$-SNE-CUDA on the GPU takes 13.8~s and is behind on 15-NN and Spearman (0.169
 / 0.169), level on trustworthiness. Trustworthiness is openTSNE's column (0.968 against 0.966).
 
-\paragraph{Hybrid.} Over five runs, 0.353 $\pm$ 0.002 / 0.446 $\pm$ 0.014 on MNIST and 0.329 $\pm$ 0.000
-/ 0.750 $\pm$ 0.003 on Fashion-MNIST: the highest 15-NN and the highest pairwise Spearman of the
-neighbour embeddings in Table~\ref{tab:seeds} on both data sets. The 15-NN margin over openTSNE
-(0.006) is the same as what the pass adds to openTSNE's own layout (0.348 $\to$ 0.354,
+\paragraph{Hybrid.} Over five runs, 0.356 $\pm$ 0.001 / 0.426 $\pm$ 0.006 on MNIST and 0.330 $\pm$ 0.001
+/ 0.727 $\pm$ 0.005 on Fashion-MNIST: the highest 15-NN and the highest pairwise Spearman of the
+neighbour embeddings in Table~\ref{tab:seeds} on both data sets, the Spearman by 0.010 and 0.003 over our own
+sampled mode (at the former stiffness of 0.5: 0.446 $\pm$ 0.014 and 0.750 $\pm$ 0.003). The 15-NN margin over openTSNE
+(0.009) is of the size of what the pass adds to openTSNE's own layout (0.348 $\to$ 0.354,
 Table~\ref{tab:staged}): the first stage is not necessary for the local margin; that comparison,
 which also changes affinities and budget, does not isolate the graph as its cause, and the margin is
-budget dependent (the pass reaches 0.367 at 3000 iterations). The difference with Barnes--Hut $t$-SNE (0.003 on MNIST, 0.002 on Fashion-MNIST, against a standard
-deviation of 0.002 on our side) is small and panel dependent; among staged alternatives the UMAP start
-refined by the same pass reaches 0.331 $\pm$ 0.001 on Fashion-MNIST, above the hybrid's 0.329. ``Matches
+budget dependent (the pass reaches 0.367 at 3000 iterations). The difference with Barnes--Hut $t$-SNE (0.006 on MNIST, 0.003 on Fashion-MNIST, against a standard
+deviation of 0.001 on our side) is small and panel dependent; among staged alternatives the UMAP start
+refined by the same pass reaches 0.331 $\pm$ 0.001 on Fashion-MNIST, above the hybrid's 0.330. ``Matches
 the full-batch 15-NN'' is the defensible statement. The hybrid's trustworthiness is below openTSNE's
-(0.960 against 0.968) and it trails openTSNE at $k = 5$ and $k \ge 50$ (Sec.~\ref{sec:global}). On 20
-newsgroups the hybrid's Spearman (0.073) is below UMAP (0.099), h-NNE (0.102), openTSNE (0.106), our
-full-batch mode (0.110), densMAP (0.123) and Barnes--Hut (0.232): the sequence does not help on text,
+(0.962 against 0.968) and it trails openTSNE at $k = 5$ and $k \ge 50$ (Sec.~\ref{sec:global}). On 20
+newsgroups the hybrid's Spearman (0.106, two runs at 0.114 and 0.098) is level with openTSNE's (0.106) and below our
+full-batch mode (0.115), densMAP (0.123) and Barnes--Hut (0.232): the sequence does not help on text,
 and the full-batch mode alone is the better \magnet{} row there. On the blobs the hybrid is within
 0.006 of the best \magnet{} value on each column without leading either. On Fashion-MNIST the PCA-2
 start refined by the same pass (0.315 / 0.799, Table~\ref{tab:staged}) is a Pareto alternative to the
-hybrid (0.329 / 0.753): $+0.046$ of Spearman for $-0.014$ of 15-NN; on MNIST it is not (0.315 / 0.399).
+hybrid (0.330 / 0.727): $+0.072$ of Spearman for $-0.015$ of 15-NN; on MNIST it is not (0.315 / 0.399).
 
-\paragraph{Time.} The sequence costs about UMAP's time on MNIST (8.4~s on the shared machine against
-UMAP's 8.4 idle and 9.8--11.8 under the same load; 10.9 idle before the optimisation pass) and on
-Fashion-MNIST (8.2 against 8.1), 7.3~s against 93 for openTSNE and 175 for Barnes--Hut in the quiet-machine suite. The speed claim is restricted to the
+\paragraph{Time.} The sequence costs about UMAP's time on MNIST (8.9 $\pm$ 0.8~s over the five runs of Table~\ref{tab:seeds}, whose
+hybrid rows were re-run at stiffness 0.2 on a later day than the others, against 8.4 for UMAP there) and on
+Fashion-MNIST (7.2 against 8.1); in the interleaved quiet-machine suite, 7.2~s against 10.4 for UMAP, 93 for openTSNE and 179 for Barnes--Hut. The speed claim is restricted to the
 panel and to these data sets.
 
 \paragraph{openTSNE's time.} Its defaults (perplexity 30, hence 90 neighbours, Annoy index, PCA
@@ -604,7 +613,8 @@ for the sampled mode, does as well as or better than the frozen $\kappa = 0.5$ o
 (Spearman 0.545 / 0.582 / 0.572 / 0.387 / 0.557 against 0.548 / 0.580 / 0.562 / 0.408 / 0.530) and far
 better on the centroids of covertype (0.76 / 0.87 / 0.82 against 0.70 / 0.42 / 0.63). The 0.04 that
 $\kappa = 0.5$ gains over 0.1 on MNIST is a property of MNIST; the stiffness that transfers is the
-weaker one, and the choice of 0.5 for the shipped hybrid is not supported outside the image sets. The
+weaker one: the 0.5 at which the hybrid shipped when this rule was frozen is not supported outside the image
+sets, and the shipped value is now 0.2 (the shipped rows of Table~\ref{tab:transfer} are single runs at 0.2). The
 hand-over rule holds at 250k (15-NN 0.63 at scale 59), where the whole sequence takes 40~s against
 107~s for UMAP and 146--265~s for PaCMAP at 8 threads.
 
@@ -625,14 +635,15 @@ identical post-process; references fixed from the unprocessed runs before any po
 Tasic et al.\ 2018 (mouse cortex, 23\,822 cells, 26 subclasses derived from the cluster labels) and PBMC 68k (Zheng
 et al.\ 2017, 68\,579 cells, 11 annotated types), both log-CPM, 3000 most variable genes, PCA-50, the standard
 preprocessing of the field. The local result holds: the 15-NN overlap of \magnet{} is level with the $t$-SNE
-baselines' (Tasic: full-batch 0.489 against 0.483 for openTSNE and Barnes--Hut; PBMC: sequence 0.151 against 0.149
+baselines' (Tasic: full-batch 0.489 against 0.483 for openTSNE and Barnes--Hut; PBMC: sequence 0.150 against 0.149
 and 0.150). So does the pairwise Spearman above theirs, by the full-batch mode on Tasic (0.620 against 0.58--0.59)
-and by the sequence on PBMC (0.760 against 0.69--0.70). As shipped, the sequence has the best composite on PBMC
-(0.874, Barnes--Hut 0.872) and openTSNE and Barnes--Hut on Tasic (0.804 and 0.802, full-batch 0.795, sequence 0.772).
+and by the sequence on PBMC (0.749 against 0.69--0.70). As shipped, Barnes--Hut and the sequence have the two best
+composites on PBMC (0.872 and 0.870) and openTSNE and Barnes--Hut on Tasic (0.804 and 0.802, full-batch 0.795, sequence 0.789).
 With the post-process given to every method, the post-processed $t$-SNE layouts come first on both (Tasic:
-Barnes--Hut 0.922, openTSNE 0.916, full-batch 0.897, sequence 0.860; PBMC: 0.905, 0.897, sequence 0.881): the
-paired difference of the sequence from the post-processed Barnes--Hut layout is $-0.062 \pm 0.020$ on Tasic and
-$-0.023 \pm 0.023$ on PBMC. $k$-means ARI is again the weak axis of the \magnet{} modes (Tasic 0.43--0.53 against
+Barnes--Hut 0.922, openTSNE 0.916, full-batch 0.897, sequence 0.871; PBMC: 0.905, 0.897, sequence 0.889): the
+paired difference of the sequence from the post-processed Barnes--Hut layout is $-0.051 \pm 0.013$ on Tasic and
+$-0.016 \pm 0.024$ on PBMC (the references of this panel were frozen from its unprocessed runs when the sequence ran
+at stiffness 0.5, and are kept). $k$-means ARI is again the weak axis of the \magnet{} modes (Tasic 0.46--0.53 against
 0.65 for UMAP and PaCMAP). The fit times of this panel were taken on a loaded machine and are not quoted.
 
 \begin{table}[t]
@@ -650,28 +661,28 @@ underlined, among the ranked configurations.}
 \paragraph{Linear reference.} PCA (truncated SVD on text) to 2-D, scored with the same metrics and
 samples (\texttt{baselines\_linear.py}), reaches a distance Spearman of 0.488 on MNIST, 0.873 on
 Fashion-MNIST, 0.319 on 20 newsgroups and 0.588 on the blobs, with 15-NN preservation at 0.01--0.03.
-Every neighbour embedding is below PCA on the three real sets (hybrid 0.446 / 0.750 / 0.073) and above
+Every neighbour embedding is below PCA on the three real sets (hybrid 0.426 / 0.727 / 0.106) and above
 it only on the blobs (0.690). ``Highest pairwise Spearman'' in this paper means highest among neighbour
-embeddings; the hybrid keeps 93\% of the linear value on MNIST and 86\% on Fashion-MNIST.
+embeddings; the hybrid keeps 87\% of the linear value on MNIST and 83\% on Fashion-MNIST.
 
 \paragraph{Strata and centroids.} Table~\ref{tab:strata} splits the MNIST Spearman by class membership
 and by tercile of the input distance, and reduces it to the 45 distances between class centroids. PCA
-is ahead on every pairwise stratum; the hybrid ties it on the intermediate tercile (0.132 against
-0.131) and is second elsewhere. On the centroids the order reverses: UMAP 0.728 $\pm$ 0.014, PaCMAP
-0.682, full-batch 0.658, our sampled mode 0.635 $\pm$ 0.002, openTSNE 0.605, and the hybrid 0.509
-$\pm$ 0.075, last among the methods with centroid measurements and the one unstable value of
-Table~\ref{tab:seeds}. The
+is ahead on every pairwise stratum; the hybrid is second on every one but the long tercile (0.119, behind
+UMAP's 0.130 and the sampled mode's 0.127), within 0.01 of our sampled mode everywhere. On the centroids the order
+reverses: UMAP 0.728 $\pm$ 0.014, PaCMAP
+0.682, full-batch 0.655, our sampled mode 0.635 $\pm$ 0.005, the hybrid 0.609 $\pm$ 0.014 and openTSNE 0.605
+(Table~\ref{tab:seeds}). At the former stiffness of 0.5 the hybrid's value was 0.509 $\pm$ 0.075 over five runs,
+last among the methods with centroid measurements and the one unstable value of that table. The
 pass itself moves the centroids by $-0.07$ to $+0.01$ (Table~\ref{tab:staged}); the stiff first stage
-starts at 0.52 against 0.635 for the default stiffness. The stiff attraction buys pairwise Spearman at
-the expense of the class-level geometry on MNIST; on Fashion-MNIST the hybrid's centroids (0.933 $\pm$
-0.002) are level with the sampled mode's and above every other method's. The centroid statistic is
-deterministic given a layout; its run-to-run variation here is a property of the stiff first stage.
+starts at 0.52 against 0.635 for the default stiffness. A stiff attraction buys pairwise Spearman at
+the expense of the class-level geometry on MNIST, one of the two reasons for the shipped 0.2; on Fashion-MNIST the
+hybrid's centroids (0.919 $\pm$ 0.004) are second to the sampled mode's (0.932) and above every other method's. The centroid statistic is
+deterministic given a layout; its run-to-run variation at 0.5 is a property of the stiff first stage.
 
 \paragraph{Neighbourhood scale.} Table~\ref{tab:kscale}: openTSNE leads at $k = 5$ (0.375 against
-0.351), the hybrid at $k = 15$ (0.351 against 0.348), openTSNE at $k = 50$ and 100 (0.327 / 0.329 against
-0.319 / 0.313). Continuity is 0.944--0.953 for every method, the sampled mode's the highest; the hybrid
-has the lowest trustworthiness at $k = 50$ (0.928) and is among the lowest on continuity at $k = 15$
-(0.945; PaCMAP 0.944). The
+0.356), the hybrid at $k = 15$ (0.355 against 0.349 and 0.348), openTSNE at $k = 50$ and 100 (0.327 / 0.329 against
+0.321 / 0.314). Continuity is 0.944--0.953 for every method, the sampled mode's the highest; the hybrid
+has the lowest trustworthiness at $k = 50$ (0.931). The
 hybrid's local advantage is at the scale of its graph.
 
 \begin{table}[t]
@@ -702,12 +713,15 @@ adjusted Rand index of $k$-means with $k$ the number of classes, and the ARI and
 (minimum cluster size 200, no $k$), together with a composite, each of 15-NN, Spearman and $k$-means ARI
 divided by the panel's best and combined by the geometric mean and by the minimum. The axis reverses the
 podium of the first two: PaCMAP and UMAP, last on 15-NN, are first on cluster recovery (ARI 0.914 /
-0.778 on MNIST, HDBSCAN finds 7 / 6 clusters with no noise), and the hybrid is last among the neighbour
-embeddings (ARI 0.579, HDBSCAN finds 2 clusters and discards 35\% of the points; 0.306 and 59\% on
-Fashion-MNIST): the stiff first stage and the unexaggerated pass spread the classes into one connected
-cloud. The row that is good on all three axes is the standalone full-batch mode on MNIST, first on the
-composite (0.847; hybrid 0.839, openTSNE 0.807) in 6~s against 94; on Fashion-MNIST the top four rows are
-within 0.02 (openTSNE 0.823, PCA-2 refined 0.818, hybrid 0.817, full-batch 0.806).
+0.778 on MNIST, HDBSCAN finds 7 / 6 clusters with no noise), and the $t$-SNE-type layouts are behind: on MNIST
+the hybrid's $k$-means ARI is 0.736 (full-batch 0.792, openTSNE 0.726) and HDBSCAN finds 6 clusters and discards
+55\% of the points (ARI 0.452; openTSNE 0.260, full-batch 0.080); on Fashion-MNIST 0.338 and 51\%. At the former
+stiffness of 0.5 the hybrid was last among the neighbour embeddings (ARI 0.579, 2 clusters, 35\% of noise; 0.306 and 59\% on
+Fashion-MNIST): a stiff first stage and the unexaggerated pass spread the classes into one connected
+cloud, the second reason for the shipped 0.2. On the composite of this table (single cached layouts; the hybrid's
+$k$-means ARI varies by 0.03 between runs) the hybrid is first on MNIST (0.885; full-batch 0.846, openTSNE 0.807)
+and on Fashion-MNIST, where the top four rows are
+within 0.03 (hybrid 0.839, openTSNE 0.824, PCA-2 refined 0.819, full-batch 0.807).
 
 The pass has a knob for this axis. A short exaggerated tail (\texttt{k28}: from the stiff start, $300 - L$
 iterations at exaggeration 1 then $L$ at $\rho$) trades 15-NN for separability continuously: $L = 100$,
@@ -736,7 +750,7 @@ uniform scaling of a cluster about its centroid preserves the distance ordering 
 neighbours only across its boundary; translations and contractions of clusters change the joint
 ordering of within- and between-cluster distances, which the rank statistic sees, and the partition that
 $k$-means recovers. An oracle diagnostic makes the headroom visible (\texttt{k30}): scaling each labelled
-class of the hybrid's MNIST layout about its centroid by 0.4, labels used, gives 15-NN 0.346, Spearman
+class of the hybrid's MNIST layout (stiffness 0.5) about its centroid by 0.4, labels used, gives 15-NN 0.346, Spearman
 0.418 and $k$-means ARI 0.778, a composite of 0.895 against 0.855 for the best method of the twelve-method
 panel. This oracle reaches a trade-off the parameter and graph searches of Sec.~\ref{sec:algo} did not; it
 does not say why those searches plateaued.
@@ -800,13 +814,16 @@ give each the identical step (the graph and communities of that replicate, the s
 evaluation points excluded, every setting frozen), with the composites computed per run against the frozen
 references of the unprocessed calibration panel (MNIST 0.356 / 0.488 / 0.914, Fashion-MNIST 0.330 / 0.873 /
 0.483, letter 0.642 / 0.716, covertype 0.632 / 0.755; ratios, not shares, may exceed one). As shipped, the hybrid
-has the best four-set mean (0.854 geometric; Barnes--Hut 0.799, openTSNE 0.749, UMAP and PaCMAP 0.58). With the
-same step, it stays first (0.907 against 0.883 for Barnes--Hut, 0.879 for our full-batch mode, 0.854 for
-openTSNE, 0.68 for UMAP and PaCMAP; minimum composite 0.826 against 0.779), but the paired difference against
-the post-processed Barnes--Hut layout is $0.023 \pm 0.047$ over the 20 runs and changes sign across data sets: on
-MNIST the three post-processed $t$-SNE layouts converge (0.971--0.976; the Barnes--Hut one is $0.046 \pm 0.022$
-ahead of the hybrid, whose $k$-means ARI is the unstable axis, $0.73 \pm 0.08$ with the step), on Fashion-MNIST,
-letter and covertype the hybrid keeps $0.020 \pm 0.015$, $0.071 \pm 0.003$ and $0.047 \pm 0.013$. The embedding
+has the best four-set mean (0.860 geometric; Barnes--Hut 0.799, openTSNE 0.749, UMAP and PaCMAP 0.58). With the
+same step, it stays first (0.925 against 0.883 for Barnes--Hut, 0.879 for our full-batch mode, 0.854 for
+openTSNE, 0.68 for UMAP and PaCMAP; minimum composite 0.864 against 0.779), and the paired difference against
+the post-processed Barnes--Hut layout is $0.041 \pm 0.037$ over the 20 runs, uneven across data sets: on
+MNIST the three post-processed $t$-SNE layouts converge (0.971--0.976) and the hybrid joins them (0.972; the
+Barnes--Hut one is $0.004 \pm 0.014$ ahead, the hybrid's Spearman being higher, 0.496 against 0.464, and its
+$k$-means ARI lower, $0.84 \pm 0.04$ against 0.918), on Fashion-MNIST,
+letter and covertype the hybrid keeps $0.021 \pm 0.009$, $0.062 \pm 0.002$ and $0.085 \pm 0.012$. At the former
+stiffness of 0.5 (rows archived in \texttt{k41\_matched\_postprocess.json}) the four-set means were 0.854 and
+0.907 and the MNIST difference $-0.046 \pm 0.022$. The embedding
 stages contribute beyond the post-process where the global axis weighs (the arrangement the first pass provides
 and the placement does not invent); on MNIST the post-process is the result and the strong local embeddings are
 interchangeable under it. UMAP, PaCMAP, TriMap and densMAP stay far below with the step (0.54--0.68): their weak
@@ -859,7 +876,7 @@ widens the gaps at the graph-community boundaries, on Fashion-MNIST through conn
 references on 15-NN, Spearman and $k$-means ARI (two axes on letter and covertype, whose classes are not
 clusters), computed per run and averaged over five end-to-end seeds, for every configuration as shipped (plain)
 and with the identical post-process (+ post); last column, the four-set mean of the post-processed values; best per column in bold, second underlined. Run
-standard deviations are 0.000--0.03 (0.08 for the hybrid's MNIST minimum); the paired differences are in the text. Best per column in bold, second underlined, among the ranked
+standard deviations are 0.000--0.03 (0.05 for the hybrid's MNIST minimum with the step); the paired differences are in the text. Best per column in bold, second underlined, among the ranked
 configurations; PCA-2 and PCA-2 refined by our pass are reference rows below the rule.}
 \label{tab:composite_geo}
 \resizebox{\textwidth}{!}{\input{tables/control_geo.tex}}
@@ -940,20 +957,24 @@ repulsion estimator of our full-batch mode; openTSNE is its reference implementa
 \section{Limitations}
 The recipe was developed on two image data sets at 70k points and transfers to five held-out cases
 with its settings frozen (Sec.~\ref{sec:transfer}), with the hand-over rule holding at 20k--250k; but
-the stiffness 0.5 of the shipped hybrid is an MNIST choice (0.1 transfers at least as well), on 20
-newsgroups the sequence trails Barnes--Hut $t$-SNE and five other methods on pairwise Spearman, and on
+the stiffness of the first stage is a compromise fixed on six data sets (0.5 is an MNIST choice on two axes, 0.1
+transfers at least as well on Spearman, 0.2 is shipped), on 20
+newsgroups the sequence trails Barnes--Hut $t$-SNE and two other methods on pairwise Spearman, and on
 nearly linear data PCA-2 refined by the same pass is the better global start. The staged baselines of
 Table~\ref{tab:staged} are single runs; the repeated tuned-start comparison repeats its decisive rows.
 The start's Spearman continues to drift through 3000 iterations of the pass; convergence and the
 limiting value are unknown (Sec.~\ref{sec:persist}). PCA keeps the lead on pairwise
-Spearman on every real data set among the configurations without the post-process, and the stiff attraction that gives the hybrid its pairwise Spearman
+Spearman on every real data set among the configurations without the post-process, and a stiffer attraction, which gives the hybrid more pairwise Spearman
+(0.446 against 0.426 on MNIST at 0.5),
 makes the class-centroid geometry of MNIST the worst and the most variable among the methods with
-centroid measurements. The hybrid is
-the worst neighbour embedding of the panel for cluster recovery (Sec.~\ref{sec:sep}); an exaggerated
+centroid measurements and the hybrid
+the worst neighbour embedding of the panel for cluster recovery (Sec.~\ref{sec:sep}); at the shipped 0.2 its MNIST
+$k$-means ARI is still below Barnes--Hut's ($0.70 \pm 0.03$ against 0.83). An exaggerated
 tail buys separability at a local cost and does not reach PaCMAP's $k$-means ARI. The post-process of
 Sec.~\ref{sec:placement} brings the full-batch layout's MNIST $k$-means ARI to $0.918 \pm 0.001$ over
-three seeds, level with the unprocessed panel's PaCMAP (0.914); the post-processed hybrid stays lower and
-unstable ($0.64 \pm 0.14$: its classes form one connected cloud that the separation does not pull apart). The placement fits a
+three seeds, level with the unprocessed panel's PaCMAP (0.914); the post-processed hybrid stays lower
+($0.85 \pm 0.03$ over the same seeds; $0.64 \pm 0.14$ at the former stiffness of 0.5, whose classes form one
+connected cloud that the separation does not pull apart). The placement fits a
 sampled Spearman directly, and evaluating on a sample the search did not see does not undo the
 benchmark-guided choice of its settings (resolution 0.3, $g = 0.7$, the guard, the candidates): they are
 development choices, with three runs on each image data set and single runs elsewhere, and the frozen-rule
@@ -964,8 +985,8 @@ gaps in connected data without removing graph edges; a higher ARI is not evidenc
 input. Any layout can receive the step; the matched control gives it to every method, and on MNIST the strong local
 embeddings are then interchangeable. The hybrid's
 local advantage holds at $k = 15$, the scale of its graph, and not at $k = 5$ or $k \ge 50$; its 15-NN
-margin over openTSNE is what the pass adds to openTSNE's own layout. The shipped operating point is a
-compromise ($\kappa = 1.0$ and the scale-62 preset score higher on pairwise Spearman). The
+margin over openTSNE is of the size of what the pass adds to openTSNE's own layout. The shipped operating point is a
+compromise ($\kappa = 0.5$, $\kappa = 1.0$ and the scale-62 preset score higher on pairwise Spearman, $\kappa = 0.1$ higher on $k$-means ARI). The
 full-batch and hybrid modes are 2-D only. The lock-free SGD is not bit-reproducible
 (\texttt{parallel="owner"} is, at a small cost in 15-NN). The timing comparison is end to end at
 defaults; per-component attributions are not controlled, and uwot is absent. The exponent arguments are
@@ -981,13 +1002,13 @@ nearly the same fidelity scores from the same affinities; the pairwise Spearman 
 this pipeline adding the mid-range attraction is what supplies the start's advantage. The price is paid
 in class-centroid geometry, in cluster separability, and at neighbourhood sizes other than the graph's;
 on a composite of local, global and separability against frozen references the hybrid has the best four-set
-mean of the panel, as shipped and with the same label-free post-process given to every method, except on MNIST
-where the post-processed $t$-SNE layouts converge; the post-process raises the full-batch layout's Spearman and
+mean of the panel, as shipped and with the same label-free post-process given to every method, level on MNIST
+with the post-processed $t$-SNE layouts, which converge there; the post-process raises the full-batch layout's Spearman and
 $k$-means ARI with a 15-NN loss of 0.002, to 96\% or more of each unprocessed-panel reference, and does the same
 to a Barnes--Hut $t$-SNE layout. With its settings frozen
 the staged recipe transfers to held-out tabular and text data at 20k--250k points; the post-process has
 not been given that test. The implementation runs
-the whole sequence in 1.3 times the time of a UMAP layout.
+the whole sequence in less than the time of a UMAP layout in the interleaved suite (7.2 against 10.4~s on MNIST 70k; 8.5 for UMAP in an earlier run of the suite).
 
 \appendix
 \section{Fashion-MNIST layouts}
@@ -1193,9 +1214,11 @@ finer grid matters over the whole post-exaggeration phase, not only its end. It 
 the SGD row, whose code did not change, went from 3.6 to 4.5~s on MNIST). On that machine the full-batch mode
 runs MNIST 70k in 6.2~s (8.2 idle before the pass), the sequence in 8.4~s (10.9). A later interleaved timing suite
 on the quiet machine (\texttt{benchmarks/timing.py}: fits only, all threads, numba warm-up, eight configurations
-repeated three times, graph construction included) gives on MNIST 70k: sampled pass 3.6~s, full-batch mode 4.9,
-sequence 7.3, sequence with the post-process 9.0, UMAP 8.5, PaCMAP 31, openTSNE 93, Barnes--Hut $t$-SNE 175
-(Fashion-MNIST 3.7 / 4.9 / 6.7 / 7.5 / 8.4 / 30 / 85 / 174); those are the timings the short paper quotes. The other tables
+repeated three times, graph construction included) gives on MNIST 70k: sampled pass 3.5~s, full-batch mode 5.1,
+sequence 7.2, sequence with the post-process 8.6, UMAP 10.4, PaCMAP 31, openTSNE 93, Barnes--Hut $t$-SNE 179
+(Fashion-MNIST 3.5 / 5.0 / 6.7 / 7.7 / 10.5 / 31 / 86 / 169; re-run with the sequence at stiffness 0.2, after a
+system update of the machine; the first run, at 0.5, gave 3.6 / 4.9 / 7.3 / 9.0 / 8.5 / 31 / 93 / 175 on MNIST and is
+kept in \texttt{timing\_quiet\_kappa05.json}); those are the timings the short paper quotes. The other tables
 (Tables~\ref{tab:staged_seeds}, \ref{tab:transfer}, \ref{tab:kscale}, \ref{tab:strata}) and the figures other
 than Figs.~\ref{fig:layouts} and \ref{fig:layouts_fmnist} keep their unit-box runs; the change is within
 0.004 of 15-NN on the real data sets.
