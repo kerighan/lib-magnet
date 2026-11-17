@@ -16,7 +16,7 @@ from .knn import knn_hnsw, knn_nndescent, knn_search, fuzzy_graph, prepare_data,
 from .spectral import spectral_init
 from .contraction import hierarchical_contraction
 
-__version__ = "3.0.1"
+__version__ = "3.0.2"
 __all__ = ["MAGNET", "hierarchical_contraction", "find_ab_params", "__version__"]
 
 _LOSSES = ("umap", "tsne", "hybrid", "infonce", "umap_exact")

@@ -5,8 +5,8 @@ authors:
   - family-names: Chenebaux
     given-names: Maixent
     affiliation: Trickstr
-version: 3.0.1
-date-released: 2026-11-04
+version: 3.0.2
+date-released: 2026-11-17
 repository-code: "https://github.com/kerighan/lib-magnet"
 keywords: [dimensionality reduction, neighbour embedding, t-SNE, UMAP, graph layout, visualisation]
 license: BSD-3-Clause
