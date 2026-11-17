@@ -20,15 +20,16 @@ jobs:
         run: |
           python -m pip install --upgrade pip build
           python -m build --sdist
-          python -m pip install dist/*.tar.gz pytest networkx
+          python -m pip install dist/*.tar.gz pytest pytest-timeout networkx
       - name: Run the tests against the installed package
         shell: bash
         run: |   # failures are repeated as annotations, readable without opening the log
           set +e
           cd tests
-          python -m pytest -q -rf --tb=short 2>&1 | tee ../pytest.log
+          python -m pytest -q -rf --tb=short --durations=8 --timeout=150 2>&1 | tee ../pytest.log
           rc=${PIPESTATUS[0]}
           if [ "$rc" -ne 0 ]; then
             grep -E "^(FAILED|ERROR|E  )" ../pytest.log | head -n 9 | while IFS= read -r l; do echo "::error::$l"; done
+            grep -E "s (call|setup) " ../pytest.log | head -n 8 | while IFS= read -r l; do echo "::notice::$l"; done
           fi
           exit "$rc"
